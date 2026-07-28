@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session Sound Operator</title>
+<style>
+:root{
+  --bg:#191919; --surface:#202020; --raised:#262625; --hover:#383836;
+  --text:#ffffff; --text2:rgba(255,255,255,.65); --text3:rgba(255,255,255,.38);
+  --border:rgba(255,255,255,.14); --border2:rgba(255,255,255,.22);
+  --blue:#5E9FE8; --green:#72BC8F; --orange:#DE9255; --red:#E97366;
+  --blue-soft:rgba(94,159,232,.14); --green-soft:rgba(114,188,143,.14);
+  --red-soft:rgba(233,115,102,.14); --orange-soft:rgba(222,146,85,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;background:var(--raised);border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:6px 12px;transition:background .12s}
+button:hover{background:var(--hover)}
+button:disabled{opacity:.4;cursor:default}
+input,select,textarea{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;user-select:text;-webkit-user-select:text}
+input:focus,select:focus{outline:1px solid var(--blue)}
+.small{font-size:12px;color:var(--text2)}
+.tiny{font-size:11px;color:var(--text3)}
+
+/* ===== App frame ===== */
+#app{display:flex;flex-direction:column;height:100%}
+header{display:flex;align-items:center;gap:16px;padding:0 16px;height:52px;background:var(--surface);border-bottom:1px solid var(--border);flex:none}
+header h1{font-size:15px;font-weight:700;letter-spacing:.08em;white-space:nowrap}
+header h1 span{color:var(--blue)}
+nav{display:flex;gap:4px}
+nav button{border:none;background:none;padding:6px 14px;border-radius:8px;color:var(--text2);font-weight:600;white-space:nowrap}
+nav button.active{background:var(--hover);color:var(--text)}
+#headerRight{margin-left:auto;display:flex;align-items:center;gap:12px}
+#driveBadge{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text3)}
+#driveBadge.on{color:var(--green);border-color:var(--green);background:var(--green-soft)}
+main{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;display:none;overflow:auto}
+.view.active{display:block}
+#view-perform.active{display:flex;flex-direction:column;overflow:hidden}
+
+/* ===== Perform layout ===== */
+#performTop{flex:1;min-height:0;display:flex}
+#sceneCol{width:230px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface)}
+#sceneCol .colTitle{padding:10px 14px 6px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700}
+#sceneList{flex:1;overflow-y:auto;padding:0 8px 8px}
+.sceneItem{padding:8px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;margin-bottom:4px;position:relative}
+.sceneItem:hover{background:var(--hover)}
+.sceneItem .sname{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sceneItem .smeta{font-size:11px;color:var(--text3)}
+.sceneItem.current{border-color:var(--green);background:var(--green-soft)}
+.sceneItem.next{border-color:var(--blue);background:var(--blue-soft)}
+.sceneItem .badge{position:absolute;right:8px;top:8px;font-size:9px;font-weight:800;letter-spacing:.08em;padding:1px 6px;border-radius:4px}
+.badge.cur{background:var(--green);color:#10231a}
+.badge.nxt{background:var(--blue);color:#0e1d30}
+
+#channelArea{flex:1;min-width:0;display:flex;flex-direction:column}
+#channelArea .colTitle{padding:10px 16px 2px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+#channelStrip{flex:1;display:flex;gap:8px;overflow-x:auto;padding:8px 16px 12px;align-items:stretch}
+.chan{width:76px;flex:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:8px 6px}
+.chan.silent{opacity:.55}
+.chan .cname{font-size:11px;font-weight:600;width:100%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.chan .cval{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:6px}
+.chan .cnext{font-size:10px;color:var(--blue);font-variant-numeric:tabular-nums;height:14px}
+#emptyChannels{margin:auto;text-align:center;color:var(--text3)}
+
+/* vertical fader */
+.vfader{position:relative;width:44px;flex:1;min-height:90px;cursor:ns-resize;touch-action:none}
+.vfader .track{position:absolute;left:50%;top:6px;bottom:6px;width:6px;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:3px}
+.vfader .fill{position:absolute;left:50%;bottom:6px;width:6px;transform:translateX(-50%);background:var(--blue);border-radius:3px}
+.vfader .thumb{position:absolute;left:50%;width:34px;height:16px;transform:translate(-50%,50%);background:linear-gradient(180deg,#4a4a48,#2e2e2d);border:1px solid var(--border2);border-radius:4px;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.vfader .thumb::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;background:rgba(255,255,255,.55);transform:translateY(-50%);border-radius:1px}
+.vfader .ghost{position:absolute;left:50%;width:26px;height:0;border-top:2px dashed var(--blue);transform:translateX(-50%);opacity:.8}
+.vfader.green .fill{background:var(--green)}
+.vfader.orange .fill{background:var(--orange)}
+.vfader.disabled{opacity:.45;cursor:default}
+
+/* transport */
+#transport{width:300px;flex:none;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;padding:10px 14px;gap:8px}
+#goBtn{height:84px;font-size:26px;font-weight:800;letter-spacing:.2em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:12px}
+#goBtn:hover{background:rgba(114,188,143,.25)}
+#goInfo{text-align:center;font-size:11px;color:var(--text2);min-height:16px}
+#transRow{flex:1;display:flex;gap:10px;min-height:150px}
+#xfSection{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:6px 4px}
+#xfSection .lab{font-size:9px;font-weight:800;letter-spacing:.1em}
+#xfSection .lab.top{color:var(--blue)}#xfSection .lab.bot{color:var(--green)}
+.busFader{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:6px 2px}
+.busFader .lab{font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text2)}
+.busFader .bval{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
+#stopBtn{height:40px;background:var(--red-soft);border-color:var(--red);color:var(--red);font-weight:700;letter-spacing:.1em}
+
+/* SE pads */
+#sePadBar{flex:none;border-top:1px solid var(--border);background:var(--surface);padding:8px 16px 10px}
+#sePadBar .colTitle{font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;gap:12px;align-items:center;margin-bottom:6px}
+#sePads{display:flex;gap:8px;overflow-x:auto}
+.sePad{width:96px;height:56px;flex:none;border-radius:10px;border:1px solid var(--border);background:var(--raised);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;transition:background .1s,border-color .1s}
+.sePad:hover{background:var(--hover)}
+.sePad .pname{font-size:11px;font-weight:600;max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sePad .pkey{font-size:9px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:0 4px}
+.sePad.flash{background:var(--orange-soft);border-color:var(--orange)}
+
+/* ===== generic panels (scenes/library/settings) ===== */
+.panel{max-width:1060px;margin:0 auto;padding:24px 24px 64px}
+.panel h2{font-size:18px;margin-bottom:4px}
+.panel .sub{color:var(--text2);margin-bottom:20px;font-size:13px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.card h3{font-size:14px;margin-bottom:10px}
+.rowflex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;color:var(--text3);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.iconbtn{padding:3px 8px;font-size:12px;border-radius:6px}
+.danger{color:var(--red);border-color:var(--red)}
+.accent{color:var(--blue);border-color:var(--blue);background:var(--blue-soft)}
+.hslider{-webkit-appearance:none;appearance:none;height:4px;background:var(--hover);border-radius:2px;outline:none;border:none;padding:0}
+.hslider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer}
+.tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;background:var(--hover);color:var(--text2);margin-right:4px}
+#sceneEditGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.sceneChanRow{display:flex;align-items:center;gap:8px;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.sceneChanRow .n{flex:1;min-width:80px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sceneChanRow .v{width:38px;text-align:right;font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums}
+#log{font-family:Menlo,Consolas,monospace;font-size:11px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;white-space:pre-wrap}
+kbd{font:11px Menlo,Consolas,monospace;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--raised)}
+dialog{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:420px}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+@media (max-width:1100px){#sceneCol{width:180px}#transport{width:250px}}
+@media (max-width:780px){
+  #view-perform.active{overflow:auto}
+  #performTop{min-width:780px;min-height:430px}
+  #sePadBar{min-width:780px}
+  header{overflow-x:auto;gap:10px}
+  header h1{font-size:12px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>SESSION <span>SOUND</span> OPERATOR</h1>
+  <nav>
+    <button data-view="perform" class="active">演奏</button>
+    <button data-view="scenes">シーン編集</button>
+    <button data-view="library">音源</button>
+    <button data-view="settings">設定</button>
+  </nav>
+  <div id="headerRight">
+    <span id="driveBadge">ローカル保存</span>
+    <span class="tiny" id="saveState"></span>
+  </div>
+</header>
+<main>
+
+  <!-- ============ PERFORM ============ -->
+  <div class="view active" id="view-perform">
+    <div id="performTop">
+      <div id="sceneCol">
+        <div class="colTitle">シーンリスト（クリックでNEXTに設定）</div>
+        <div id="sceneList"></div>
+      </div>
+      <div id="channelArea">
+        <div class="colTitle"><span>BGMチャンネル（フェーダーはCURRENTシーンを直接編集・即時反映）</span><span id="nowPlayingLabel" class="tiny"></span></div>
+        <div id="channelStrip"></div>
+      </div>
+      <div id="transport">
+        <button id="goBtn">GO</button>
+        <div id="goInfo"></div>
+        <div id="transRow">
+          <div id="xfSection">
+            <div class="lab top">NEXT</div>
+            <div class="vfader" id="xfader"></div>
+            <div class="lab bot">CURRENT</div>
+            <div class="tiny" id="xfVal">0%</div>
+          </div>
+          <div class="busFader"><div class="lab">SCENE</div><div class="vfader green" id="sceneVolFader"></div><div class="bval" id="sceneVolVal"></div></div>
+          <div class="busFader"><div class="lab">SE</div><div class="vfader orange" id="seVolFader"></div><div class="bval" id="seVolVal"></div></div>
+          <div class="busFader"><div class="lab">MASTER</div><div class="vfader" id="masterFader"></div><div class="bval" id="masterVal"></div></div>
+        </div>
+        <button id="stopBtn">■ ALL STOP</button>
+        <div class="tiny" style="text-align:center"><kbd>Enter</kbd> GO　<kbd>←</kbd><kbd>→</kbd> NEXT選択　<kbd>Space</kbd> 全停止　<kbd>1</kbd>–<kbd>9</kbd> SE</div>
+      </div>
+    </div>
+    <div id="sePadBar">
+      <div class="colTitle"><span>SE PADS（シーンと独立していつでもカットイン）</span></div>
+      <div id="sePads"></div>
+    </div>
+  </div>
+
+  <!-- ============ SCENES ============ -->
+  <div class="view" id="view-scenes">
+    <div class="panel">
+      <h2>シーン編集</h2>
+      <div class="sub">シーン＝全BGMチャンネルの音量値（‰ = 0〜1000）のセット。変更は自動保存されます。CURRENTシーンの値を編集すると音に即時反映されます。</div>
+      <div class="card">
+        <div class="rowflex">
+          <select id="sceneSelect" style="min-width:220px"></select>
+          <button id="addSceneBtn" class="accent">＋ シーン追加</button>
+          <button id="dupSceneBtn">複製</button>
+          <button id="upSceneBtn">↑</button>
+          <button id="downSceneBtn">↓</button>
+          <button id="delSceneBtn" class="danger">削除</button>
+        </div>
+      </div>
+      <div class="card" id="sceneEditorCard" style="display:none">
+        <div class="rowflex" style="margin-bottom:14px">
+          <label class="small">名前</label><input id="sceneNameInput" style="width:200px">
+          <label class="small" style="margin-left:12px">切替方法</label>
+          <select id="sceneModeSelect"><option value="fade">フェード</option><option value="cut">カット</option></select>
+          <span id="fadeSecWrap"><label class="small">フェード秒数</label> <input id="sceneFadeInput" type="number" min="0.1" step="0.1" style="width:70px"> <span class="small">秒</span></span>
+          <button id="allZeroBtn" style="margin-left:auto">All to 0</button>
+        </div>
+        <div id="sceneEditGrid"></div>
+        <div class="tiny" style="margin-top:10px">音量0のチャンネルはこのシーンでは不使用（移行完了時に自動停止）。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LIBRARY ============ -->
+  <div class="view" id="view-library">
+    <div class="panel">
+      <h2>音源ライブラリ</h2>
+      <div class="sub">音源データとメタデータは端末内（IndexedDB）に永続保存されます。BGM＝シーンのチャンネル／SE＝パッドから単発再生。</div>
+      <div class="card">
+        <div class="rowflex">
+          <button id="importBtn" class="accent">＋ 音声ファイルを取り込む</button>
+          <input type="file" id="fileInput" accept="audio/*" multiple style="display:none">
+          <input id="librarySearch" placeholder="検索（名前・タグ）" style="width:220px;margin-left:auto">
+          <span class="tiny" id="libCount"></span>
+        </div>
+      </div>
+      <div class="card" style="padding:6px 8px">
+        <table id="libTable">
+          <thead><tr><th style="width:26px"></th><th>名前</th><th style="width:90px">種別</th><th>タグ（カンマ区切り）</th><th style="width:150px">基準音量</th><th style="width:56px">ループ</th><th style="width:70px">長さ</th><th style="width:60px"></th></tr></thead>
+          <tbody id="libBody"></tbody>
+        </table>
+        <div id="libEmpty" class="small" style="padding:16px;text-align:center;display:none">音源がありません。「＋ 音声ファイルを取り込む」か、設定画面の「デモ一式を生成」を試してください。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div class="view" id="view-settings">
+    <div class="panel">
+      <h2>設定</h2>
+      <div class="sub">データ保存・同期、バックアップ、デモデータ。</div>
+
+      <div class="card">
+        <h3>Google Drive 同期（任意）</h3>
+        <div class="small" style="margin-bottom:10px">自分のGoogle CloudクライアントIDを設定し、自分のGoogleアカウントに接続します（スコープは drive.file のみ）。Drive上の専用フォルダに state.json と音源ファイルを保存し、起動時・接続時に同期します。<b>https で配信されたURLで開いている必要があります</b>（ローカルファイル直開きではOAuthは動作しません）。</div>
+        <div class="rowflex" style="margin-bottom:8px">
+          <label class="small">クライアントID</label>
+          <input id="clientIdInput" style="flex:1;min-width:260px" placeholder="xxxxxxxx.apps.googleusercontent.com">
+        </div>
+        <div class="rowflex" style="margin-bottom:10px">
+          <button id="driveConnectBtn" class="accent">接続して同期</button>
+          <button id="driveSyncBtn" disabled>今すぐ同期</button>
+          <button id="driveDisconnectBtn" disabled>切断</button>
+          <span class="tiny" id="driveStatus"></span>
+        </div>
+        <div id="log"></div>
+      </div>
+
+      <div class="card">
+        <h3>エクスポート／インポート</h3>
+        <div class="small" style="margin-bottom:10px">全データ（メタデータ＋音源）を1ファイルにバックアップし、別端末へ移行できます。</div>
+        <div class="rowflex">
+          <button id="exportBtn">⬇ エクスポート（.ssopack.json）</button>
+          <button id="importPackBtn">⬆ インポート</button>
+          <input type="file" id="packInput" accept=".json,application/json" style="display:none">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>デモデータ</h3>
+        <div class="small" style="margin-bottom:10px">動作確認用の音源（合成音）とシーン一式をアプリ内で自動生成します。</div>
+        <button id="demoBtn">🎚 デモ一式を生成</button>
+      </div>
+
+      <div class="card">
+        <h3>OBS・配信連携</h3>
+        <div class="small">このアプリの出力音声は、ブラウザタブの音声キャプチャ、またはOBSのブラウザソースで本アプリのURLを開くことで配信に乗せられます。Drive同期を使う場合は、GitHub Pages など https で配信されたURLで開いてください。</div>
+      </div>
+
+      <div class="card">
+        <h3>全データ削除</h3>
+        <div class="rowflex"><button id="wipeBtn" class="danger">この端末のデータをすべて削除</button><span class="tiny">Drive上のデータは削除されません。</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+<audio id="previewAudio" style="display:none"></audio>
+<script>
+"use strict";
+/* =====================================================================
+   Session Sound Operator - TRPG BGM/SE soundboard (single HTML file)
+   Structure/UI inspired by "Permille Fader" (CURRENT/NEXT + crossfader)
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp = (a,b,x)=>a+(b-a)*x;
+
+/* ===================== IndexedDB ===================== */
+const DB_NAME='session-sound-operator', DB_VER=1;
+let db=null;
+function openDB(){return new Promise((res,rej)=>{
+  const rq=indexedDB.open(DB_NAME,DB_VER);
+  rq.onupgradeneeded=()=>{const d=rq.result;
+    if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');
+    if(!d.objectStoreNames.contains('blobs'))d.createObjectStore('blobs');};
+  rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);});}
+function idb(store,mode,fn){return new Promise((res,rej)=>{
+  const tx=db.transaction(store,mode); const st=tx.objectStore(store);
+  const out=fn(st); tx.oncomplete=()=>res(out&&out.result!==undefined?out.result:undefined);
+  tx.onerror=()=>rej(tx.error);});}
+const kvGet=k=>new Promise((res,rej)=>{const rq=db.transaction('kv').objectStore('kv').get(k);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
+const kvPut=(k,v)=>idb('kv','readwrite',st=>st.put(v,k));
+const blobGet=k=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').get(k);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
+const blobPut=(k,v)=>idb('blobs','readwrite',st=>st.put(v,k));
+const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
+const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
+
+/* ===================== State ===================== */
+let state={version:1,updatedAt:0,audios:[],scenes:[],settings:{master:800,seVol:1000,driveClientId:''}};
+let saveTimer=null;
+function markDirty(){
+  state.updatedAt=Date.now();
+  $('#saveState').textContent='保存中…';
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    await kvPut('state',JSON.parse(JSON.stringify(state)));
+    $('#saveState').textContent='保存済み';
+    drive.scheduleStateUpload();
+  },400);
+}
+const audioById=id=>state.audios.find(a=>a.id===id);
+const sceneById=id=>state.scenes.find(s=>s.id===id);
+const bgmAudios=()=>state.audios.filter(a=>a.kind==='bgm');
+const seAudios=()=>state.audios.filter(a=>a.kind==='se');
+
+/* ===================== Audio Engine (Web Audio API) ===================== */
+const engine={ctx:null,master:null,sceneBus:null,seBus:null,channels:new Map(),buffers:new Map(),decoding:new Map()};
+function ensureCtx(){
+  if(!engine.ctx){
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    engine.ctx=ctx;
+    engine.master=ctx.createGain();engine.master.connect(ctx.destination);
+    engine.sceneBus=ctx.createGain();engine.sceneBus.connect(engine.master);
+    engine.seBus=ctx.createGain();engine.seBus.connect(engine.master);
+    engine.master.gain.value=state.settings.master/1000;
+    engine.seBus.gain.value=state.settings.seVol/1000;
+    engine.sceneBus.gain.value=live.sceneVol/1000;
+  }
+  if(engine.ctx.state==='suspended')engine.ctx.resume();
+  return engine.ctx;
+}
+async function getBuffer(id){
+  if(engine.buffers.has(id))return engine.buffers.get(id);
+  if(engine.decoding.has(id))return engine.decoding.get(id);
+  const p=(async()=>{
+    const blob=await blobGet(id);
+    if(!blob)throw new Error('音源データがありません: '+id);
+    const ab=await blob.arrayBuffer();
+    const buf=await ensureCtx().decodeAudioData(ab);
+    engine.buffers.set(id,buf);engine.decoding.delete(id);
+    return buf;})();
+  engine.decoding.set(id,p);return p;
+}
+function setGainSmooth(param,v){const t=engine.ctx.currentTime;param.setTargetAtTime(v,t,0.015);}
+async function ensureChannel(id){
+  ensureCtx();
+  let ch=engine.channels.get(id);
+  if(ch&&ch.playing)return ch;
+  const a=audioById(id);if(!a)return null;
+  const buf=await getBuffer(id);
+  if(ch&&ch.playing)return ch; // decoded twice guard
+  const gain=engine.ctx.createGain();gain.gain.value=0;gain.connect(engine.sceneBus);
+  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=!!a.loop;
+  src.connect(gain);src.start();
+  ch={gain,src,playing:true};
+  src.onended=()=>{if(!a.loop&&engine.channels.get(id)===ch){ch.playing=false;}};
+  engine.channels.set(id,ch);
+  return ch;
+}
+function stopChannel(id){
+  const ch=engine.channels.get(id);
+  if(ch&&ch.playing){try{ch.src.stop();}catch(e){}try{ch.gain.disconnect();}catch(e){}ch.playing=false;}
+  engine.channels.delete(id);
+}
+
+/* ---- live mix state ---- */
+const live={
+  currentSceneId:null,      // null = silence
+  currentValues:{},         // audioId -> permille
+  nextSceneId:null,
+  trans:null,               // {from,to,x,mode:'auto'|'manual',t0,dur,toSceneId}
+  sceneVol:1000,
+};
+function effectiveValue(id){
+  if(live.trans){const f=live.trans.from[id]||0,t=live.trans.to[id]||0;return lerp(f,t,live.trans.x);}
+  return live.currentValues[id]||0;
+}
+function applyMix(){
+  if(!engine.ctx)return;
+  for(const a of bgmAudios()){
+    const v=effectiveValue(a.id);
+    const ch=engine.channels.get(a.id);
+    if(ch&&ch.playing)setGainSmooth(ch.gain.gain,(v/1000)*((a.baseVolume??1000)/1000));
+  }
+}
+async function startNeededChannels(values){
+  const jobs=[];
+  for(const a of bgmAudios())if((values[a.id]||0)>0)jobs.push(ensureChannel(a.id));
+  await Promise.all(jobs);
+}
+function sceneAfter(id){
+  const i=state.scenes.findIndex(s=>s.id===id);
+  if(i<0)return state.scenes[0]?state.scenes[0].id:null;
+  return state.scenes[i+1]?state.scenes[i+1].id:null;
+}
+async function beginTransition(mode){
+  if(!live.nextSceneId)return false;
+  const to=sceneById(live.nextSceneId);if(!to)return false;
+  const from={};for(const a of bgmAudios())from[a.id]=effectiveValue(a.id);
+  live.trans={from,to:{...to.values},x:0,mode,t0:performance.now(),dur:(to.fadeSec||3)*1000,toSceneId:to.id};
+  await startNeededChannels(to.values);
+  return true;
+}
+function finalizeTransition(){
+  const t=live.trans;if(!t)return;
+  live.currentSceneId=t.toSceneId;
+  live.currentValues={...t.to};
+  live.trans=null;
+  for(const a of bgmAudios())if((live.currentValues[a.id]||0)<=0)stopChannel(a.id);
+  live.sceneVol=1000;
+  if(engine.ctx)setGainSmooth(engine.sceneBus.gain,1);
+  live.nextSceneId=sceneAfter(t.toSceneId);
+  applyMix();
+  ui.xfader.set(0);
+  renderPerform();
+}
+function cancelTransition(){
+  const t=live.trans;if(!t)return;
+  live.trans=null;
+  for(const a of bgmAudios())if((live.currentValues[a.id]||0)<=0)stopChannel(a.id);
+  applyMix();ui.xfader.set(0);renderPerform();
+}
+async function doGO(){
+  ensureCtx();
+  if(live.trans){ // GO during transition = jump to completion (enables rapid GO-GO-GO)
+    live.trans.x=1;applyMix();finalizeTransition();return;
+  }
+  if(!live.nextSceneId)return;
+  const to=sceneById(live.nextSceneId);if(!to)return;
+  if(to.mode==='cut'){
+    await beginTransition('auto');
+    live.trans.x=1;
+    // hard cut: set gains instantly
+    for(const a of bgmAudios()){const ch=engine.channels.get(a.id);
+      if(ch&&ch.playing)ch.gain.gain.setValueAtTime(((to.values[a.id]||0)/1000)*((a.baseVolume??1000)/1000),engine.ctx.currentTime);}
+    finalizeTransition();
+  }else{
+    await beginTransition('auto');
+    renderPerform();
+  }
+}
+function allStop(){
+  live.trans=null;
+  live.currentSceneId=null;
+  live.currentValues={};
+  for(const a of state.audios)stopChannel(a.id);
+  for(const p of sePlaying){try{p.stop();}catch(e){}}
+  sePlaying.clear();
+  live.sceneVol=1000;
+  if(engine.ctx)engine.sceneBus.gain.setValueAtTime(1,engine.ctx.currentTime);
+  ui.xfader.set(0);
+  renderPerform();
+}
+/* ---- SE one-shot ---- */
+const sePlaying=new Set();
+async function triggerSE(id){
+  ensureCtx();
+  const a=audioById(id);if(!a)return;
+  const buf=await getBuffer(id);
+  const g=engine.ctx.createGain();g.gain.value=(a.baseVolume??1000)/1000;g.connect(engine.seBus);
+  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=false;src.connect(g);
+  src.onended=()=>{sePlaying.delete(src);try{g.disconnect();}catch(e){}};
+  sePlaying.add(src);src.start();
+  const pad=$(`.sePad[data-id="${id}"]`);
+  if(pad){pad.classList.add('flash');setTimeout(()=>pad.classList.remove('flash'),180);}
+}
+/* ---- animation loop ---- */
+function tick(){
+  const t=live.trans;
+  if(t&&t.mode==='auto'){
+    t.x=clamp((performance.now()-t.t0)/t.dur,0,1);
+    applyMix();
+    ui.xfader.set(t.x*1000,true);
+    if(t.x>=1)finalizeTransition();else updateChannelReadouts();
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ===================== Vertical fader component ===================== */
+function VFader(el,{onInput,onChange,max=1000}={}){
+  let value=0,ghost=null,disabled=false;
+  const track=document.createElement('div');track.className='track';
+  const fill=document.createElement('div');fill.className='fill';
+  const thumb=document.createElement('div');thumb.className='thumb';
+  const ghostEl=document.createElement('div');ghostEl.className='ghost';ghostEl.style.display='none';
+  el.append(track,fill,ghostEl,thumb);
+  function h(){return el.clientHeight-12;}
+  function render(){
+    const r=clamp(value/max,0,1);
+    fill.style.height=(r*h())+'px';
+    thumb.style.bottom=(6+r*h())+'px';
+    if(ghost==null)ghostEl.style.display='none';
+    else{ghostEl.style.display='';ghostEl.style.bottom=(6+clamp(ghost/max,0,1)*h())+'px';}
+  }
+  function fromEvent(e){
+    const rect=el.getBoundingClientRect();
+    const y=clamp(rect.bottom-6-e.clientY,0,h());
+    return Math.round((y/h())*max);
+  }
+  let dragging=false;
+  el.addEventListener('pointerdown',e=>{if(disabled)return;dragging=true;el.setPointerCapture(e.pointerId);value=fromEvent(e);render();onInput&&onInput(value);});
+  el.addEventListener('pointermove',e=>{if(!dragging)return;value=fromEvent(e);render();onInput&&onInput(value);});
+  el.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;onChange&&onChange(value);});
+  new ResizeObserver(render).observe(el);
+  return{
+    set(v,silent){value=clamp(v,0,max);render();},
+    get(){return value;},
+    setGhost(v){ghost=v;render();},
+    setDisabled(d){disabled=d;el.classList.toggle('disabled',d);},
+    el
+  };
+}
+</script>
+<script>
+/* ===================== UI: views & navigation ===================== */
+const ui={};
+$$('nav button').forEach(b=>b.addEventListener('click',()=>{
+  $$('nav button').forEach(x=>x.classList.toggle('active',x===b));
+  $$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
+  if(b.dataset.view==='perform')renderPerform();
+  if(b.dataset.view==='scenes')renderScenesView();
+  if(b.dataset.view==='library')renderLibrary();
+}));
+
+/* ===================== Perform view ===================== */
+let chanFaders=new Map(); // audioId -> vfader
+function renderSceneList(){
+  const list=$('#sceneList');list.innerHTML='';
+  for(const s of state.scenes){
+    const d=document.createElement('div');d.className='sceneItem';
+    if(s.id===live.currentSceneId)d.classList.add('current');
+    if(s.id===live.nextSceneId)d.classList.add('next');
+    const mode=s.mode==='cut'?'CUT':`FADE ${s.fadeSec??3}s`;
+    d.innerHTML=`<div class="sname"></div><div class="smeta">${mode}</div>`;
+    d.querySelector('.sname').textContent=s.name;
+    if(s.id===live.currentSceneId)d.insertAdjacentHTML('beforeend','<span class="badge cur">CURRENT</span>');
+    else if(s.id===live.nextSceneId)d.insertAdjacentHTML('beforeend','<span class="badge nxt">NEXT</span>');
+    d.addEventListener('click',()=>{if(live.trans)return;live.nextSceneId=s.id;renderPerform();});
+    list.appendChild(d);
+  }
+  if(!state.scenes.length)list.innerHTML='<div class="small" style="padding:12px">シーンがありません。「シーン編集」で作成するか、設定のデモ生成をどうぞ。</div>';
+}
+function renderChannels(){
+  const strip=$('#channelStrip');strip.innerHTML='';chanFaders.clear();
+  const list=bgmAudios();
+  if(!list.length){strip.innerHTML='<div id="emptyChannels">BGM音源がありません。「音源」画面で取り込むか、設定のデモ生成をお試しください。</div>';return;}
+  const nextScene=live.nextSceneId?sceneById(live.nextSceneId):null;
+  for(const a of list){
+    const v=Math.round(effectiveValue(a.id));
+    const d=document.createElement('div');d.className='chan'+(v<=0?' silent':'');
+    d.innerHTML=`<div class="cname"></div><div class="cnext"></div><div class="vfader"></div><div class="cval"></div>`;
+    d.querySelector('.cname').textContent=a.name;
+    d.querySelector('.cname').title=a.name;
+    const nv=nextScene?(nextScene.values[a.id]||0):null;
+    d.querySelector('.cnext').textContent=(nv!=null&&nv!==v)?('▸ '+nv):'';
+    const f=VFader(d.querySelector('.vfader'),{
+      onInput(val){
+        if(live.trans||!live.currentSceneId)return;
+        const sc=sceneById(live.currentSceneId);if(!sc)return;
+        sc.values[a.id]=val;live.currentValues[a.id]=val;
+        if(val>0)ensureChannel(a.id).then(applyMix);
+        applyMix();
+        d.querySelector('.cval').textContent=val+'‰';
+        d.classList.toggle('silent',val<=0);
+        markDirty();
+      }
+    });
+    f.set(v);
+    if(nv!=null&&nv!==v)f.setGhost(nv);
+    f.setDisabled(!!live.trans||!live.currentSceneId);
+    d.querySelector('.cval').textContent=v+'‰';
+    chanFaders.set(a.id,{fader:f,el:d});
+    strip.appendChild(d);
+  }
+}
+function updateChannelReadouts(){
+  for(const[id,{fader,el}]of chanFaders){
+    const v=Math.round(effectiveValue(id));
+    fader.set(v);
+    el.querySelector('.cval').textContent=v+'‰';
+    el.classList.toggle('silent',v<=0);
+  }
+}
+function renderTransport(){
+  const next=live.nextSceneId?sceneById(live.nextSceneId):null;
+  const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
+  $('#goBtn').disabled=!next&&!live.trans;
+  $('#goInfo').textContent=next?`NEXT: ${next.name}（${next.mode==='cut'?'カット':'フェード '+(next.fadeSec??3)+'秒'}）`:'NEXT未選択';
+  $('#nowPlayingLabel').textContent=cur?`CURRENT: ${cur.name}`:'CURRENT: （無音）';
+  ui.xfader.setDisabled(!next&&!live.trans);
+}
+function renderPerform(){renderSceneList();renderChannels();renderTransport();renderSEPads();}
+function renderSEPads(){
+  const wrap=$('#sePads');wrap.innerHTML='';
+  const list=seAudios();
+  if(!list.length){wrap.innerHTML='<div class="small" style="padding:4px">SE音源がありません。「音源」画面で種別をSEにするとパッドに並びます。</div>';return;}
+  list.forEach((a,i)=>{
+    const b=document.createElement('button');b.className='sePad';b.dataset.id=a.id;
+    b.innerHTML=`<span class="pname"></span>${i<9?`<span class="pkey">${i+1}</span>`:''}`;
+    b.querySelector('.pname').textContent=a.name;
+    b.title=a.name;
+    b.addEventListener('click',()=>triggerSE(a.id));
+    wrap.appendChild(b);
+  });
+}
+
+/* transport controls */
+ui.xfader=VFader($('#xfader'),{
+  async onInput(v){
+    if(live.trans&&live.trans.mode==='auto')return;
+    if(!live.trans){
+      if(!live.nextSceneId||v<=0){ui.xfader.set(0);return;}
+      ensureCtx();
+      const ok=await beginTransition('manual');
+      if(!ok){ui.xfader.set(0);return;}
+    }
+    live.trans.x=v/1000;
+    $('#xfVal').textContent=Math.round(v/10)+'%';
+    applyMix();updateChannelReadouts();
+    if(v>=1000){finalizeTransition();$('#xfVal').textContent='0%';}
+    else if(v<=0){cancelTransition();$('#xfVal').textContent='0%';}
+  }
+});
+const _xfSet=ui.xfader.set;
+ui.xfader.set=(v,silent)=>{_xfSet(v);$('#xfVal').textContent=Math.round(v/10)+'%';};
+
+ui.sceneVol=VFader($('#sceneVolFader'),{onInput(v){
+  live.sceneVol=v;ensureCtx();setGainSmooth(engine.sceneBus.gain,v/1000);
+  $('#sceneVolVal').textContent=Math.round(v/10)+'%';
+}});
+ui.seVol=VFader($('#seVolFader'),{onInput(v){
+  state.settings.seVol=v;ensureCtx();setGainSmooth(engine.seBus.gain,v/1000);
+  $('#seVolVal').textContent=Math.round(v/10)+'%';markDirty();
+}});
+ui.masterVol=VFader($('#masterFader'),{onInput(v){
+  state.settings.master=v;ensureCtx();setGainSmooth(engine.master.gain,v/1000);
+  $('#masterVal').textContent=Math.round(v/10)+'%';markDirty();
+}});
+function syncBusFaders(){
+  ui.sceneVol.set(live.sceneVol);$('#sceneVolVal').textContent=Math.round(live.sceneVol/10)+'%';
+  ui.seVol.set(state.settings.seVol);$('#seVolVal').textContent=Math.round(state.settings.seVol/10)+'%';
+  ui.masterVol.set(state.settings.master);$('#masterVal').textContent=Math.round(state.settings.master/10)+'%';
+}
+const _finalize=finalizeTransition;
+finalizeTransition=function(){_finalize();syncBusFaders();};
+$('#goBtn').addEventListener('click',doGO);
+$('#stopBtn').addEventListener('click',allStop);
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  const t=e.target;
+  if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'))return;
+  if(e.repeat)return;
+  if(e.key==='Enter'){e.preventDefault();doGO();}
+  else if(e.key===' '){e.preventDefault();allStop();}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+    e.preventDefault();
+    if(live.trans||!state.scenes.length)return;
+    let i=state.scenes.findIndex(s=>s.id===live.nextSceneId);
+    if(i<0)i=0;else i=clamp(i+(e.key==='ArrowRight'?1:-1),0,state.scenes.length-1);
+    live.nextSceneId=state.scenes[i].id;renderPerform();
+  }
+  else if(/^[1-9]$/.test(e.key)){
+    const a=seAudios()[Number(e.key)-1];
+    if(a)triggerSE(a.id);
+  }
+});
+
+/* ===================== Scenes editor ===================== */
+let editSceneId=null;
+function renderScenesView(){
+  const sel=$('#sceneSelect');sel.innerHTML='';
+  for(const s of state.scenes){
+    const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);
+  }
+  if(!state.scenes.length){editSceneId=null;$('#sceneEditorCard').style.display='none';return;}
+  if(!editSceneId||!sceneById(editSceneId))editSceneId=state.scenes[0].id;
+  sel.value=editSceneId;
+  renderSceneEditor();
+}
+function renderSceneEditor(){
+  const s=sceneById(editSceneId);
+  if(!s){$('#sceneEditorCard').style.display='none';return;}
+  $('#sceneEditorCard').style.display='';
+  $('#sceneNameInput').value=s.name;
+  $('#sceneModeSelect').value=s.mode;
+  $('#sceneFadeInput').value=s.fadeSec??3;
+  $('#fadeSecWrap').style.display=s.mode==='fade'?'':'none';
+  const grid=$('#sceneEditGrid');grid.innerHTML='';
+  for(const a of bgmAudios()){
+    const row=document.createElement('div');row.className='sceneChanRow';
+    row.innerHTML=`<span class="n"></span><input type="range" class="hslider" min="0" max="1000" step="5" style="flex:2"><span class="v"></span>`;
+    row.querySelector('.n').textContent=a.name;row.querySelector('.n').title=a.name;
+    const sl=row.querySelector('input'),vl=row.querySelector('.v');
+    sl.value=s.values[a.id]||0;vl.textContent=(s.values[a.id]||0)+'‰';
+    sl.addEventListener('input',()=>{
+      const v=Number(sl.value);s.values[a.id]=v;vl.textContent=v+'‰';
+      if(s.id===live.currentSceneId&&!live.trans){
+        live.currentValues[a.id]=v;
+        if(v>0)ensureChannel(a.id).then(applyMix);
+        applyMix();
+      }
+      markDirty();
+    });
+    grid.appendChild(row);
+  }
+  if(!bgmAudios().length)grid.innerHTML='<div class="small">BGM音源がありません。先に「音源」画面で取り込んでください。</div>';
+}
+$('#sceneSelect').addEventListener('change',e=>{editSceneId=e.target.value;renderSceneEditor();});
+$('#addSceneBtn').addEventListener('click',()=>{
+  const s={id:uid(),name:'New Scene '+(state.scenes.length+1),mode:'fade',fadeSec:3,values:{}};
+  state.scenes.push(s);editSceneId=s.id;
+  if(!live.nextSceneId)live.nextSceneId=s.id;
+  markDirty();renderScenesView();
+});
+$('#dupSceneBtn').addEventListener('click',()=>{
+  const s=sceneById(editSceneId);if(!s)return;
+  const c={id:uid(),name:s.name+' copy',mode:s.mode,fadeSec:s.fadeSec,values:{...s.values}};
+  state.scenes.splice(state.scenes.indexOf(s)+1,0,c);editSceneId=c.id;markDirty();renderScenesView();
+});
+$('#delSceneBtn').addEventListener('click',()=>{
+  const i=state.scenes.findIndex(s=>s.id===editSceneId);if(i<0)return;
+  if(!confirm('シーン「'+state.scenes[i].name+'」を削除しますか？'))return;
+  const delId=state.scenes[i].id;
+  state.scenes.splice(i,1);
+  if(live.nextSceneId===delId)live.nextSceneId=state.scenes[i]?state.scenes[i].id:(state.scenes[0]?state.scenes[0].id:null);
+  if(live.currentSceneId===delId)live.currentSceneId=null;
+  editSceneId=state.scenes[Math.min(i,state.scenes.length-1)]?.id||null;
+  markDirty();renderScenesView();
+});
+function moveScene(dir){
+  const i=state.scenes.findIndex(s=>s.id===editSceneId);
+  const j=i+dir;if(i<0||j<0||j>=state.scenes.length)return;
+  const[s]=state.scenes.splice(i,1);state.scenes.splice(j,0,s);
+  markDirty();renderScenesView();
+}
+$('#upSceneBtn').addEventListener('click',()=>moveScene(-1));
+$('#downSceneBtn').addEventListener('click',()=>moveScene(1));
+$('#sceneNameInput').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.name=e.target.value||s.name;markDirty();renderScenesView();}});
+$('#sceneModeSelect').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.mode=e.target.value;markDirty();renderSceneEditor();}});
+$('#sceneFadeInput').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.fadeSec=Math.max(0.1,Number(e.target.value)||3);markDirty();}});
+$('#allZeroBtn').addEventListener('click',()=>{
+  const s=sceneById(editSceneId);if(!s)return;
+  for(const a of bgmAudios())s.values[a.id]=0;
+  if(s.id===live.currentSceneId&&!live.trans){live.currentValues={};applyMix();}
+  markDirty();renderSceneEditor();
+});
+</script>
+<script>
+/* ===================== Library ===================== */
+async function importFiles(files){
+  ensureCtx();
+  for(const f of files){
+    const id=uid();
+    let dur=0;
+    try{const ab=await f.arrayBuffer();const buf=await engine.ctx.decodeAudioData(ab.slice(0));dur=buf.duration;engine.buffers.set(id,buf);}catch(e){alert('読み込めませんでした: '+f.name);continue;}
+    await blobPut(id,f);
+    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind:'bgm',tags:[],baseVolume:1000,loop:true,duration:dur,size:f.size,type:f.type||'audio/mpeg'});
+    drive.scheduleAudioUpload(id);
+  }
+  markDirty();renderLibrary();
+}
+$('#importBtn').addEventListener('click',()=>$('#fileInput').click());
+$('#fileInput').addEventListener('change',e=>{importFiles([...e.target.files]);e.target.value='';});
+$('#librarySearch').addEventListener('input',renderLibrary);
+let previewingId=null;
+async function togglePreview(id,btn){
+  const el=$('#previewAudio');
+  if(previewingId===id){el.pause();el.src='';previewingId=null;renderLibrary();return;}
+  const blob=await blobGet(id);if(!blob)return;
+  el.src=URL.createObjectURL(blob);el.play();previewingId=id;
+  el.onended=()=>{previewingId=null;renderLibrary();};
+  renderLibrary();
+}
+function fmtDur(s){if(!s)return'–';const m=Math.floor(s/60),ss=Math.round(s%60);return m+':'+String(ss).padStart(2,'0');}
+function renderLibrary(){
+  const q=($('#librarySearch').value||'').toLowerCase();
+  const body=$('#libBody');body.innerHTML='';
+  const list=state.audios.filter(a=>!q||a.name.toLowerCase().includes(q)||a.tags.some(t=>t.toLowerCase().includes(q)));
+  $('#libCount').textContent=state.audios.length+' 件';
+  $('#libEmpty').style.display=state.audios.length?'none':'';
+  for(const a of list){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><button class="iconbtn" data-act="prev">${previewingId===a.id?'■':'▶'}</button></td>
+      <td><input data-act="name" style="width:100%"></td>
+      <td><select data-act="kind"><option value="bgm">BGM</option><option value="se">SE</option></select></td>
+      <td><input data-act="tags" style="width:100%" placeholder="例: 戦闘,森"></td>
+      <td><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10" style="width:90px"> <span class="tiny"></span></td>
+      <td style="text-align:center"><input type="checkbox" data-act="loop"></td>
+      <td class="small">${fmtDur(a.duration)}</td>
+      <td><button class="iconbtn danger" data-act="del">削除</button></td>`;
+    tr.querySelector('[data-act=name]').value=a.name;
+    tr.querySelector('[data-act=kind]').value=a.kind;
+    tr.querySelector('[data-act=tags]').value=a.tags.join(', ');
+    tr.querySelector('[data-act=vol]').value=a.baseVolume??1000;
+    tr.querySelector('[data-act=vol]').nextElementSibling.textContent=Math.round((a.baseVolume??1000)/10)+'%';
+    tr.querySelector('[data-act=loop]').checked=!!a.loop;
+    tr.querySelector('[data-act=prev]').addEventListener('click',()=>togglePreview(a.id));
+    tr.querySelector('[data-act=name]').addEventListener('change',e=>{a.name=e.target.value||a.name;markDirty();});
+    tr.querySelector('[data-act=kind]').addEventListener('change',e=>{a.kind=e.target.value;stopChannel(a.id);markDirty();});
+    tr.querySelector('[data-act=tags]').addEventListener('change',e=>{a.tags=e.target.value.split(',').map(t=>t.trim()).filter(Boolean);markDirty();});
+    tr.querySelector('[data-act=vol]').addEventListener('input',e=>{a.baseVolume=Number(e.target.value);e.target.nextElementSibling.textContent=Math.round(a.baseVolume/10)+'%';applyMix();markDirty();});
+    tr.querySelector('[data-act=loop]').addEventListener('change',e=>{a.loop=e.target.checked;stopChannel(a.id);markDirty();});
+    tr.querySelector('[data-act=del]').addEventListener('click',async()=>{
+      if(!confirm('音源「'+a.name+'」を削除しますか？'))return;
+      stopChannel(a.id);engine.buffers.delete(a.id);await blobDel(a.id);
+      state.audios=state.audios.filter(x=>x.id!==a.id);
+      for(const s of state.scenes)delete s.values[a.id];
+      delete live.currentValues[a.id];
+      markDirty();renderLibrary();
+    });
+    body.appendChild(tr);
+  }
+}
+
+/* ===================== Export / Import ===================== */
+function blobToB64(blob){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.readAsDataURL(blob);});}
+function b64ToBlob(b64,type){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type});}
+$('#exportBtn').addEventListener('click',async()=>{
+  const blobs={};
+  for(const a of state.audios){const b=await blobGet(a.id);if(b)blobs[a.id]={type:b.type,b64:await blobToB64(b)};}
+  const pack={app:'session-sound-operator',version:1,exportedAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(state)),blobs};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(pack)],{type:'application/json'}));
+  const el=document.createElement('a');el.href=url;el.download='session-sound-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.ssopack.json';el.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+});
+$('#importPackBtn').addEventListener('click',()=>$('#packInput').click());
+$('#packInput').addEventListener('change',async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{
+    const pack=JSON.parse(await f.text());
+    if(pack.app!=='session-sound-operator')throw new Error('bad file');
+    if(!confirm('現在のデータをインポート内容で置き換えますか？'))return;
+    allStop();engine.buffers.clear();
+    for(const k of await blobKeys())await blobDel(k);
+    state=pack.state;
+    for(const[id,b]of Object.entries(pack.blobs||{}))await blobPut(id,b64ToBlob(b.b64,b.type));
+    live.currentSceneId=null;live.currentValues={};live.nextSceneId=state.scenes[0]?.id||null;
+    markDirty();renderAll();
+    alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件）');
+  }catch(err){alert('インポートに失敗しました: '+err.message);}
+});
+$('#wipeBtn').addEventListener('click',async()=>{
+  if(!confirm('この端末の全データ（音源・シーン・設定）を削除しますか？'))return;
+  allStop();engine.buffers.clear();
+  for(const k of await blobKeys())await blobDel(k);
+  state={version:1,updatedAt:Date.now(),audios:[],scenes:[],settings:{master:800,seVol:1000,driveClientId:''}};
+  live.currentSceneId=null;live.currentValues={};live.nextSceneId=null;
+  await kvPut('state',JSON.parse(JSON.stringify(state)));
+  renderAll();
+});
+
+/* ===================== Google Drive sync (GIS / drive.file) ===================== */
+const drive={
+  token:null,folderId:null,fileIds:{},connected:false,stateTimer:null,pendingAudio:new Set(),
+  log(msg){const el=$('#log');el.textContent+=`[${new Date().toLocaleTimeString()}] ${msg}\n`;el.scrollTop=el.scrollHeight;},
+  setBadge(){
+    const b=$('#driveBadge');
+    b.classList.toggle('on',drive.connected);
+    b.textContent=drive.connected?'Drive同期中':'ローカル保存';
+    $('#driveSyncBtn').disabled=!drive.connected;
+    $('#driveDisconnectBtn').disabled=!drive.connected;
+    $('#driveStatus').textContent=drive.connected?'接続済み':'';
+  },
+  loadGIS(){return new Promise((res,rej)=>{
+    if(window.google?.accounts?.oauth2)return res();
+    const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
+    s.onload=()=>res();s.onerror=()=>rej(new Error('GISスクリプトを読み込めません（オフライン？）'));
+    document.head.appendChild(s);});},
+  async connect(){
+    const cid=$('#clientIdInput').value.trim();
+    if(!cid){alert('クライアントIDを入力してください');return;}
+    state.settings.driveClientId=cid;markDirty();
+    try{
+      await drive.loadGIS();
+      const tc=google.accounts.oauth2.initTokenClient({
+        client_id:cid,scope:'https://www.googleapis.com/auth/drive.file',
+        callback:async r=>{
+          if(r.error){drive.log('認証エラー: '+r.error);return;}
+          drive.token=r.access_token;drive.connected=true;drive.setBadge();
+          drive.log('認証成功。同期を開始します…');
+          await drive.sync();
+        }});
+      tc.requestAccessToken();
+      drive._tc=tc;
+    }catch(e){drive.log('接続失敗: '+e.message);alert(e.message);}
+  },
+  disconnect(){drive.token=null;drive.connected=false;drive.folderId=null;drive.fileIds={};drive.setBadge();drive.log('切断しました。以降はローカル保存のみ。');},
+  async api(path,opt={}){
+    opt.headers=Object.assign({Authorization:'Bearer '+drive.token},opt.headers||{});
+    const r=await fetch('https://www.googleapis.com'+path,opt);
+    if(r.status===401){drive.log('トークン期限切れ。再認証してください。');drive.connected=false;drive.setBadge();throw new Error('unauthorized');}
+    if(!r.ok)throw new Error('Drive API '+r.status+': '+await r.text());
+    return r;
+  },
+  async ensureFolder(){
+    if(drive.folderId)return drive.folderId;
+    const q=encodeURIComponent("name='SessionSoundOperator' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+    const r=await(await drive.api('/drive/v3/files?q='+q+'&fields=files(id,name)')).json();
+    if(r.files.length)drive.folderId=r.files[0].id;
+    else{
+      const c=await(await drive.api('/drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'SessionSoundOperator',mimeType:'application/vnd.google-apps.folder'})})).json();
+      drive.folderId=c.id;drive.log('Driveに専用フォルダを作成しました');
+    }
+    return drive.folderId;
+  },
+  async listFiles(){
+    const q=encodeURIComponent(`'${drive.folderId}' in parents and trashed=false`);
+    const r=await(await drive.api('/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime)&pageSize=1000')).json();
+    drive.fileIds={};for(const f of r.files)drive.fileIds[f.name]=f.id;
+    return r.files;
+  },
+  async upload(name,blob){
+    const meta={name,parents:drive.fileIds[name]?undefined:[drive.folderId]};
+    const fd=new FormData();
+    fd.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+    fd.append('file',blob);
+    const id=drive.fileIds[name];
+    const url='https://www.googleapis.com/upload/drive/v3/files'+(id?'/'+id:'')+'?uploadType=multipart';
+    const r=await fetch(url,{method:id?'PATCH':'POST',headers:{Authorization:'Bearer '+drive.token},body:fd});
+    if(!r.ok)throw new Error('upload failed '+r.status);
+    const j=await r.json();drive.fileIds[name]=j.id;
+  },
+  async download(name){
+    const id=drive.fileIds[name];if(!id)return null;
+    const r=await drive.api('/drive/v3/files/'+id+'?alt=media');
+    return await r.blob();
+  },
+  async sync(){
+    try{
+      await drive.ensureFolder();
+      await drive.listFiles();
+      // --- state.json ---
+      let remote=null;
+      if(drive.fileIds['state.json']){
+        try{remote=JSON.parse(await(await drive.download('state.json')).text());}catch(e){drive.log('state.jsonの解析に失敗: '+e.message);}
+      }
+      if(remote&&(remote.updatedAt||0)>(state.updatedAt||0)){
+        drive.log('Driveのデータが新しいため取り込みます');
+        state=remote;await kvPut('state',JSON.parse(JSON.stringify(state)));
+        live.nextSceneId=live.nextSceneId&&sceneById(live.nextSceneId)?live.nextSceneId:(state.scenes[0]?.id||null);
+        renderAll();
+      }else{
+        await drive.upload('state.json',new Blob([JSON.stringify(state)],{type:'application/json'}));
+        drive.log('state.json をアップロードしました');
+      }
+      // --- audio files ---
+      const localKeys=new Set(await blobKeys());
+      let up=0,down=0;
+      for(const a of state.audios){
+        const fname='audio_'+a.id;
+        if(!localKeys.has(a.id)&&drive.fileIds[fname]){
+          const b=await drive.download(fname);await blobPut(a.id,b);down++;
+        }else if(localKeys.has(a.id)&&!drive.fileIds[fname]){
+          await drive.upload(fname,await blobGet(a.id));up++;
+        }
+      }
+      drive.log(`同期完了（音源 ↑${up} ↓${down}）`);
+      renderAll();
+    }catch(e){if(e.message!=='unauthorized')drive.log('同期エラー: '+e.message);}
+  },
+  scheduleStateUpload(){
+    if(!drive.connected)return;
+    clearTimeout(drive.stateTimer);
+    drive.stateTimer=setTimeout(async()=>{
+      try{await drive.ensureFolder();await drive.upload('state.json',new Blob([JSON.stringify(state)],{type:'application/json'}));drive.log('state.json 自動保存');}catch(e){}
+    },3000);
+  },
+  scheduleAudioUpload(id){
+    if(!drive.connected)return;
+    setTimeout(async()=>{
+      try{await drive.ensureFolder();const b=await blobGet(id);if(b){await drive.upload('audio_'+id,b);drive.log('音源をアップロード: '+(audioById(id)?.name||id));}}catch(e){drive.log('音源アップロード失敗: '+e.message);}
+    },500);
+  }
+};
+$('#driveConnectBtn').addEventListener('click',()=>drive.connect());
+$('#driveSyncBtn').addEventListener('click',()=>drive.sync());
+$('#driveDisconnectBtn').addEventListener('click',()=>drive.disconnect());
+$('#clientIdInput').addEventListener('change',e=>{state.settings.driveClientId=e.target.value.trim();markDirty();});
+</script>
+<script>
+/* ===================== Demo data generation ===================== */
+function bufferToWavBlob(buf){
+  const ch=buf.numberOfChannels,sr=buf.sampleRate,len=buf.length;
+  const bytes=44+len*ch*2;
+  const ab=new ArrayBuffer(bytes),dv=new DataView(ab);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));};
+  ws(0,'RIFF');dv.setUint32(4,bytes-8,true);ws(8,'WAVE');ws(12,'fmt ');
+  dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,ch,true);
+  dv.setUint32(24,sr,true);dv.setUint32(28,sr*ch*2,true);dv.setUint16(32,ch*2,true);dv.setUint16(34,16,true);
+  ws(36,'data');dv.setUint32(40,len*ch*2,true);
+  let o=44;
+  for(let i=0;i<len;i++)for(let c=0;c<ch;c++){
+    const s=clamp(buf.getChannelData(c)[i],-1,1);
+    dv.setInt16(o,s<0?s*0x8000:s*0x7FFF,true);o+=2;
+  }
+  return new Blob([ab],{type:'audio/wav'});
+}
+async function render(dur,build){
+  const oc=new OfflineAudioContext(2,Math.floor(44100*dur),44100);
+  build(oc);
+  return bufferToWavBlob(await oc.startRendering());
+}
+function noiseBuffer(oc,dur){
+  const b=oc.createBuffer(1,Math.floor(oc.sampleRate*dur),oc.sampleRate);
+  const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  return b;
+}
+const demoBuilders={
+  forest(oc){ // gentle pad chord
+    const g=oc.createGain();g.gain.value=0.12;g.connect(oc.destination);
+    [220,277.18,329.63,440].forEach((f,i)=>{
+      const o=oc.createOscillator();o.type='sine';o.frequency.value=f;
+      const og=oc.createGain();og.gain.value=0.5;
+      const lfo=oc.createOscillator();lfo.frequency.value=0.125*(i+1);
+      const lg=oc.createGain();lg.gain.value=0.2;lfo.connect(lg).connect(og.gain);
+      o.connect(og).connect(g);o.start();lfo.start();});
+  },
+  battle(oc){ // pulse drums
+    const g=oc.createGain();g.gain.value=0.5;g.connect(oc.destination);
+    for(let t=0;t<8;t+=0.5){
+      const o=oc.createOscillator();o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(45,t+0.15);
+      const e=oc.createGain();e.gain.setValueAtTime(0.9,t);e.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+      o.connect(e).connect(g);o.start(t);o.stop(t+0.35);
+      if(t%1===0.5){const n=oc.createBufferSource();n.buffer=noiseBuffer(oc,0.1);
+        const ne=oc.createGain();ne.gain.setValueAtTime(0.25,t);ne.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+        const hp=oc.createBiquadFilter();hp.type='highpass';hp.frequency.value=3000;
+        n.connect(hp).connect(ne).connect(g);n.start(t);}
+    }
+  },
+  cave(oc){ // low drone
+    const g=oc.createGain();g.gain.value=0.18;g.connect(oc.destination);
+    [55,57.5,110.5].forEach(f=>{const o=oc.createOscillator();o.type='triangle';o.frequency.value=f;o.connect(g);o.start();});
+    const n=oc.createBufferSource();n.buffer=noiseBuffer(oc,8);n.loop=true;
+    const lp=oc.createBiquadFilter();lp.type='lowpass';lp.frequency.value=200;
+    const ng=oc.createGain();ng.gain.value=0.15;n.connect(lp).connect(ng).connect(g);n.start();
+  },
+  rain(oc){ // filtered noise
+    const n=oc.createBufferSource();n.buffer=noiseBuffer(oc,8);n.loop=true;
+    const bp=oc.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1600;bp.Q.value=0.4;
+    const g=oc.createGain();g.gain.value=0.22;
+    n.connect(bp).connect(g).connect(oc.destination);n.start();
+  },
+  gong(oc){
+    const g=oc.createGain();g.gain.setValueAtTime(0.8,0);g.gain.exponentialRampToValueAtTime(0.001,2.8);g.connect(oc.destination);
+    [98,147.3,196.6,261.4,330.2].forEach((f,i)=>{const o=oc.createOscillator();o.frequency.value=f;
+      const og=oc.createGain();og.gain.value=0.3/(i+1);o.connect(og).connect(g);o.start();o.stop(2.9);});
+  },
+  clash(oc){
+    const n=oc.createBufferSource();n.buffer=noiseBuffer(oc,0.7);
+    const hp=oc.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;
+    const g=oc.createGain();g.gain.setValueAtTime(0.9,0);g.gain.exponentialRampToValueAtTime(0.001,0.6);
+    n.connect(hp).connect(g).connect(oc.destination);n.start();
+  },
+  bell(oc){
+    const g=oc.createGain();g.gain.setValueAtTime(0.6,0);g.gain.exponentialRampToValueAtTime(0.001,1.8);g.connect(oc.destination);
+    [880,1174.7,1760].forEach((f,i)=>{const o=oc.createOscillator();o.frequency.value=f;
+      const og=oc.createGain();og.gain.value=0.4/(i+1);o.connect(og).connect(g);o.start();o.stop(1.9);});
+  },
+  thunder(oc){
+    const n=oc.createBufferSource();n.buffer=noiseBuffer(oc,3);
+    const lp=oc.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(400,0);lp.frequency.exponentialRampToValueAtTime(60,2.5);
+    const g=oc.createGain();g.gain.setValueAtTime(1,0);g.gain.exponentialRampToValueAtTime(0.001,2.8);
+    n.connect(lp).connect(g).connect(oc.destination);n.start();
+  }
+};
+$('#demoBtn').addEventListener('click',async()=>{
+  const btn=$('#demoBtn');btn.disabled=true;btn.textContent='生成中…';
+  try{
+    const defs=[
+      ['forest','森のパッド','bgm',['環境','森'],8,true],
+      ['battle','戦闘ドラム','bgm',['戦闘'],8,true],
+      ['cave','洞窟ドローン','bgm',['環境','洞窟'],8,true],
+      ['rain','雨','bgm',['環境','天候'],8,true],
+      ['gong','ドラ','se',['演出'],3,false],
+      ['clash','剣撃','se',['戦闘'],0.7,false],
+      ['bell','ベル','se',['演出'],2,false],
+      ['thunder','雷','se',['天候'],3,false],
+    ];
+    const ids={};
+    for(const[key,name,kind,tags,dur,loop]of defs){
+      const blob=await render(dur,demoBuilders[key]);
+      const id=uid();ids[key]=id;
+      await blobPut(id,blob);
+      state.audios.push({id,name,kind,tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
+      drive.scheduleAudioUpload(id);
+    }
+    state.scenes.push(
+      {id:uid(),name:'導入：森',mode:'fade',fadeSec:3,values:{[ids.forest]:800}},
+      {id:uid(),name:'緊張：洞窟',mode:'fade',fadeSec:4,values:{[ids.cave]:700,[ids.rain]:250}},
+      {id:uid(),name:'戦闘！',mode:'cut',fadeSec:0.1,values:{[ids.battle]:900,[ids.cave]:200}},
+      {id:uid(),name:'雨宿り',mode:'fade',fadeSec:3,values:{[ids.rain]:750,[ids.forest]:300}},
+      {id:uid(),name:'静寂（全停止）',mode:'fade',fadeSec:5,values:{}}
+    );
+    if(!live.nextSceneId)live.nextSceneId=state.scenes[0].id;
+    markDirty();renderAll();
+    alert('デモ音源 8 件とシーン 5 件を生成しました。「演奏」画面で GO を押してみてください。');
+  }catch(e){alert('生成失敗: '+e.message);}
+  btn.disabled=false;btn.textContent='🎚 デモ一式を生成';
+});
+
+/* ===================== Init ===================== */
+function renderAll(){
+  renderPerform();renderScenesView();renderLibrary();syncBusFaders();
+  $('#clientIdInput').value=state.settings.driveClientId||'';
+  drive.setBadge();
+}
+(async function init(){
+  db=await openDB();
+  const saved=await kvGet('state');
+  if(saved)state=Object.assign({version:1,audios:[],scenes:[],settings:{}},saved);
+  state.settings=Object.assign({master:800,seVol:1000,driveClientId:''},state.settings);
+  live.nextSceneId=state.scenes[0]?.id||null;
+  renderAll();
+  $('#saveState').textContent='';
+  // unlock audio on first gesture
+  const unlock=()=>{ensureCtx();document.removeEventListener('pointerdown',unlock);};
+  document.addEventListener('pointerdown',unlock);
+})();
+</script>
+</body>
+</html>
