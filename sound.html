@@ -44,6 +44,8 @@ main{flex:1;min-height:0;position:relative}
 #performTop{flex:1;min-height:0;display:flex}
 #sceneCol{width:230px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface)}
 #sceneCol .colTitle{padding:10px 14px 6px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700}
+#sceneActions{padding:0 8px 8px;display:flex;flex-direction:column;gap:4px}
+#sceneActions button{width:100%;font-size:12px;font-weight:600;padding:6px 8px}
 #sceneList{flex:1;overflow-y:auto;padding:0 8px 8px}
 .sceneItem{padding:8px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;margin-bottom:4px;position:relative}
 .sceneItem:hover{background:var(--hover)}
@@ -56,7 +58,8 @@ main{flex:1;min-height:0;position:relative}
 .badge.nxt{background:var(--blue);color:#0e1d30}
 
 #channelArea{flex:1;min-width:0;display:flex;flex-direction:column}
-#channelArea .colTitle{padding:10px 16px 2px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+#channelArea .colTitle{padding:10px 16px 2px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.titlebtn{font-size:11px;font-weight:600;letter-spacing:0;padding:3px 9px;white-space:nowrap}
 #channelStrip{flex:1;display:flex;gap:8px;overflow-x:auto;padding:8px 16px 12px;align-items:stretch}
 .chan{width:76px;flex:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:8px 6px}
 .chan.silent{opacity:.55}
@@ -100,7 +103,7 @@ main{flex:1;min-height:0;position:relative}
 .sePad .pkey{font-size:9px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:0 4px}
 .sePad.flash{background:var(--orange-soft);border-color:var(--orange)}
 
-/* ===== generic panels (scenes/library/settings) ===== */
+/* ===== generic panels (edit/settings) ===== */
 .panel{max-width:1060px;margin:0 auto;padding:24px 24px 64px}
 .panel h2{font-size:18px;margin-bottom:4px}
 .panel .sub{color:var(--text2);margin-bottom:20px;font-size:13px}
@@ -140,9 +143,8 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 <header>
   <h1>SESSION <span>SOUND</span> OPERATOR</h1>
   <nav>
-    <button data-view="perform" class="active">演奏</button>
-    <button data-view="scenes">シーン編集</button>
-    <button data-view="library">音源</button>
+    <button data-view="perform" class="active">メイン</button>
+    <button data-view="edit">詳細編集</button>
     <button data-view="settings">設定</button>
   </nav>
   <div id="headerRight">
@@ -157,10 +159,14 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <div id="performTop">
       <div id="sceneCol">
         <div class="colTitle">シーンリスト（クリックでNEXTに設定）</div>
+        <div id="sceneActions">
+          <button id="saveSceneBtn" class="accent">◉ 今の音をシーンに保存</button>
+          <button id="overwriteSceneBtn">上書き</button>
+        </div>
         <div id="sceneList"></div>
       </div>
       <div id="channelArea">
-        <div class="colTitle"><span>BGMチャンネル（フェーダーはCURRENTシーンを直接編集・即時反映）</span><span id="nowPlayingLabel" class="tiny"></span></div>
+        <div class="colTitle"><span>BGMチャンネル（フェーダーは即時反映。CURRENTシーンがあればその値も更新）</span><span style="display:flex;align-items:center;gap:10px"><span id="nowPlayingLabel" class="tiny"></span><button id="addBgmBtn" class="accent titlebtn">＋ 音源を追加</button></span></div>
         <div id="channelStrip"></div>
       </div>
       <div id="transport">
@@ -182,17 +188,38 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       </div>
     </div>
     <div id="sePadBar">
-      <div class="colTitle"><span>SE PADS（シーンと独立していつでもカットイン）</span></div>
+      <div class="colTitle"><span>SE PADS（シーンと独立していつでもカットイン）</span><button id="addSeBtn" class="accent titlebtn" style="margin-left:auto">＋ SEを追加</button></div>
       <div id="sePads"></div>
     </div>
   </div>
 
-  <!-- ============ SCENES ============ -->
-  <div class="view" id="view-scenes">
+  <!-- ============ EDIT (library + scenes) ============ -->
+  <div class="view" id="view-edit">
     <div class="panel">
-      <h2>シーン編集</h2>
-      <div class="sub">シーン＝全BGMチャンネルの音量値（‰ = 0〜1000）のセット。変更は自動保存されます。CURRENTシーンの値を編集すると音に即時反映されます。</div>
+      <h2>詳細編集</h2>
+      <div class="sub">音源のメタデータとシーンの数値を細かく調整します。変更は自動保存されます。</div>
+
       <div class="card">
+        <h3>音源ライブラリ</h3>
+        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。BGM＝シーンのチャンネル／SE＝パッドから単発再生。</div>
+        <div class="rowflex">
+          <button id="importBtn" class="accent">＋ 音声ファイルを取り込む</button>
+          <input type="file" id="fileInput" accept="audio/*" multiple style="display:none">
+          <input id="librarySearch" placeholder="検索（名前・タグ）" style="width:220px;margin-left:auto">
+          <span class="tiny" id="libCount"></span>
+        </div>
+      </div>
+      <div class="card" style="padding:6px 8px">
+        <table id="libTable">
+          <thead><tr><th style="width:26px"></th><th>名前</th><th style="width:90px">種別</th><th>タグ（カンマ区切り）</th><th style="width:150px">基準音量</th><th style="width:56px">ループ</th><th style="width:70px">長さ</th><th style="width:60px"></th></tr></thead>
+          <tbody id="libBody"></tbody>
+        </table>
+        <div id="libEmpty" class="small" style="padding:16px;text-align:center;display:none">音源がありません。「＋ 音声ファイルを取り込む」か、設定画面の「デモ一式を生成」を試してください。</div>
+      </div>
+
+      <div class="card">
+        <h3>シーン</h3>
+        <div class="small" style="margin-bottom:10px">シーン＝全BGMチャンネルの音量値（‰ = 0〜1000）のセット。CURRENTシーンの値を編集すると音に即時反映されます。</div>
         <div class="rowflex">
           <select id="sceneSelect" style="min-width:220px"></select>
           <button id="addSceneBtn" class="accent">＋ シーン追加</button>
@@ -212,29 +239,6 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
         </div>
         <div id="sceneEditGrid"></div>
         <div class="tiny" style="margin-top:10px">音量0のチャンネルはこのシーンでは不使用（移行完了時に自動停止）。</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ LIBRARY ============ -->
-  <div class="view" id="view-library">
-    <div class="panel">
-      <h2>音源ライブラリ</h2>
-      <div class="sub">音源データとメタデータは端末内（IndexedDB）に永続保存されます。BGM＝シーンのチャンネル／SE＝パッドから単発再生。</div>
-      <div class="card">
-        <div class="rowflex">
-          <button id="importBtn" class="accent">＋ 音声ファイルを取り込む</button>
-          <input type="file" id="fileInput" accept="audio/*" multiple style="display:none">
-          <input id="librarySearch" placeholder="検索（名前・タグ）" style="width:220px;margin-left:auto">
-          <span class="tiny" id="libCount"></span>
-        </div>
-      </div>
-      <div class="card" style="padding:6px 8px">
-        <table id="libTable">
-          <thead><tr><th style="width:26px"></th><th>名前</th><th style="width:90px">種別</th><th>タグ（カンマ区切り）</th><th style="width:150px">基準音量</th><th style="width:56px">ループ</th><th style="width:70px">長さ</th><th style="width:60px"></th></tr></thead>
-          <tbody id="libBody"></tbody>
-        </table>
-        <div id="libEmpty" class="small" style="padding:16px;text-align:center;display:none">音源がありません。「＋ 音声ファイルを取り込む」か、設定画面の「デモ一式を生成」を試してください。</div>
       </div>
     </div>
   </div>
@@ -547,8 +551,7 @@ $$('nav button').forEach(b=>b.addEventListener('click',()=>{
   $$('nav button').forEach(x=>x.classList.toggle('active',x===b));
   $$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   if(b.dataset.view==='perform')renderPerform();
-  if(b.dataset.view==='scenes')renderScenesView();
-  if(b.dataset.view==='library')renderLibrary();
+  if(b.dataset.view==='edit'){renderScenesView();renderLibrary();}
 }));
 
 /* ===================== Perform view ===================== */
@@ -567,12 +570,12 @@ function renderSceneList(){
     d.addEventListener('click',()=>{if(live.trans)return;live.nextSceneId=s.id;renderPerform();});
     list.appendChild(d);
   }
-  if(!state.scenes.length)list.innerHTML='<div class="small" style="padding:12px">シーンがありません。「シーン編集」で作成するか、設定のデモ生成をどうぞ。</div>';
+  if(!state.scenes.length)list.innerHTML='<div class="small" style="padding:12px">シーンがありません。フェーダーで音を作って「◉ 今の音をシーンに保存」でどうぞ。</div>';
 }
 function renderChannels(){
   const strip=$('#channelStrip');strip.innerHTML='';chanFaders.clear();
   const list=bgmAudios();
-  if(!list.length){strip.innerHTML='<div id="emptyChannels">BGM音源がありません。「音源」画面で取り込むか、設定のデモ生成をお試しください。</div>';return;}
+  if(!list.length){strip.innerHTML='<div id="emptyChannels">BGM音源がありません。「＋ 音源を追加」で取り込むか、設定のデモ生成をお試しください。</div>';return;}
   const nextScene=live.nextSceneId?sceneById(live.nextSceneId):null;
   for(const a of list){
     const v=Math.round(effectiveValue(a.id));
@@ -584,19 +587,19 @@ function renderChannels(){
     d.querySelector('.cnext').textContent=(nv!=null&&nv!==v)?('▸ '+nv):'';
     const f=VFader(d.querySelector('.vfader'),{
       onInput(val){
-        if(live.trans||!live.currentSceneId)return;
-        const sc=sceneById(live.currentSceneId);if(!sc)return;
-        sc.values[a.id]=val;live.currentValues[a.id]=val;
+        if(live.trans)return;
+        const sc=live.currentSceneId?sceneById(live.currentSceneId):null;
+        live.currentValues[a.id]=val;
+        if(sc){sc.values[a.id]=val;markDirty();}
         if(val>0)ensureChannel(a.id).then(applyMix);
         applyMix();
         d.querySelector('.cval').textContent=val+'‰';
         d.classList.toggle('silent',val<=0);
-        markDirty();
       }
     });
     f.set(v);
     if(nv!=null&&nv!==v)f.setGhost(nv);
-    f.setDisabled(!!live.trans||!live.currentSceneId);
+    f.setDisabled(!!live.trans);
     d.querySelector('.cval').textContent=v+'‰';
     chanFaders.set(a.id,{fader:f,el:d});
     strip.appendChild(d);
@@ -618,11 +621,42 @@ function renderTransport(){
   $('#nowPlayingLabel').textContent=cur?`CURRENT: ${cur.name}`:'CURRENT: （無音）';
   ui.xfader.setDisabled(!next&&!live.trans);
 }
-function renderPerform(){renderSceneList();renderChannels();renderTransport();renderSEPads();}
+function renderSceneActions(){
+  $('#saveSceneBtn').disabled=!!live.trans;
+  $('#overwriteSceneBtn').disabled=!!live.trans||!live.currentSceneId;
+  const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
+  $('#overwriteSceneBtn').textContent=cur?`上書き（${cur.name}）`:'上書き';
+}
+function renderPerform(){renderSceneList();renderChannels();renderTransport();renderSEPads();renderSceneActions();}
+/* snapshot: 現在鳴っている音（0より大きいチャンネル）をシーンの values にする */
+function snapshotValues(){
+  const v={};
+  for(const a of bgmAudios()){const x=Math.round(effectiveValue(a.id));if(x>0)v[a.id]=x;}
+  return v;
+}
+$('#saveSceneBtn').addEventListener('click',()=>{
+  if(live.trans)return;
+  const name=prompt('シーン名','Scene '+(state.scenes.length+1));
+  if(name===null)return;
+  const s={id:uid(),name:name.trim()||('Scene '+(state.scenes.length+1)),mode:'fade',fadeSec:3,values:snapshotValues()};
+  state.scenes.push(s);
+  live.currentSceneId=s.id;
+  live.currentValues={...s.values};
+  editSceneId=s.id;
+  markDirty();renderPerform();
+});
+$('#overwriteSceneBtn').addEventListener('click',()=>{
+  if(live.trans||!live.currentSceneId)return;
+  const s=sceneById(live.currentSceneId);if(!s)return;
+  if(!confirm('シーン「'+s.name+'」の音量を現在の音で上書きしますか？'))return;
+  s.values=snapshotValues();
+  live.currentValues={...s.values};
+  markDirty();renderPerform();
+});
 function renderSEPads(){
   const wrap=$('#sePads');wrap.innerHTML='';
   const list=seAudios();
-  if(!list.length){wrap.innerHTML='<div class="small" style="padding:4px">SE音源がありません。「音源」画面で種別をSEにするとパッドに並びます。</div>';return;}
+  if(!list.length){wrap.innerHTML='<div class="small" style="padding:4px">SE音源がありません。「＋ SEを追加」で取り込むか、「詳細編集」で種別をSEにするとパッドに並びます。</div>';return;}
   list.forEach((a,i)=>{
     const b=document.createElement('button');b.className='sePad';b.dataset.id=a.id;
     b.innerHTML=`<span class="pname"></span>${i<9?`<span class="pkey">${i+1}</span>`:''}`;
@@ -733,7 +767,7 @@ function renderSceneEditor(){
     });
     grid.appendChild(row);
   }
-  if(!bgmAudios().length)grid.innerHTML='<div class="small">BGM音源がありません。先に「音源」画面で取り込んでください。</div>';
+  if(!bgmAudios().length)grid.innerHTML='<div class="small">BGM音源がありません。先に上の「音源ライブラリ」で取り込んでください。</div>';
 }
 $('#sceneSelect').addEventListener('change',e=>{editSceneId=e.target.value;renderSceneEditor();});
 $('#addSceneBtn').addEventListener('click',()=>{
@@ -777,19 +811,24 @@ $('#allZeroBtn').addEventListener('click',()=>{
 </script>
 <script>
 /* ===================== Library ===================== */
+let importKind='bgm'; // 取り込みボタンごとに BGM / SE を切り替える
+function pickFiles(kind){importKind=kind;$('#fileInput').click();}
 async function importFiles(files){
   ensureCtx();
+  const kind=importKind;
   for(const f of files){
     const id=uid();
     let dur=0;
     try{const ab=await f.arrayBuffer();const buf=await engine.ctx.decodeAudioData(ab.slice(0));dur=buf.duration;engine.buffers.set(id,buf);}catch(e){alert('読み込めませんでした: '+f.name);continue;}
     await blobPut(id,f);
-    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind:'bgm',tags:[],baseVolume:1000,loop:true,duration:dur,size:f.size,type:f.type||'audio/mpeg'});
+    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
     drive.scheduleAudioUpload(id);
   }
-  markDirty();renderLibrary();
+  markDirty();renderAll();
 }
-$('#importBtn').addEventListener('click',()=>$('#fileInput').click());
+$('#importBtn').addEventListener('click',()=>pickFiles('bgm'));
+$('#addBgmBtn').addEventListener('click',()=>pickFiles('bgm'));
+$('#addSeBtn').addEventListener('click',()=>pickFiles('se'));
 $('#fileInput').addEventListener('change',e=>{importFiles([...e.target.files]);e.target.value='';});
 $('#librarySearch').addEventListener('input',renderLibrary);
 let previewingId=null;
@@ -1124,7 +1163,7 @@ $('#demoBtn').addEventListener('click',async()=>{
     );
     if(!live.nextSceneId)live.nextSceneId=state.scenes[0].id;
     markDirty();renderAll();
-    alert('デモ音源 8 件とシーン 5 件を生成しました。「演奏」画面で GO を押してみてください。');
+    alert('デモ音源 8 件とシーン 5 件を生成しました。「メイン」画面で GO を押してみてください。');
   }catch(e){alert('生成失敗: '+e.message);}
   btn.disabled=false;btn.textContent='🎚 デモ一式を生成';
 });
