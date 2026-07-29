@@ -38,101 +38,136 @@ nav button.active{background:var(--hover);color:var(--text)}
 main{flex:1;min-height:0;position:relative}
 .view{position:absolute;inset:0;display:none;overflow:auto}
 .view.active{display:block}
-#view-perform.active{display:flex;flex-direction:column;overflow:hidden}
 
-/* ===== Perform layout ===== */
-#performTop{flex:1;min-height:0;display:flex}
-#sceneCol{width:230px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface)}
-#sceneCol .colTitle{padding:10px 14px 6px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700}
-#sceneActions{padding:0 8px 8px;display:flex;flex-direction:column;gap:4px}
-#sceneActions button{width:100%;font-size:12px;font-weight:600;padding:6px 8px}
-#sceneList{flex:1;overflow-y:auto;padding:0 8px 8px}
+/* ===== collapsible sections ===== */
+.section{border-bottom:1px solid var(--border)}
+.secHead{display:flex;align-items:center;gap:10px;width:100%;padding:9px 16px;background:var(--surface);border:none;border-radius:0;color:var(--text2);font-size:12px;font-weight:800;letter-spacing:.08em;text-align:left}
+.secHead:hover{background:var(--hover)}
+.secHead .caret{display:inline-block;width:11px;color:var(--text3);transition:transform .12s}
+.section.collapsed .secHead .caret{transform:rotate(-90deg)}
+.secHead .hint{margin-left:auto;font-size:11px;font-weight:500;letter-spacing:0;color:var(--text3)}
+.section.collapsed .secBody{display:none}
+
+/* ===== section A: scene play ===== */
+#sceneToolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border)}
+#guide{font-size:12px;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue);border-radius:999px;padding:3px 12px;white-space:nowrap}
+.spacer{margin-left:auto}
+.warn{color:var(--orange);border-color:var(--orange);background:var(--orange-soft)}
+#playRow{display:flex;min-height:296px}
+#sceneCol{width:250px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface)}
+.colTitle{padding:10px 14px 6px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;align-items:center;gap:10px}
+#sceneList{flex:1;overflow-y:auto;padding:0 8px 10px;max-height:400px}
 .sceneItem{padding:8px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;margin-bottom:4px;position:relative}
 .sceneItem:hover{background:var(--hover)}
-.sceneItem .sname{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sceneItem .sname{font-weight:600;font-size:13px;display:flex;gap:7px;overflow:hidden}
+.sceneItem .sid{color:var(--blue);font-variant-numeric:tabular-nums;flex:none}
+.sceneItem .stxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sceneItem .smeta{font-size:11px;color:var(--text3)}
 .sceneItem.current{border-color:var(--green);background:var(--green-soft)}
 .sceneItem.next{border-color:var(--blue);background:var(--blue-soft)}
 .sceneItem .badge{position:absolute;right:8px;top:8px;font-size:9px;font-weight:800;letter-spacing:.08em;padding:1px 6px;border-radius:4px}
 .badge.cur{background:var(--green);color:#10231a}
 .badge.nxt{background:var(--blue);color:#0e1d30}
+#stage{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:12px 16px 16px}
+#stageNames{display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:center}
+.np{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:140px}
+.np-lab{font-size:9px;font-weight:800;letter-spacing:.14em}
+.np.cur .np-lab{color:var(--green)}
+.np.nxt .np-lab{color:var(--blue)}
+.np-name{font-size:22px;font-weight:700;max-width:270px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-arrow{font-size:24px;color:var(--text3)}
+#stageCtl{display:flex;align-items:center;gap:24px}
+#xfCol{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:8px 12px}
+.xfLab{font-size:10px;font-weight:800;letter-spacing:.1em}
+.xfLab.top{color:var(--blue)}
+.xfLab.bot{color:var(--green)}
+#goCol{display:flex;flex-direction:column;align-items:center;gap:8px}
+#goBtn{width:190px;height:96px;font-size:32px;font-weight:800;letter-spacing:.2em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:14px}
+#goBtn:hover:not(:disabled){background:rgba(114,188,143,.25)}
+#goInfo{text-align:center;font-size:11px;color:var(--text2);min-height:16px}
 
-#channelArea{flex:1;min-width:0;display:flex;flex-direction:column}
-#channelArea .colTitle{padding:10px 16px 2px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.titlebtn{font-size:11px;font-weight:600;letter-spacing:0;padding:3px 9px;white-space:nowrap}
-#channelStrip{flex:1;display:flex;gap:8px;overflow-x:auto;padding:8px 16px 12px;align-items:stretch}
-.chan{width:76px;flex:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:8px 6px}
-.chan.silent{opacity:.55}
-.chan .cname{font-size:11px;font-weight:600;width:100%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
-.chan .cval{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:6px}
-.chan .cnext{font-size:10px;color:var(--blue);font-variant-numeric:tabular-nums;height:14px}
-#emptyChannels{margin:auto;text-align:center;color:var(--text3)}
-
-/* vertical fader */
-.vfader{position:relative;width:44px;flex:1;min-height:90px;cursor:ns-resize;touch-action:none}
+/* ===== vertical fader ===== */
+.vfader{position:relative;width:44px;height:150px;cursor:ns-resize;touch-action:none}
+.vfader.big{width:76px;height:196px}
 .vfader .track{position:absolute;left:50%;top:6px;bottom:6px;width:6px;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:3px}
+.vfader.big .track{width:12px;border-radius:6px}
 .vfader .fill{position:absolute;left:50%;bottom:6px;width:6px;transform:translateX(-50%);background:var(--blue);border-radius:3px}
+.vfader.big .fill{width:12px;border-radius:6px}
 .vfader .thumb{position:absolute;left:50%;width:34px;height:16px;transform:translate(-50%,50%);background:linear-gradient(180deg,#4a4a48,#2e2e2d);border:1px solid var(--border2);border-radius:4px;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.vfader.big .thumb{width:62px;height:24px;border-radius:6px}
 .vfader .thumb::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;background:rgba(255,255,255,.55);transform:translateY(-50%);border-radius:1px}
-.vfader .ghost{position:absolute;left:50%;width:26px;height:0;border-top:2px dashed var(--blue);transform:translateX(-50%);opacity:.8}
+.vfader .ghost{position:absolute;left:50%;width:26px;height:0;border-top:2px dashed var(--green);transform:translateX(-50%);opacity:.85}
 .vfader.green .fill{background:var(--green)}
 .vfader.orange .fill{background:var(--orange)}
 .vfader.disabled{opacity:.45;cursor:default}
 
-/* transport */
-#transport{width:300px;flex:none;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;padding:10px 14px;gap:8px}
-#goBtn{height:84px;font-size:26px;font-weight:800;letter-spacing:.2em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:12px}
-#goBtn:hover{background:rgba(114,188,143,.25)}
-#goInfo{text-align:center;font-size:11px;color:var(--text2);min-height:16px}
-#transRow{flex:1;display:flex;gap:10px;min-height:150px}
-#xfSection{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:6px 4px}
-#xfSection .lab{font-size:9px;font-weight:800;letter-spacing:.1em}
-#xfSection .lab.top{color:var(--blue)}#xfSection .lab.bot{color:var(--green)}
-.busFader{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:6px 2px}
-.busFader .lab{font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text2)}
-.busFader .bval{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
-#stopBtn{height:40px;background:var(--red-soft);border-color:var(--red);color:var(--red);font-weight:700;letter-spacing:.1em}
-
-/* SE pads */
-#sePadBar{flex:none;border-top:1px solid var(--border);background:var(--surface);padding:8px 16px 10px}
-#sePadBar .colTitle{font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;gap:12px;align-items:center;margin-bottom:6px}
-#sePads{display:flex;gap:8px;overflow-x:auto}
-.sePad{width:96px;height:56px;flex:none;border-radius:10px;border:1px solid var(--border);background:var(--raised);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;transition:background .1s,border-color .1s}
+/* ===== section B: interrupt faders ===== */
+#fbRow{display:flex;min-height:250px}
+#fbMain{flex:1;min-width:0;padding-bottom:10px}
+#sePads{display:grid;grid-template-columns:repeat(auto-fill,88px);gap:8px;padding:0 16px 8px}
+.sePad{width:88px;height:88px;border-radius:10px;border:1px solid var(--border);background:var(--raised);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;transition:background .1s,border-color .1s;padding:4px}
 .sePad:hover{background:var(--hover)}
-.sePad .pname{font-size:11px;font-weight:600;max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sePad .pkey{font-size:9px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:0 4px}
+.sePad .pname{font-size:11px;font-weight:600;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sePad .pkey{font-size:10px;color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:0 5px}
 .sePad.flash{background:var(--orange-soft);border-color:var(--orange)}
+#bankBar{display:flex;gap:4px;margin-left:auto}
+#bankBar button{font-size:11px;font-weight:700;padding:2px 10px;border-radius:6px}
+#bankBar button.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
+#interruptStrip{display:flex;gap:8px;overflow-x:auto;padding:0 16px 12px;align-items:stretch;min-height:196px}
+.chan{width:82px;flex:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:7px 6px}
+.chan.silent{opacity:.6}
+.chan .cslot{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--blue);background:var(--blue-soft);border-radius:4px;padding:0 6px;margin-bottom:2px}
+.chan .cname{font-size:11px;font-weight:600;width:100%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.chan .vfader{flex:1;height:auto;min-height:104px}
+.chan .cval{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:5px}
+.chan .cscene{font-size:10px;color:var(--text3);font-variant-numeric:tabular-nums;height:14px}
+#fbBus{width:152px;flex:none;display:flex;gap:10px;border-left:1px solid var(--border);background:var(--surface);padding:10px 12px}
+.busFader{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:7px 3px}
+.busFader .lab{font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text2)}
+.busFader .vfader{flex:1;height:auto;min-height:110px}
+.busFader .bval{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
+.emptyNote{margin:auto;text-align:center;color:var(--text3);font-size:12px;padding:22px 16px}
 
 /* ===== generic panels (edit/settings) ===== */
-.panel{max-width:1060px;margin:0 auto;padding:24px 24px 64px}
+.panel{max-width:1120px;margin:0 auto;padding:24px 24px 64px}
 .panel h2{font-size:18px;margin-bottom:4px}
 .panel .sub{color:var(--text2);margin-bottom:20px;font-size:13px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
 .card h3{font-size:14px;margin-bottom:10px}
 .rowflex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-size:11px;color:var(--text3);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+th{font-size:11px;color:var(--text3);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+th[data-sort]{cursor:pointer}
+th[data-sort]:hover{color:var(--text2)}
+th .arw{color:var(--blue);font-size:9px}
 td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-.iconbtn{padding:3px 8px;font-size:12px;border-radius:6px}
+.iconbtn{padding:3px 8px;font-size:12px;border-radius:6px;white-space:nowrap}
 .danger{color:var(--red);border-color:var(--red)}
 .accent{color:var(--blue);border-color:var(--blue);background:var(--blue-soft)}
 .hslider{-webkit-appearance:none;appearance:none;height:4px;background:var(--hover);border-radius:2px;outline:none;border:none;padding:0}
 .hslider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer}
 .tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;background:var(--hover);color:var(--text2);margin-right:4px}
-#sceneEditGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.tagChip{display:inline-block;font-size:10px;padding:2px 10px;border-radius:999px;background:var(--hover);color:var(--text2);cursor:pointer;border:1px solid transparent;margin:0 4px 4px 0}
+.tagChip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
+#libPager{display:flex;gap:10px;align-items:center;justify-content:center;padding:10px 8px 4px}
+#sceneEditGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
 .sceneChanRow{display:flex;align-items:center;gap:8px;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
-.sceneChanRow .n{flex:1;min-width:80px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sceneChanRow .v{width:38px;text-align:right;font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums}
+.sceneChanRow .n{flex:1;min-width:70px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sceneChanRow .pctIn{width:58px;text-align:right;font-variant-numeric:tabular-nums}
 #log{font-family:Menlo,Consolas,monospace;font-size:11px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;white-space:pre-wrap}
 kbd{font:11px Menlo,Consolas,monospace;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--raised)}
-dialog{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:420px}
+dialog{margin:auto;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:460px;width:92%}
 dialog::backdrop{background:rgba(0,0,0,.6)}
-@media (max-width:1100px){#sceneCol{width:180px}#transport{width:250px}}
-@media (max-width:780px){
-  #view-perform.active{overflow:auto}
-  #performTop{min-width:780px;min-height:430px}
-  #sePadBar{min-width:780px}
+dialog h3{font-size:15px}
+.formGrid{display:grid;grid-template-columns:auto 1fr;gap:9px 10px;align-items:center;margin:14px 0}
+.formGrid label{font-size:12px;color:var(--text2)}
+@media (max-width:1100px){#sceneCol{width:200px}#fbBus{width:132px}}
+@media (max-width:900px){
+  #playRow,#fbRow{flex-direction:column}
+  #sceneCol{width:auto;border-right:none;border-bottom:1px solid var(--border)}
+  #fbBus{width:auto;border-left:none;border-top:1px solid var(--border)}
+  .busFader{min-height:150px}
   header{overflow-x:auto;gap:10px}
   header h1{font-size:12px}
 }
@@ -143,7 +178,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 <header>
   <h1>SESSION <span>SOUND</span> OPERATOR</h1>
   <nav>
-    <button data-view="perform" class="active">メイン</button>
+    <button data-view="perform" class="active">フェーダー</button>
     <button data-view="edit">詳細編集</button>
     <button data-view="settings">設定</button>
   </nav>
@@ -154,91 +189,145 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 </header>
 <main>
 
-  <!-- ============ PERFORM ============ -->
+  <!-- ============ FADER (2 sections) ============ -->
   <div class="view active" id="view-perform">
-    <div id="performTop">
-      <div id="sceneCol">
-        <div class="colTitle">シーンリスト（クリックでNEXTに設定）</div>
-        <div id="sceneActions">
+
+    <!-- ---- section A: scene playback ---- -->
+    <div class="section" data-sec="a" id="secA">
+      <button class="secHead"><span class="caret">▼</span><span>シーン再生</span><span class="hint">CURRENT → NEXT のクロスフェード</span></button>
+      <div class="secBody">
+        <div id="sceneToolbar">
+          <label class="small">セッション</label>
+          <select id="sessionSelect" style="min-width:170px"></select>
+          <span id="guide">① リストから次のシーンを選ぶ　→　② GO を押す（またはバーを上げる）</span>
+          <span class="spacer"></span>
           <button id="saveSceneBtn" class="accent">◉ 今の音をシーンに保存</button>
           <button id="overwriteSceneBtn">上書き</button>
+          <button id="muteAllBtn" class="warn">MUTE ALL</button>
+          <button id="stopBtn" class="danger">■ ALL STOP</button>
         </div>
-        <div id="sceneList"></div>
-      </div>
-      <div id="channelArea">
-        <div class="colTitle"><span>BGMチャンネル（フェーダーは即時反映。CURRENTシーンがあればその値も更新）</span><span style="display:flex;align-items:center;gap:10px"><span id="nowPlayingLabel" class="tiny"></span><button id="addBgmBtn" class="accent titlebtn">＋ 音源を追加</button></span></div>
-        <div id="channelStrip"></div>
-      </div>
-      <div id="transport">
-        <button id="goBtn">GO</button>
-        <div id="goInfo"></div>
-        <div id="transRow">
-          <div id="xfSection">
-            <div class="lab top">NEXT</div>
-            <div class="vfader" id="xfader"></div>
-            <div class="lab bot">CURRENT</div>
-            <div class="tiny" id="xfVal">0%</div>
+        <div id="playRow">
+          <div id="sceneCol">
+            <div class="colTitle"><span>シーンリスト（クリックでNEXTに設定）</span></div>
+            <div id="sceneList"></div>
           </div>
-          <div class="busFader"><div class="lab">SCENE</div><div class="vfader green" id="sceneVolFader"></div><div class="bval" id="sceneVolVal"></div></div>
-          <div class="busFader"><div class="lab">SE</div><div class="vfader orange" id="seVolFader"></div><div class="bval" id="seVolVal"></div></div>
-          <div class="busFader"><div class="lab">MASTER</div><div class="vfader" id="masterFader"></div><div class="bval" id="masterVal"></div></div>
+          <div id="stage">
+            <div id="stageNames">
+              <div class="np cur"><span class="np-lab">CURRENT</span><span class="np-name" id="curName">（無音）</span></div>
+              <div class="np-arrow">→</div>
+              <div class="np nxt"><span class="np-lab">NEXT</span><span class="np-name" id="nxtName">未選択</span></div>
+            </div>
+            <div id="stageCtl">
+              <div id="xfCol">
+                <div class="xfLab top">NEXT</div>
+                <div class="vfader big" id="xfader"></div>
+                <div class="xfLab bot">CURRENT</div>
+                <div class="tiny" id="xfVal">0%</div>
+              </div>
+              <div id="goCol">
+                <button id="goBtn">GO</button>
+                <div id="goInfo"></div>
+                <div class="tiny" style="text-align:center"><kbd>Enter</kbd> GO　<kbd>←</kbd><kbd>→</kbd> NEXT選択　<kbd>Space</kbd> 全停止　<kbd>1</kbd>–<kbd>9</kbd> SE</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <button id="stopBtn">■ ALL STOP</button>
-        <div class="tiny" style="text-align:center"><kbd>Enter</kbd> GO　<kbd>←</kbd><kbd>→</kbd> NEXT選択　<kbd>Space</kbd> 全停止　<kbd>1</kbd>–<kbd>9</kbd> SE</div>
       </div>
     </div>
-    <div id="sePadBar">
-      <div class="colTitle"><span>SE PADS（シーンと独立していつでもカットイン）</span><button id="addSeBtn" class="accent titlebtn" style="margin-left:auto">＋ SEを追加</button></div>
-      <div id="sePads"></div>
+
+    <!-- ---- section B: interrupt faders ---- -->
+    <div class="section" data-sec="b" id="secB">
+      <button class="secHead"><span class="caret">▼</span><span>フェーダー（割り込み）</span><span class="hint">シーンの保存値は変えずに上乗せする</span></button>
+      <div class="secBody">
+        <div id="fbRow">
+          <div id="fbMain">
+            <div class="colTitle"><span>SE PADS（クリック／数字キー 1–9 でカットイン）</span><span id="bankBar"></span></div>
+            <div id="sePads"></div>
+            <div class="colTitle"><span>割り込みBGMフェーダー（詳細編集でフェーダーNoを割り当てたBGMが並びます）</span></div>
+            <div id="interruptStrip"></div>
+          </div>
+          <div id="fbBus">
+            <div class="busFader"><div class="lab">MASTER</div><div class="vfader" id="masterFader"></div><div class="bval" id="masterVal"></div></div>
+            <div class="busFader"><div class="lab">SE</div><div class="vfader orange" id="seVolFader"></div><div class="bval" id="seVolVal"></div></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ============ EDIT (library + scenes) ============ -->
+  <!-- ============ EDIT ============ -->
   <div class="view" id="view-edit">
     <div class="panel">
       <h2>詳細編集</h2>
-      <div class="sub">音源のメタデータとシーンの数値を細かく調整します。変更は自動保存されます。</div>
+      <div class="sub">セッション・シーンの数値・音源のメタデータを細かく調整します。変更は自動保存されます。</div>
+
+      <div class="card">
+        <h3>セッション管理</h3>
+        <div class="small" style="margin-bottom:10px">セッションはシーンの上位概念です。シーンは必ずいずれかのセッションに属します。</div>
+        <div class="rowflex">
+          <select id="edSessionSelect" style="min-width:200px"></select>
+          <button id="addSessionBtn" class="accent">＋ セッション追加</button>
+          <button id="renameSessionBtn">改名</button>
+          <button id="delSessionBtn" class="danger">削除</button>
+          <span class="tiny" id="sessionInfo"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>シーン編集</h3>
+        <div class="small" style="margin-bottom:10px">シーン＝全BGMチャンネルの音量（%）のセット。音量0%のチャンネルはそのシーンでは不使用（移行完了時に自動停止）。CURRENTシーンの値を編集すると音に即時反映されます。</div>
+        <div class="rowflex" style="margin-bottom:12px">
+          <select id="sceneSelect" style="min-width:260px"></select>
+          <button id="addSceneBtn" class="accent">＋ シーン追加</button>
+          <button id="dupSceneBtn">複製</button>
+          <button id="delSceneBtn" class="danger">削除</button>
+        </div>
+        <div id="sceneEditorInner" style="display:none">
+          <div class="rowflex" style="margin-bottom:12px">
+            <label class="small">Scene ID</label><input id="sceneOrderInput" type="number" step="0.1" style="width:80px">
+            <label class="small">名前</label><input id="sceneNameInput" style="width:180px">
+            <label class="small">セッション</label><select id="sceneSessionSelect" style="min-width:150px"></select>
+            <label class="small">切替方法</label>
+            <select id="sceneModeSelect"><option value="fade">フェード</option><option value="cut">カット</option></select>
+            <span id="fadeSecWrap"><label class="small">フェード秒数</label> <input id="sceneFadeInput" type="number" min="0.1" step="0.1" style="width:70px"> <span class="small">秒</span></span>
+          </div>
+          <div class="rowflex" style="margin-bottom:10px">
+            <input id="chanFilter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="width:280px">
+            <span class="tiny" id="chanCount"></span>
+          </div>
+          <div id="sceneEditGrid"></div>
+        </div>
+      </div>
 
       <div class="card">
         <h3>音源ライブラリ</h3>
-        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。BGM＝シーンのチャンネル／SE＝パッドから単発再生。</div>
-        <div class="rowflex">
+        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。BGM＝シーンのチャンネル／SE＝パッドから単発再生。フェーダーNoを入れたBGMは「フェーダー（割り込み）」に並びます。</div>
+        <div class="rowflex" style="margin-bottom:10px">
           <button id="importBtn" class="accent">＋ 音声ファイルを取り込む</button>
           <input type="file" id="fileInput" accept="audio/*" multiple style="display:none">
-          <input id="librarySearch" placeholder="検索（名前・タグ）" style="width:220px;margin-left:auto">
+          <input id="librarySearch" placeholder="検索（名前・任意ID・タグ）" style="width:240px;margin-left:auto">
           <span class="tiny" id="libCount"></span>
         </div>
+        <div id="tagChips"></div>
       </div>
       <div class="card" style="padding:6px 8px">
         <table id="libTable">
-          <thead><tr><th style="width:26px"></th><th>名前</th><th style="width:90px">種別</th><th>タグ（カンマ区切り）</th><th style="width:150px">基準音量</th><th style="width:56px">ループ</th><th style="width:70px">長さ</th><th style="width:60px"></th></tr></thead>
+          <thead><tr>
+            <th style="width:26px"></th>
+            <th data-sort="name">名前</th>
+            <th data-sort="customId" style="width:110px">任意ID</th>
+            <th data-sort="kind" style="width:78px">種別</th>
+            <th>タグ（カンマ区切り）</th>
+            <th data-sort="faderNo" style="width:96px">フェーダーNo</th>
+            <th style="width:130px">基準音量</th>
+            <th style="width:50px">ループ</th>
+            <th data-sort="duration" style="width:62px">長さ</th>
+            <th style="width:66px"></th>
+          </tr></thead>
           <tbody id="libBody"></tbody>
         </table>
         <div id="libEmpty" class="small" style="padding:16px;text-align:center;display:none">音源がありません。「＋ 音声ファイルを取り込む」か、設定画面の「デモ一式を生成」を試してください。</div>
-      </div>
-
-      <div class="card">
-        <h3>シーン</h3>
-        <div class="small" style="margin-bottom:10px">シーン＝全BGMチャンネルの音量値（‰ = 0〜1000）のセット。CURRENTシーンの値を編集すると音に即時反映されます。</div>
-        <div class="rowflex">
-          <select id="sceneSelect" style="min-width:220px"></select>
-          <button id="addSceneBtn" class="accent">＋ シーン追加</button>
-          <button id="dupSceneBtn">複製</button>
-          <button id="upSceneBtn">↑</button>
-          <button id="downSceneBtn">↓</button>
-          <button id="delSceneBtn" class="danger">削除</button>
-        </div>
-      </div>
-      <div class="card" id="sceneEditorCard" style="display:none">
-        <div class="rowflex" style="margin-bottom:14px">
-          <label class="small">名前</label><input id="sceneNameInput" style="width:200px">
-          <label class="small" style="margin-left:12px">切替方法</label>
-          <select id="sceneModeSelect"><option value="fade">フェード</option><option value="cut">カット</option></select>
-          <span id="fadeSecWrap"><label class="small">フェード秒数</label> <input id="sceneFadeInput" type="number" min="0.1" step="0.1" style="width:70px"> <span class="small">秒</span></span>
-          <button id="allZeroBtn" style="margin-left:auto">All to 0</button>
-        </div>
-        <div id="sceneEditGrid"></div>
-        <div class="tiny" style="margin-top:10px">音量0のチャンネルはこのシーンでは不使用（移行完了時に自動停止）。</div>
+        <div id="libPager"></div>
       </div>
     </div>
   </div>
@@ -267,7 +356,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
       <div class="card">
         <h3>エクスポート／インポート</h3>
-        <div class="small" style="margin-bottom:10px">全データ（メタデータ＋音源）を1ファイルにバックアップし、別端末へ移行できます。</div>
+        <div class="small" style="margin-bottom:10px">全データ（メタデータ＋音源）を1ファイルにバックアップし、別端末へ移行できます。旧バージョン（v1）のファイルも読み込めます。</div>
         <div class="rowflex">
           <button id="exportBtn">⬇ エクスポート（.ssopack.json）</button>
           <button id="importPackBtn">⬆ インポート</button>
@@ -278,7 +367,11 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       <div class="card">
         <h3>デモデータ</h3>
         <div class="small" style="margin-bottom:10px">動作確認用の音源（合成音）とシーン一式をアプリ内で自動生成します。</div>
-        <button id="demoBtn">🎚 デモ一式を生成</button>
+        <div class="rowflex">
+          <button id="demoBtn">🎚 デモ一式を生成</button>
+          <button id="dummyBtn">🧪 ダミー音源を200件生成（開発用）</button>
+        </div>
+        <div class="tiny" style="margin-top:8px">ダミーはごく短い無音WAVです。200件時のライブラリ／パッド／フェーダーの表示確認用。</div>
       </div>
 
       <div class="card">
@@ -295,6 +388,25 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 </main>
 </div>
 <audio id="previewAudio" style="display:none"></audio>
+
+<!-- unified scene form -->
+<dialog id="sceneForm">
+  <h3 id="sfTitle">シーンを保存</h3>
+  <div class="small" id="sfLead"></div>
+  <div class="formGrid">
+    <label>セッション</label><select id="sfSession"></select>
+    <label>Scene ID</label><input id="sfOrder" type="number" step="0.1" placeholder="1.5 のような小数も可">
+    <label>Scene Name</label><input id="sfName">
+    <label>切替方法</label><select id="sfMode"><option value="fade">フェード</option><option value="cut">カット</option></select>
+    <label id="sfFadeLab">フェード秒数</label><input id="sfFade" type="number" min="0.1" step="0.1">
+  </div>
+  <div class="tiny" id="sfPreview" style="margin-bottom:14px"></div>
+  <div class="rowflex" style="justify-content:flex-end">
+    <button id="sfCancel">キャンセル</button>
+    <button id="sfOk" class="accent">保存</button>
+  </div>
+</dialog>
+
 <script>
 "use strict";
 /* =====================================================================
@@ -306,6 +418,11 @@ const $$ = s => [...document.querySelectorAll(s)];
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(36).slice(2));
 const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
 const lerp = (a,b,x)=>a+(b-a)*x;
+
+/* ---- volume display: internal 0..1000 <-> UI 0..100 % (1 decimal) ---- */
+const fmtPct = v => String(Math.round(Number(v||0))/10);
+const pctText = v => fmtPct(v)+'%';
+const pctToVal = p => clamp(Math.round(Number(p)*10),0,1000);
 
 /* ===================== IndexedDB ===================== */
 const DB_NAME='session-sound-operator', DB_VER=1;
@@ -327,9 +444,43 @@ const blobPut=(k,v)=>idb('blobs','readwrite',st=>st.put(v,k));
 const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
 const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
 
-/* ===================== State ===================== */
-let state={version:1,updatedAt:0,audios:[],scenes:[],settings:{master:800,seVol:1000,driveClientId:''}};
+/* ===================== State (version 2) ===================== */
+const STATE_VERSION=2;
+function blankState(){
+  return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
+          settings:{master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true}}};
+}
+let state=blankState();
 let saveTimer=null;
+
+/* v1 -> v2 migration (sessions / orderId / customId / faderNo). Idempotent. */
+function migrate(raw){
+  const st=Object.assign(blankState(),raw||{});
+  st.settings=Object.assign({master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true}},st.settings||{});
+  if(!st.settings.secOpen||typeof st.settings.secOpen!=='object')st.settings.secOpen={a:true,b:true};
+  if(!Array.isArray(st.sessions))st.sessions=[];
+  if(!Array.isArray(st.audios))st.audios=[];
+  if(!Array.isArray(st.scenes))st.scenes=[];
+  if(!st.sessions.length)st.sessions=[{id:uid(),name:'セッション 1',createdAt:Date.now()}];
+  const defId=st.sessions[0].id;
+  st.scenes.forEach((s,i)=>{
+    if(!s.sessionId||!st.sessions.some(x=>x.id===s.sessionId))s.sessionId=defId;
+    if(typeof s.orderId!=='number'||!isFinite(s.orderId))s.orderId=i+1;
+    if(!s.values||typeof s.values!=='object')s.values={};
+    if(s.mode!=='cut')s.mode='fade';
+    if(typeof s.fadeSec!=='number')s.fadeSec=3;
+  });
+  st.audios.forEach(a=>{
+    if(typeof a.customId!=='string')a.customId='';
+    if(a.faderNo===undefined||a.faderNo==='')a.faderNo=null;
+    if(a.faderNo!==null)a.faderNo=Number(a.faderNo);
+    if(!Array.isArray(a.tags))a.tags=[];
+  });
+  if(!st.currentSessionId||!st.sessions.some(x=>x.id===st.currentSessionId))st.currentSessionId=st.sessions[0].id;
+  st.version=STATE_VERSION;
+  return st;
+}
+
 function markDirty(){
   state.updatedAt=Date.now();
   $('#saveState').textContent='保存中…';
@@ -342,8 +493,21 @@ function markDirty(){
 }
 const audioById=id=>state.audios.find(a=>a.id===id);
 const sceneById=id=>state.scenes.find(s=>s.id===id);
+const sessionById=id=>state.sessions.find(s=>s.id===id);
 const bgmAudios=()=>state.audios.filter(a=>a.kind==='bgm');
 const seAudios=()=>state.audios.filter(a=>a.kind==='se');
+/* scenes of a session, ordered by orderId asc (ties keep creation order) */
+function scenesOf(sid){
+  const pos=new Map(state.scenes.map((s,i)=>[s.id,i]));
+  return state.scenes.filter(s=>s.sessionId===sid).sort((a,b)=>(a.orderId-b.orderId)||(pos.get(a.id)-pos.get(b.id)));
+}
+const curScenes=()=>scenesOf(state.currentSessionId);
+function nextOrderId(sid){
+  const list=scenesOf(sid);
+  return list.length?Math.round((Math.max(...list.map(s=>s.orderId))+1)*10)/10:1;
+}
+/* BGM assigned to an interrupt fader slot, by slot number */
+const faderAudios=()=>bgmAudios().filter(a=>a.faderNo!=null&&isFinite(a.faderNo)).sort((a,b)=>a.faderNo-b.faderNo);
 
 /* ===================== Audio Engine (Web Audio API) ===================== */
 const engine={ctx:null,master:null,sceneBus:null,seBus:null,channels:new Map(),buffers:new Map(),decoding:new Map()};
@@ -356,7 +520,7 @@ function ensureCtx(){
     engine.seBus=ctx.createGain();engine.seBus.connect(engine.master);
     engine.master.gain.value=state.settings.master/1000;
     engine.seBus.gain.value=state.settings.seVol/1000;
-    engine.sceneBus.gain.value=live.sceneVol/1000;
+    engine.sceneBus.gain.value=1; // SCENE bus fader removed: crossfade bar is the only scene-level control
   }
   if(engine.ctx.state==='suspended')engine.ctx.resume();
   return engine.ctx;
@@ -398,15 +562,19 @@ function stopChannel(id){
 /* ---- live mix state ---- */
 const live={
   currentSceneId:null,      // null = silence
-  currentValues:{},         // audioId -> permille
+  currentValues:{},         // audioId -> permille (scene-derived)
   nextSceneId:null,
   trans:null,               // {from,to,x,mode:'auto'|'manual',t0,dur,toSceneId}
-  sceneVol:1000,
+  interrupt:{},             // audioId -> permille (interrupt fader; never written to scenes)
+  muted:null,               // snapshot taken by MUTE ALL ({currentValues,interrupt}) or null
 };
-function effectiveValue(id){
+/* scene-derived value (includes the running transition) */
+function sceneValue(id){
   if(live.trans){const f=live.trans.from[id]||0,t=live.trans.to[id]||0;return lerp(f,t,live.trans.x);}
   return live.currentValues[id]||0;
 }
+/* what is actually heard: the interrupt fader is an overlay, never a replacement */
+function effectiveValue(id){return Math.max(sceneValue(id),live.interrupt[id]||0);}
 function applyMix(){
   if(!engine.ctx)return;
   for(const a of bgmAudios()){
@@ -420,16 +588,19 @@ async function startNeededChannels(values){
   for(const a of bgmAudios())if((values[a.id]||0)>0)jobs.push(ensureChannel(a.id));
   await Promise.all(jobs);
 }
+/* next scene within the current session */
 function sceneAfter(id){
-  const i=state.scenes.findIndex(s=>s.id===id);
-  if(i<0)return state.scenes[0]?state.scenes[0].id:null;
-  return state.scenes[i+1]?state.scenes[i+1].id:null;
+  const list=curScenes();
+  const i=list.findIndex(s=>s.id===id);
+  if(i<0)return list[0]?list[0].id:null;
+  return list[i+1]?list[i+1].id:null;
 }
 async function beginTransition(mode){
   if(!live.nextSceneId)return false;
   const to=sceneById(live.nextSceneId);if(!to)return false;
-  const from={};for(const a of bgmAudios())from[a.id]=effectiveValue(a.id);
+  const from={};for(const a of bgmAudios())from[a.id]=sceneValue(a.id);
   live.trans={from,to:{...to.values},x:0,mode,t0:performance.now(),dur:(to.fadeSec||3)*1000,toSceneId:to.id};
+  live.muted=null;
   await startNeededChannels(to.values);
   return true;
 }
@@ -438,9 +609,7 @@ function finalizeTransition(){
   live.currentSceneId=t.toSceneId;
   live.currentValues={...t.to};
   live.trans=null;
-  for(const a of bgmAudios())if((live.currentValues[a.id]||0)<=0)stopChannel(a.id);
-  live.sceneVol=1000;
-  if(engine.ctx)setGainSmooth(engine.sceneBus.gain,1);
+  for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
   live.nextSceneId=sceneAfter(t.toSceneId);
   applyMix();
   ui.xfader.set(0);
@@ -449,7 +618,7 @@ function finalizeTransition(){
 function cancelTransition(){
   const t=live.trans;if(!t)return;
   live.trans=null;
-  for(const a of bgmAudios())if((live.currentValues[a.id]||0)<=0)stopChannel(a.id);
+  for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
   applyMix();ui.xfader.set(0);renderPerform();
 }
 async function doGO(){
@@ -462,9 +631,9 @@ async function doGO(){
   if(to.mode==='cut'){
     await beginTransition('auto');
     live.trans.x=1;
-    // hard cut: set gains instantly
+    // hard cut: set gains instantly (interrupt overlay still applies)
     for(const a of bgmAudios()){const ch=engine.channels.get(a.id);
-      if(ch&&ch.playing)ch.gain.gain.setValueAtTime(((to.values[a.id]||0)/1000)*((a.baseVolume??1000)/1000),engine.ctx.currentTime);}
+      if(ch&&ch.playing)ch.gain.gain.setValueAtTime((Math.max(to.values[a.id]||0,live.interrupt[a.id]||0)/1000)*((a.baseVolume??1000)/1000),engine.ctx.currentTime);}
     finalizeTransition();
   }else{
     await beginTransition('auto');
@@ -475,11 +644,38 @@ function allStop(){
   live.trans=null;
   live.currentSceneId=null;
   live.currentValues={};
+  live.interrupt={};
+  live.muted=null;
   for(const a of state.audios)stopChannel(a.id);
   for(const p of sePlaying){try{p.stop();}catch(e){}}
   sePlaying.clear();
-  live.sceneVol=1000;
-  if(engine.ctx)engine.sceneBus.gain.setValueAtTime(1,engine.ctx.currentTime);
+  ui.xfader.set(0);
+  renderPerform();
+}
+/* MUTE ALL: silence everything now without touching any saved scene value.
+   Press again to restore the mix that was playing (toggle). */
+function toggleMuteAll(){
+  if(!live.muted&&!sePlaying.size&&!bgmAudios().some(a=>effectiveValue(a.id)>0))return; // already silent
+  if(live.muted){
+    const m=live.muted;live.muted=null;
+    live.currentValues={...m.currentValues};
+    live.interrupt={...m.interrupt};
+    ensureCtx();
+    startNeededChannels(live.currentValues).then(()=>{
+      const jobs=[];
+      for(const id of Object.keys(live.interrupt))if(live.interrupt[id]>0)jobs.push(ensureChannel(id));
+      return Promise.all(jobs);
+    }).then(()=>{applyMix();renderPerform();});
+    renderPerform();
+    return;
+  }
+  live.muted={currentValues:{...live.currentValues},interrupt:{...live.interrupt}};
+  live.trans=null;
+  live.currentValues={};
+  live.interrupt={};
+  for(const a of state.audios)stopChannel(a.id);
+  for(const p of sePlaying){try{p.stop();}catch(e){}}
+  sePlaying.clear();
   ui.xfader.set(0);
   renderPerform();
 }
@@ -503,7 +699,7 @@ function tick(){
     t.x=clamp((performance.now()-t.t0)/t.dur,0,1);
     applyMix();
     ui.xfader.set(t.x*1000,true);
-    if(t.x>=1)finalizeTransition();else updateChannelReadouts();
+    if(t.x>=1)finalizeTransition();else updateInterruptReadouts();
   }
   requestAnimationFrame(tick);
 }
@@ -517,7 +713,7 @@ function VFader(el,{onInput,onChange,max=1000}={}){
   const thumb=document.createElement('div');thumb.className='thumb';
   const ghostEl=document.createElement('div');ghostEl.className='ghost';ghostEl.style.display='none';
   el.append(track,fill,ghostEl,thumb);
-  function h(){return el.clientHeight-12;}
+  function h(){return Math.max(1,el.clientHeight-12);}
   function render(){
     const r=clamp(value/max,0,1);
     fill.style.height=(r*h())+'px';
@@ -551,74 +747,66 @@ $$('nav button').forEach(b=>b.addEventListener('click',()=>{
   $$('nav button').forEach(x=>x.classList.toggle('active',x===b));
   $$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   if(b.dataset.view==='perform')renderPerform();
-  if(b.dataset.view==='edit'){renderScenesView();renderLibrary();}
+  if(b.dataset.view==='edit')renderEditView();
 }));
 
-/* ===================== Perform view ===================== */
-let chanFaders=new Map(); // audioId -> vfader
+/* ---- collapsible sections (open state is persisted) ---- */
+$$('.section').forEach(sec=>{
+  sec.querySelector('.secHead').addEventListener('click',()=>{
+    const open=sec.classList.contains('collapsed');
+    sec.classList.toggle('collapsed',!open);
+    state.settings.secOpen[sec.dataset.sec]=open;
+    markDirty();
+  });
+});
+function applySecOpen(){
+  $$('.section').forEach(sec=>{
+    sec.classList.toggle('collapsed',state.settings.secOpen[sec.dataset.sec]===false);
+  });
+}
+
+/* ===================== Section A: scene playback ===================== */
+function renderSessionSelect(){
+  const sel=$('#sessionSelect');sel.innerHTML='';
+  for(const s of state.sessions){
+    const o=document.createElement('option');o.value=s.id;
+    o.textContent=`${s.name}（${scenesOf(s.id).length}シーン）`;
+    sel.appendChild(o);
+  }
+  sel.value=state.currentSessionId;
+}
+$('#sessionSelect').addEventListener('change',e=>{
+  state.currentSessionId=e.target.value;
+  const list=curScenes();
+  if(!live.nextSceneId||!list.some(s=>s.id===live.nextSceneId))live.nextSceneId=list[0]?list[0].id:null;
+  markDirty();renderPerform();
+});
 function renderSceneList(){
   const list=$('#sceneList');list.innerHTML='';
-  for(const s of state.scenes){
+  const scenes=curScenes();
+  for(const s of scenes){
     const d=document.createElement('div');d.className='sceneItem';
     if(s.id===live.currentSceneId)d.classList.add('current');
     if(s.id===live.nextSceneId)d.classList.add('next');
     const mode=s.mode==='cut'?'CUT':`FADE ${s.fadeSec??3}s`;
-    d.innerHTML=`<div class="sname"></div><div class="smeta">${mode}</div>`;
-    d.querySelector('.sname').textContent=s.name;
+    d.innerHTML=`<div class="sname"><span class="sid"></span><span class="stxt"></span></div><div class="smeta">${mode}</div>`;
+    d.querySelector('.sid').textContent=String(s.orderId);
+    d.querySelector('.stxt').textContent=s.name;
+    d.querySelector('.stxt').title=s.name;
     if(s.id===live.currentSceneId)d.insertAdjacentHTML('beforeend','<span class="badge cur">CURRENT</span>');
     else if(s.id===live.nextSceneId)d.insertAdjacentHTML('beforeend','<span class="badge nxt">NEXT</span>');
     d.addEventListener('click',()=>{if(live.trans)return;live.nextSceneId=s.id;renderPerform();});
     list.appendChild(d);
   }
-  if(!state.scenes.length)list.innerHTML='<div class="small" style="padding:12px">シーンがありません。フェーダーで音を作って「◉ 今の音をシーンに保存」でどうぞ。</div>';
+  if(!scenes.length)list.innerHTML='<div class="small" style="padding:12px">このセッションにはシーンがありません。フェーダーで音を作って「◉ 今の音をシーンに保存」でどうぞ。</div>';
 }
-function renderChannels(){
-  const strip=$('#channelStrip');strip.innerHTML='';chanFaders.clear();
-  const list=bgmAudios();
-  if(!list.length){strip.innerHTML='<div id="emptyChannels">BGM音源がありません。「＋ 音源を追加」で取り込むか、設定のデモ生成をお試しください。</div>';return;}
-  const nextScene=live.nextSceneId?sceneById(live.nextSceneId):null;
-  for(const a of list){
-    const v=Math.round(effectiveValue(a.id));
-    const d=document.createElement('div');d.className='chan'+(v<=0?' silent':'');
-    d.innerHTML=`<div class="cname"></div><div class="cnext"></div><div class="vfader"></div><div class="cval"></div>`;
-    d.querySelector('.cname').textContent=a.name;
-    d.querySelector('.cname').title=a.name;
-    const nv=nextScene?(nextScene.values[a.id]||0):null;
-    d.querySelector('.cnext').textContent=(nv!=null&&nv!==v)?('▸ '+nv):'';
-    const f=VFader(d.querySelector('.vfader'),{
-      onInput(val){
-        if(live.trans)return;
-        const sc=live.currentSceneId?sceneById(live.currentSceneId):null;
-        live.currentValues[a.id]=val;
-        if(sc){sc.values[a.id]=val;markDirty();}
-        if(val>0)ensureChannel(a.id).then(applyMix);
-        applyMix();
-        d.querySelector('.cval').textContent=val+'‰';
-        d.classList.toggle('silent',val<=0);
-      }
-    });
-    f.set(v);
-    if(nv!=null&&nv!==v)f.setGhost(nv);
-    f.setDisabled(!!live.trans);
-    d.querySelector('.cval').textContent=v+'‰';
-    chanFaders.set(a.id,{fader:f,el:d});
-    strip.appendChild(d);
-  }
-}
-function updateChannelReadouts(){
-  for(const[id,{fader,el}]of chanFaders){
-    const v=Math.round(effectiveValue(id));
-    fader.set(v);
-    el.querySelector('.cval').textContent=v+'‰';
-    el.classList.toggle('silent',v<=0);
-  }
-}
-function renderTransport(){
+function renderStage(){
   const next=live.nextSceneId?sceneById(live.nextSceneId):null;
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
+  $('#curName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
+  $('#nxtName').textContent=next?`${next.orderId} ${next.name}`:'未選択';
   $('#goBtn').disabled=!next&&!live.trans;
-  $('#goInfo').textContent=next?`NEXT: ${next.name}（${next.mode==='cut'?'カット':'フェード '+(next.fadeSec??3)+'秒'}）`:'NEXT未選択';
-  $('#nowPlayingLabel').textContent=cur?`CURRENT: ${cur.name}`:'CURRENT: （無音）';
+  $('#goInfo').textContent=next?`${next.mode==='cut'?'カット':'フェード '+(next.fadeSec??3)+'秒'}で切替`:'NEXT未選択';
   ui.xfader.setDisabled(!next&&!live.trans);
 }
 function renderSceneActions(){
@@ -626,48 +814,17 @@ function renderSceneActions(){
   $('#overwriteSceneBtn').disabled=!!live.trans||!live.currentSceneId;
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
   $('#overwriteSceneBtn').textContent=cur?`上書き（${cur.name}）`:'上書き';
+  const mb=$('#muteAllBtn');
+  mb.textContent=live.muted?'MUTE 解除':'MUTE ALL';
+  mb.classList.toggle('warn',!live.muted);
+  mb.classList.toggle('accent',!!live.muted);
 }
-function renderPerform(){renderSceneList();renderChannels();renderTransport();renderSEPads();renderSceneActions();}
-/* snapshot: 現在鳴っている音（0より大きいチャンネル）をシーンの values にする */
-function snapshotValues(){
-  const v={};
-  for(const a of bgmAudios()){const x=Math.round(effectiveValue(a.id));if(x>0)v[a.id]=x;}
-  return v;
-}
-$('#saveSceneBtn').addEventListener('click',()=>{
-  if(live.trans)return;
-  const name=prompt('シーン名','Scene '+(state.scenes.length+1));
-  if(name===null)return;
-  const s={id:uid(),name:name.trim()||('Scene '+(state.scenes.length+1)),mode:'fade',fadeSec:3,values:snapshotValues()};
-  state.scenes.push(s);
-  live.currentSceneId=s.id;
-  live.currentValues={...s.values};
-  editSceneId=s.id;
-  markDirty();renderPerform();
-});
-$('#overwriteSceneBtn').addEventListener('click',()=>{
-  if(live.trans||!live.currentSceneId)return;
-  const s=sceneById(live.currentSceneId);if(!s)return;
-  if(!confirm('シーン「'+s.name+'」の音量を現在の音で上書きしますか？'))return;
-  s.values=snapshotValues();
-  live.currentValues={...s.values};
-  markDirty();renderPerform();
-});
-function renderSEPads(){
-  const wrap=$('#sePads');wrap.innerHTML='';
-  const list=seAudios();
-  if(!list.length){wrap.innerHTML='<div class="small" style="padding:4px">SE音源がありません。「＋ SEを追加」で取り込むか、「詳細編集」で種別をSEにするとパッドに並びます。</div>';return;}
-  list.forEach((a,i)=>{
-    const b=document.createElement('button');b.className='sePad';b.dataset.id=a.id;
-    b.innerHTML=`<span class="pname"></span>${i<9?`<span class="pkey">${i+1}</span>`:''}`;
-    b.querySelector('.pname').textContent=a.name;
-    b.title=a.name;
-    b.addEventListener('click',()=>triggerSE(a.id));
-    wrap.appendChild(b);
-  });
+function renderPerform(){
+  renderSessionSelect();renderSceneList();renderStage();
+  renderSEPads();renderInterruptFaders();renderSceneActions();
 }
 
-/* transport controls */
+/* ---- transport ---- */
 ui.xfader=VFader($('#xfader'),{
   async onInput(v){
     if(live.trans&&live.trans.mode==='auto')return;
@@ -679,7 +836,7 @@ ui.xfader=VFader($('#xfader'),{
     }
     live.trans.x=v/1000;
     $('#xfVal').textContent=Math.round(v/10)+'%';
-    applyMix();updateChannelReadouts();
+    applyMix();updateInterruptReadouts();
     if(v>=1000){finalizeTransition();$('#xfVal').textContent='0%';}
     else if(v<=0){cancelTransition();$('#xfVal').textContent='0%';}
   }
@@ -687,30 +844,179 @@ ui.xfader=VFader($('#xfader'),{
 const _xfSet=ui.xfader.set;
 ui.xfader.set=(v,silent)=>{_xfSet(v);$('#xfVal').textContent=Math.round(v/10)+'%';};
 
-ui.sceneVol=VFader($('#sceneVolFader'),{onInput(v){
-  live.sceneVol=v;ensureCtx();setGainSmooth(engine.sceneBus.gain,v/1000);
-  $('#sceneVolVal').textContent=Math.round(v/10)+'%';
-}});
 ui.seVol=VFader($('#seVolFader'),{onInput(v){
   state.settings.seVol=v;ensureCtx();setGainSmooth(engine.seBus.gain,v/1000);
-  $('#seVolVal').textContent=Math.round(v/10)+'%';markDirty();
+  $('#seVolVal').textContent=pctText(v);markDirty();
 }});
 ui.masterVol=VFader($('#masterFader'),{onInput(v){
   state.settings.master=v;ensureCtx();setGainSmooth(engine.master.gain,v/1000);
-  $('#masterVal').textContent=Math.round(v/10)+'%';markDirty();
+  $('#masterVal').textContent=pctText(v);markDirty();
 }});
 function syncBusFaders(){
-  ui.sceneVol.set(live.sceneVol);$('#sceneVolVal').textContent=Math.round(live.sceneVol/10)+'%';
-  ui.seVol.set(state.settings.seVol);$('#seVolVal').textContent=Math.round(state.settings.seVol/10)+'%';
-  ui.masterVol.set(state.settings.master);$('#masterVal').textContent=Math.round(state.settings.master/10)+'%';
+  ui.seVol.set(state.settings.seVol);$('#seVolVal').textContent=pctText(state.settings.seVol);
+  ui.masterVol.set(state.settings.master);$('#masterVal').textContent=pctText(state.settings.master);
 }
-const _finalize=finalizeTransition;
-finalizeTransition=function(){_finalize();syncBusFaders();};
 $('#goBtn').addEventListener('click',doGO);
 $('#stopBtn').addEventListener('click',allStop);
+$('#muteAllBtn').addEventListener('click',toggleMuteAll);
 
-/* keyboard */
+/* ===================== Section B: SE pads (banks) ===================== */
+let sePadBank=0;
+const PADS_PER_BANK=9;
+function bankCount(){return Math.max(1,Math.ceil(seAudios().length/PADS_PER_BANK));}
+function bankSEAudios(){return seAudios().slice(sePadBank*PADS_PER_BANK,(sePadBank+1)*PADS_PER_BANK);}
+function renderSEPads(){
+  const banks=bankCount();
+  if(sePadBank>=banks)sePadBank=0;
+  const bar=$('#bankBar');bar.innerHTML='';
+  if(banks>1){
+    const lab=document.createElement('span');lab.className='tiny';lab.textContent='BANK';bar.appendChild(lab);
+    for(let i=0;i<banks;i++){
+      const b=document.createElement('button');b.textContent=String.fromCharCode(65+i);
+      b.className=i===sePadBank?'on':'';
+      b.addEventListener('click',()=>{sePadBank=i;renderSEPads();});
+      bar.appendChild(b);
+    }
+  }
+  const wrap=$('#sePads');wrap.innerHTML='';
+  const list=bankSEAudios();
+  if(!list.length){wrap.innerHTML='<div class="emptyNote">SE音源がありません。「詳細編集」で種別をSEにするとパッドに並びます。</div>';return;}
+  list.forEach((a,i)=>{
+    const b=document.createElement('button');b.className='sePad';b.dataset.id=a.id;
+    b.innerHTML=`<span class="pname"></span><span class="pkey">${i+1}</span>`;
+    b.querySelector('.pname').textContent=a.name;
+    b.title=a.name;
+    b.addEventListener('click',()=>triggerSE(a.id));
+    wrap.appendChild(b);
+  });
+}
+
+/* ===================== Section B: interrupt BGM faders ===================== */
+let intFaders=new Map(); // audioId -> {fader,el}
+function renderInterruptFaders(){
+  const strip=$('#interruptStrip');strip.innerHTML='';intFaders.clear();
+  const list=faderAudios();
+  if(!list.length){
+    strip.innerHTML='<div class="emptyNote">割り込みフェーダーは空です。「詳細編集 → 音源ライブラリ」でBGMに<b>フェーダーNo</b>（1〜12目安）を入れると、この場所に番号順で並びます。<br>シーンの保存値には一切影響しません。</div>';
+    return;
+  }
+  for(const a of list){
+    const iv=Math.round(live.interrupt[a.id]||0);
+    const sv=Math.round(sceneValue(a.id));
+    const d=document.createElement('div');d.className='chan'+(Math.max(iv,sv)<=0?' silent':'');
+    d.innerHTML=`<div class="cslot"></div><div class="cname"></div><div class="vfader"></div><div class="cval"></div><div class="cscene"></div>`;
+    d.querySelector('.cslot').textContent='No.'+a.faderNo;
+    d.querySelector('.cname').textContent=a.name;
+    d.querySelector('.cname').title=a.name;
+    const f=VFader(d.querySelector('.vfader'),{
+      onInput(val){
+        live.interrupt[a.id]=val;
+        live.muted=null;
+        if(val>0)ensureChannel(a.id).then(applyMix);
+        applyMix();
+        d.querySelector('.cval').textContent=pctText(val);
+        d.classList.toggle('silent',Math.max(val,Math.round(sceneValue(a.id)))<=0);
+        renderSceneActions();
+      }
+    });
+    f.set(iv);
+    f.setGhost(sv>0?sv:null);
+    d.querySelector('.cval').textContent=pctText(iv);
+    d.querySelector('.cscene').textContent=sv>0?('シーン '+pctText(sv)):'';
+    intFaders.set(a.id,{fader:f,el:d});
+    strip.appendChild(d);
+  }
+}
+/* during a transition only the scene-derived readout moves; the fader itself must not */
+function updateInterruptReadouts(){
+  for(const[id,{fader,el}]of intFaders){
+    const sv=Math.round(sceneValue(id));
+    const iv=Math.round(live.interrupt[id]||0);
+    fader.setGhost(sv>0?sv:null);
+    el.querySelector('.cscene').textContent=sv>0?('シーン '+pctText(sv)):'';
+    el.classList.toggle('silent',Math.max(sv,iv)<=0);
+  }
+}
+
+/* ===================== Unified scene form (save / overwrite / add) ===================== */
+const dlg=$('#sceneForm');
+let sfKind='new',sfSceneId=null,sfValues=null;
+function snapshotValues(){
+  const v={};
+  for(const a of bgmAudios()){const x=Math.round(effectiveValue(a.id));if(x>0)v[a.id]=x;}
+  return v;
+}
+function fillSessionOptions(sel,selectedId){
+  sel.innerHTML='';
+  for(const s of state.sessions){
+    const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);
+  }
+  sel.value=selectedId||state.currentSessionId;
+}
+/* kind: 'new' (snapshot of the live mix) | 'overwrite' (CURRENT scene) | 'add' (empty scene) */
+function openSceneForm(kind,sceneId){
+  sfKind=kind;sfSceneId=sceneId||null;
+  const sc=sceneId?sceneById(sceneId):null;
+  const sid=sc?sc.sessionId:state.currentSessionId;
+  sfValues=(kind==='add')?{}:snapshotValues();
+  $('#sfTitle').textContent=kind==='new'?'今の音を新しいシーンとして保存'
+    :kind==='overwrite'?'CURRENTシーンを今の音で上書き':'シーンを追加';
+  $('#sfLead').textContent=kind==='add'
+    ?'空のシーンを作ります。音量は下のシーン編集で設定してください。'
+    :'いま鳴っている音量（割り込みフェーダーの上乗せ分を含む実効値）を保存します。';
+  fillSessionOptions($('#sfSession'),sid);
+  $('#sfOrder').value=sc?sc.orderId:nextOrderId(sid);
+  $('#sfName').value=sc?sc.name:('Scene '+(scenesOf(sid).length+1));
+  $('#sfMode').value=sc?sc.mode:'fade';
+  $('#sfFade').value=sc?(sc.fadeSec??3):3;
+  syncSfFade();
+  const n=Object.keys(sfValues).length;
+  $('#sfPreview').textContent=kind==='add'?''
+    :(n?`保存される音量: ${Object.entries(sfValues).map(([id,v])=>`${(audioById(id)||{}).name||'?'} ${pctText(v)}`).join(' / ')}`
+       :'保存される音量: （すべて0% — 無音のシーンになります）');
+  dlg.showModal();
+}
+function syncSfFade(){
+  const fade=$('#sfMode').value==='fade';
+  $('#sfFadeLab').style.display=fade?'':'none';
+  $('#sfFade').style.display=fade?'':'none';
+}
+$('#sfMode').addEventListener('change',syncSfFade);
+$('#sfCancel').addEventListener('click',()=>dlg.close());
+$('#sfOk').addEventListener('click',()=>{
+  const sid=$('#sfSession').value;
+  const orderId=Number($('#sfOrder').value);
+  const name=($('#sfName').value||'').trim();
+  const mode=$('#sfMode').value;
+  const fadeSec=Math.max(0.1,Number($('#sfFade').value)||3);
+  if(!isFinite(orderId)){alert('Scene ID には数値を入れてください（1.5 のような小数も可）');return;}
+  if(sfKind==='overwrite'){
+    const s=sceneById(sfSceneId);if(!s){dlg.close();return;}
+    s.sessionId=sid;s.orderId=orderId;s.name=name||s.name;s.mode=mode;s.fadeSec=fadeSec;
+    s.values={...sfValues};
+    live.currentValues={...s.values};
+  }else{
+    const s={id:uid(),sessionId:sid,orderId,name:name||('Scene '+(scenesOf(sid).length+1)),mode,fadeSec,values:{...sfValues}};
+    state.scenes.push(s);
+    editSceneId=s.id;
+    if(sfKind==='new'){
+      live.currentSceneId=s.id;
+      live.currentValues={...s.values};
+      live.muted=null;
+    }
+  }
+  state.currentSessionId=sid;
+  const list=curScenes();
+  if(!live.nextSceneId||!list.some(x=>x.id===live.nextSceneId))live.nextSceneId=null;
+  dlg.close();markDirty();renderPerform();
+  if($('#view-edit').classList.contains('active'))renderEditView();
+});
+$('#saveSceneBtn').addEventListener('click',()=>{if(!live.trans)openSceneForm('new');});
+$('#overwriteSceneBtn').addEventListener('click',()=>{if(!live.trans&&live.currentSceneId)openSceneForm('overwrite',live.currentSceneId);});
+
+/* ===================== keyboard ===================== */
 document.addEventListener('keydown',e=>{
+  if(dlg.open)return;
   const t=e.target;
   if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'))return;
   if(e.repeat)return;
@@ -718,100 +1024,171 @@ document.addEventListener('keydown',e=>{
   else if(e.key===' '){e.preventDefault();allStop();}
   else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
     e.preventDefault();
-    if(live.trans||!state.scenes.length)return;
-    let i=state.scenes.findIndex(s=>s.id===live.nextSceneId);
-    if(i<0)i=0;else i=clamp(i+(e.key==='ArrowRight'?1:-1),0,state.scenes.length-1);
-    live.nextSceneId=state.scenes[i].id;renderPerform();
+    if(live.trans)return;
+    const list=curScenes();if(!list.length)return;
+    let i=list.findIndex(s=>s.id===live.nextSceneId);
+    if(i<0)i=0;else i=clamp(i+(e.key==='ArrowRight'?1:-1),0,list.length-1);
+    live.nextSceneId=list[i].id;renderPerform();
   }
   else if(/^[1-9]$/.test(e.key)){
-    const a=seAudios()[Number(e.key)-1];
+    const a=bankSEAudios()[Number(e.key)-1];
     if(a)triggerSE(a.id);
   }
 });
+</script>
+<script>
+/* ===================== Edit view: sessions ===================== */
+let edSessionId=null;
+function renderSessionsCard(){
+  const sel=$('#edSessionSelect');sel.innerHTML='';
+  for(const s of state.sessions){
+    const o=document.createElement('option');o.value=s.id;
+    o.textContent=`${s.name}（${scenesOf(s.id).length}シーン）`;
+    sel.appendChild(o);
+  }
+  if(!edSessionId||!sessionById(edSessionId))edSessionId=state.currentSessionId||state.sessions[0].id;
+  sel.value=edSessionId;
+  const s=sessionById(edSessionId);
+  $('#sessionInfo').textContent=s?`シーン ${scenesOf(s.id).length} 件`:'';
+}
+$('#edSessionSelect').addEventListener('change',e=>{edSessionId=e.target.value;renderSessionsCard();});
+$('#addSessionBtn').addEventListener('click',()=>{
+  const name=prompt('セッション名','セッション '+(state.sessions.length+1));
+  if(name===null)return;
+  const s={id:uid(),name:name.trim()||('セッション '+(state.sessions.length+1)),createdAt:Date.now()};
+  state.sessions.push(s);edSessionId=s.id;
+  markDirty();renderPerform();renderEditView();
+});
+$('#renameSessionBtn').addEventListener('click',()=>{
+  const s=sessionById(edSessionId);if(!s)return;
+  const name=prompt('セッション名',s.name);
+  if(name===null)return;
+  s.name=name.trim()||s.name;
+  markDirty();renderPerform();renderEditView();
+});
+$('#delSessionBtn').addEventListener('click',()=>{
+  const s=sessionById(edSessionId);if(!s)return;
+  if(state.sessions.length<=1){alert('セッションは1つ以上必要です。最後のセッションは削除できません。');return;}
+  const inside=scenesOf(s.id);
+  const other=state.sessions.find(x=>x.id!==s.id);
+  if(inside.length){
+    const move=confirm(`セッション「${s.name}」には ${inside.length} 件のシーンがあります。\n\n[OK] シーンを「${other.name}」へ移動してセッションを削除\n[キャンセル] シーンも一緒に削除`);
+    if(move){inside.forEach(x=>x.sessionId=other.id);}
+    else{
+      if(!confirm(`シーン ${inside.length} 件も削除します。よろしいですか？`))return;
+      const ids=new Set(inside.map(x=>x.id));
+      state.scenes=state.scenes.filter(x=>!ids.has(x.id));
+      if(ids.has(live.currentSceneId))live.currentSceneId=null;
+      if(ids.has(live.nextSceneId))live.nextSceneId=null;
+      if(ids.has(editSceneId))editSceneId=null;
+    }
+  }else if(!confirm(`セッション「${s.name}」を削除しますか？`))return;
+  state.sessions=state.sessions.filter(x=>x.id!==s.id);
+  if(state.currentSessionId===s.id)state.currentSessionId=state.sessions[0].id;
+  edSessionId=state.sessions[0].id;
+  const list=curScenes();
+  if(!live.nextSceneId||!list.some(x=>x.id===live.nextSceneId))live.nextSceneId=list[0]?list[0].id:null;
+  markDirty();renderPerform();renderEditView();
+});
 
-/* ===================== Scenes editor ===================== */
+/* ===================== Edit view: scenes ===================== */
 let editSceneId=null;
 function renderScenesView(){
   const sel=$('#sceneSelect');sel.innerHTML='';
-  for(const s of state.scenes){
-    const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);
+  for(const ses of state.sessions){
+    const list=scenesOf(ses.id);
+    if(!list.length)continue;
+    const g=document.createElement('optgroup');g.label=ses.name;
+    for(const s of list){
+      const o=document.createElement('option');o.value=s.id;o.textContent=`${s.orderId}  ${s.name}`;g.appendChild(o);
+    }
+    sel.appendChild(g);
   }
-  if(!state.scenes.length){editSceneId=null;$('#sceneEditorCard').style.display='none';return;}
-  if(!editSceneId||!sceneById(editSceneId))editSceneId=state.scenes[0].id;
+  if(!state.scenes.length){editSceneId=null;$('#sceneEditorInner').style.display='none';return;}
+  if(!editSceneId||!sceneById(editSceneId))editSceneId=scenesOf(state.currentSessionId)[0]?.id||state.scenes[0].id;
   sel.value=editSceneId;
   renderSceneEditor();
 }
 function renderSceneEditor(){
   const s=sceneById(editSceneId);
-  if(!s){$('#sceneEditorCard').style.display='none';return;}
-  $('#sceneEditorCard').style.display='';
+  if(!s){$('#sceneEditorInner').style.display='none';return;}
+  $('#sceneEditorInner').style.display='';
+  $('#sceneOrderInput').value=s.orderId;
   $('#sceneNameInput').value=s.name;
   $('#sceneModeSelect').value=s.mode;
   $('#sceneFadeInput').value=s.fadeSec??3;
   $('#fadeSecWrap').style.display=s.mode==='fade'?'':'none';
+  fillSessionOptions($('#sceneSessionSelect'),s.sessionId);
+  renderSceneChannels();
+}
+function renderSceneChannels(){
+  const s=sceneById(editSceneId);if(!s)return;
   const grid=$('#sceneEditGrid');grid.innerHTML='';
-  for(const a of bgmAudios()){
+  const q=($('#chanFilter').value||'').toLowerCase();
+  const all=bgmAudios();
+  const list=all.filter(a=>!q||a.name.toLowerCase().includes(q)||(a.customId||'').toLowerCase().includes(q));
+  $('#chanCount').textContent=`BGM ${list.length} / ${all.length} 件`;
+  if(!all.length){grid.innerHTML='<div class="small">BGM音源がありません。先に下の「音源ライブラリ」で取り込んでください。</div>';return;}
+  for(const a of list){
     const row=document.createElement('div');row.className='sceneChanRow';
-    row.innerHTML=`<span class="n"></span><input type="range" class="hslider" min="0" max="1000" step="5" style="flex:2"><span class="v"></span>`;
+    row.innerHTML=`<span class="n"></span><input type="range" class="hslider" min="0" max="1000" step="5" style="flex:2"><input class="pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>`;
     row.querySelector('.n').textContent=a.name;row.querySelector('.n').title=a.name;
-    const sl=row.querySelector('input'),vl=row.querySelector('.v');
-    sl.value=s.values[a.id]||0;vl.textContent=(s.values[a.id]||0)+'‰';
-    sl.addEventListener('input',()=>{
-      const v=Number(sl.value);s.values[a.id]=v;vl.textContent=v+'‰';
+    const sl=row.querySelector('input[type=range]'),num=row.querySelector('.pctIn');
+    const cur=s.values[a.id]||0;
+    sl.value=cur;num.value=fmtPct(cur);
+    const apply=v=>{
+      s.values[a.id]=v;
       if(s.id===live.currentSceneId&&!live.trans){
         live.currentValues[a.id]=v;
-        if(v>0)ensureChannel(a.id).then(applyMix);
+        live.muted=null;
+        if(effectiveValue(a.id)>0)ensureChannel(a.id).then(applyMix);
         applyMix();
+        updateInterruptReadouts();
       }
       markDirty();
-    });
+    };
+    sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v);});
+    num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v);});
     grid.appendChild(row);
   }
-  if(!bgmAudios().length)grid.innerHTML='<div class="small">BGM音源がありません。先に上の「音源ライブラリ」で取り込んでください。</div>';
 }
+$('#chanFilter').addEventListener('input',renderSceneChannels);
 $('#sceneSelect').addEventListener('change',e=>{editSceneId=e.target.value;renderSceneEditor();});
-$('#addSceneBtn').addEventListener('click',()=>{
-  const s={id:uid(),name:'New Scene '+(state.scenes.length+1),mode:'fade',fadeSec:3,values:{}};
-  state.scenes.push(s);editSceneId=s.id;
-  if(!live.nextSceneId)live.nextSceneId=s.id;
-  markDirty();renderScenesView();
-});
+$('#addSceneBtn').addEventListener('click',()=>openSceneForm('add'));
 $('#dupSceneBtn').addEventListener('click',()=>{
   const s=sceneById(editSceneId);if(!s)return;
-  const c={id:uid(),name:s.name+' copy',mode:s.mode,fadeSec:s.fadeSec,values:{...s.values}};
-  state.scenes.splice(state.scenes.indexOf(s)+1,0,c);editSceneId=c.id;markDirty();renderScenesView();
+  const c={id:uid(),sessionId:s.sessionId,orderId:nextOrderId(s.sessionId),name:s.name+' copy',mode:s.mode,fadeSec:s.fadeSec,values:{...s.values}};
+  state.scenes.push(c);editSceneId=c.id;markDirty();renderPerform();renderEditView();
 });
 $('#delSceneBtn').addEventListener('click',()=>{
-  const i=state.scenes.findIndex(s=>s.id===editSceneId);if(i<0)return;
-  if(!confirm('シーン「'+state.scenes[i].name+'」を削除しますか？'))return;
-  const delId=state.scenes[i].id;
-  state.scenes.splice(i,1);
-  if(live.nextSceneId===delId)live.nextSceneId=state.scenes[i]?state.scenes[i].id:(state.scenes[0]?state.scenes[0].id:null);
-  if(live.currentSceneId===delId)live.currentSceneId=null;
-  editSceneId=state.scenes[Math.min(i,state.scenes.length-1)]?.id||null;
-  markDirty();renderScenesView();
-});
-function moveScene(dir){
-  const i=state.scenes.findIndex(s=>s.id===editSceneId);
-  const j=i+dir;if(i<0||j<0||j>=state.scenes.length)return;
-  const[s]=state.scenes.splice(i,1);state.scenes.splice(j,0,s);
-  markDirty();renderScenesView();
-}
-$('#upSceneBtn').addEventListener('click',()=>moveScene(-1));
-$('#downSceneBtn').addEventListener('click',()=>moveScene(1));
-$('#sceneNameInput').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.name=e.target.value||s.name;markDirty();renderScenesView();}});
-$('#sceneModeSelect').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.mode=e.target.value;markDirty();renderSceneEditor();}});
-$('#sceneFadeInput').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.fadeSec=Math.max(0.1,Number(e.target.value)||3);markDirty();}});
-$('#allZeroBtn').addEventListener('click',()=>{
   const s=sceneById(editSceneId);if(!s)return;
-  for(const a of bgmAudios())s.values[a.id]=0;
-  if(s.id===live.currentSceneId&&!live.trans){live.currentValues={};applyMix();}
-  markDirty();renderSceneEditor();
+  if(!confirm('シーン「'+s.name+'」を削除しますか？'))return;
+  const delId=s.id, sid=s.sessionId;
+  state.scenes=state.scenes.filter(x=>x.id!==delId);
+  if(live.currentSceneId===delId)live.currentSceneId=null;
+  if(live.nextSceneId===delId){const l=curScenes();live.nextSceneId=l[0]?l[0].id:null;}
+  editSceneId=scenesOf(sid)[0]?.id||state.scenes[0]?.id||null;
+  markDirty();renderPerform();renderEditView();
 });
+$('#sceneOrderInput').addEventListener('change',e=>{
+  const s=sceneById(editSceneId);if(!s)return;
+  const v=Number(e.target.value);
+  if(!isFinite(v)){e.target.value=s.orderId;return;}
+  s.orderId=v;markDirty();renderPerform();renderScenesView();
+});
+$('#sceneNameInput').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.name=e.target.value||s.name;markDirty();renderPerform();renderScenesView();}});
+$('#sceneSessionSelect').addEventListener('change',e=>{
+  const s=sceneById(editSceneId);if(!s)return;
+  s.sessionId=e.target.value;markDirty();renderPerform();renderEditView();
+});
+$('#sceneModeSelect').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.mode=e.target.value;markDirty();renderPerform();renderSceneEditor();}});
+$('#sceneFadeInput').addEventListener('change',e=>{const s=sceneById(editSceneId);if(s){s.fadeSec=Math.max(0.1,Number(e.target.value)||3);markDirty();renderPerform();}});
+
+function renderEditView(){renderSessionsCard();renderScenesView();renderLibrary();}
 </script>
 <script>
 /* ===================== Library ===================== */
-let importKind='bgm'; // 取り込みボタンごとに BGM / SE を切り替える
+let importKind='bgm'; // set by whichever import button was pressed
 function pickFiles(kind){importKind=kind;$('#fileInput').click();}
 async function importFiles(files){
   ensureCtx();
@@ -821,18 +1198,17 @@ async function importFiles(files){
     let dur=0;
     try{const ab=await f.arrayBuffer();const buf=await engine.ctx.decodeAudioData(ab.slice(0));dur=buf.duration;engine.buffers.set(id,buf);}catch(e){alert('読み込めませんでした: '+f.name);continue;}
     await blobPut(id,f);
-    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
+    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId:'',faderNo:null,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
     drive.scheduleAudioUpload(id);
   }
   markDirty();renderAll();
 }
 $('#importBtn').addEventListener('click',()=>pickFiles('bgm'));
-$('#addBgmBtn').addEventListener('click',()=>pickFiles('bgm'));
-$('#addSeBtn').addEventListener('click',()=>pickFiles('se'));
 $('#fileInput').addEventListener('change',e=>{importFiles([...e.target.files]);e.target.value='';});
-$('#librarySearch').addEventListener('input',renderLibrary);
+$('#librarySearch').addEventListener('input',()=>{libPage=0;renderLibrary();});
+
 let previewingId=null;
-async function togglePreview(id,btn){
+async function togglePreview(id){
   const el=$('#previewAudio');
   if(previewingId===id){el.pause();el.src='';previewingId=null;renderLibrary();return;}
   const blob=await blobGet(id);if(!blob)return;
@@ -841,44 +1217,128 @@ async function togglePreview(id,btn){
   renderLibrary();
 }
 function fmtDur(s){if(!s)return'–';const m=Math.floor(s/60),ss=Math.round(s%60);return m+':'+String(ss).padStart(2,'0');}
-function renderLibrary(){
+
+/* sort / filter / paging */
+let libSort={key:'name',dir:1};
+let libPage=0;
+const LIB_PAGE=50;
+const libTagFilter=new Set();
+const JA=(a,b)=>String(a||'').localeCompare(String(b||''),'ja',{numeric:true,sensitivity:'base'});
+function libFiltered(){
   const q=($('#librarySearch').value||'').toLowerCase();
-  const body=$('#libBody');body.innerHTML='';
-  const list=state.audios.filter(a=>!q||a.name.toLowerCase().includes(q)||a.tags.some(t=>t.toLowerCase().includes(q)));
-  $('#libCount').textContent=state.audios.length+' 件';
+  return state.audios.filter(a=>{
+    if(q&&!(a.name.toLowerCase().includes(q)||(a.customId||'').toLowerCase().includes(q)||a.tags.some(t=>t.toLowerCase().includes(q))))return false;
+    for(const t of libTagFilter)if(!a.tags.includes(t))return false; // AND across selected chips
+    return true;
+  });
+}
+function libSorted(){
+  const k=libSort.key,d=libSort.dir;
+  const NOFADER=1e9;
+  return libFiltered().sort((a,b)=>{
+    let r=0;
+    if(k==='name')r=JA(a.name,b.name);
+    else if(k==='customId')r=JA(a.customId,b.customId);
+    else if(k==='kind')r=JA(a.kind,b.kind)||JA(a.name,b.name);
+    else if(k==='duration')r=(a.duration||0)-(b.duration||0);
+    else if(k==='faderNo')r=(a.faderNo==null?NOFADER:a.faderNo)-(b.faderNo==null?NOFADER:b.faderNo)||JA(a.name,b.name);
+    return r*d;
+  });
+}
+$$('#libTable th[data-sort]').forEach(th=>th.addEventListener('click',()=>{
+  const k=th.dataset.sort;
+  if(libSort.key===k)libSort.dir=-libSort.dir;else libSort={key:k,dir:1};
+  libPage=0;renderLibrary();
+}));
+function renderTagChips(){
+  const wrap=$('#tagChips');wrap.innerHTML='';
+  const all=[...new Set(state.audios.flatMap(a=>a.tags))].sort((a,b)=>JA(a,b));
+  if(!all.length)return;
+  for(const t of all){
+    const c=document.createElement('span');c.className='tagChip'+(libTagFilter.has(t)?' on':'');
+    c.textContent=t;
+    c.addEventListener('click',()=>{
+      libTagFilter.has(t)?libTagFilter.delete(t):libTagFilter.add(t);
+      libPage=0;renderLibrary();
+    });
+    wrap.appendChild(c);
+  }
+}
+function renderLibrary(){
+  renderTagChips();
+  $$('#libTable th[data-sort]').forEach(th=>{
+    const base=th.dataset.label||(th.dataset.label=th.textContent);
+    th.innerHTML='';
+    th.append(base);
+    if(libSort.key===th.dataset.sort){
+      const s=document.createElement('span');s.className='arw';s.textContent=libSort.dir>0?' ▲':' ▼';th.appendChild(s);
+    }
+  });
+  const sorted=libSorted();
+  const pages=Math.max(1,Math.ceil(sorted.length/LIB_PAGE));
+  if(libPage>=pages)libPage=pages-1;
+  const list=sorted.slice(libPage*LIB_PAGE,(libPage+1)*LIB_PAGE);
+  $('#libCount').textContent=sorted.length===state.audios.length?`${state.audios.length} 件`:`${sorted.length} / ${state.audios.length} 件`;
   $('#libEmpty').style.display=state.audios.length?'none':'';
+  const body=$('#libBody');body.innerHTML='';
   for(const a of list){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td><button class="iconbtn" data-act="prev">${previewingId===a.id?'■':'▶'}</button></td>
       <td><input data-act="name" style="width:100%"></td>
+      <td><input data-act="cid" style="width:100%" placeholder="任意"></td>
       <td><select data-act="kind"><option value="bgm">BGM</option><option value="se">SE</option></select></td>
       <td><input data-act="tags" style="width:100%" placeholder="例: 戦闘,森"></td>
-      <td><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10" style="width:90px"> <span class="tiny"></span></td>
+      <td><input data-act="fader" type="number" min="1" step="1" style="width:100%" placeholder="—"></td>
+      <td><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10" style="width:78px"> <span class="tiny"></span></td>
       <td style="text-align:center"><input type="checkbox" data-act="loop"></td>
       <td class="small">${fmtDur(a.duration)}</td>
       <td><button class="iconbtn danger" data-act="del">削除</button></td>`;
     tr.querySelector('[data-act=name]').value=a.name;
+    tr.querySelector('[data-act=cid]').value=a.customId||'';
     tr.querySelector('[data-act=kind]').value=a.kind;
     tr.querySelector('[data-act=tags]').value=a.tags.join(', ');
+    tr.querySelector('[data-act=fader]').value=a.faderNo==null?'':a.faderNo;
     tr.querySelector('[data-act=vol]').value=a.baseVolume??1000;
-    tr.querySelector('[data-act=vol]').nextElementSibling.textContent=Math.round((a.baseVolume??1000)/10)+'%';
+    tr.querySelector('[data-act=vol]').nextElementSibling.textContent=pctText(a.baseVolume??1000);
     tr.querySelector('[data-act=loop]').checked=!!a.loop;
     tr.querySelector('[data-act=prev]').addEventListener('click',()=>togglePreview(a.id));
-    tr.querySelector('[data-act=name]').addEventListener('change',e=>{a.name=e.target.value||a.name;markDirty();});
-    tr.querySelector('[data-act=kind]').addEventListener('change',e=>{a.kind=e.target.value;stopChannel(a.id);markDirty();});
-    tr.querySelector('[data-act=tags]').addEventListener('change',e=>{a.tags=e.target.value.split(',').map(t=>t.trim()).filter(Boolean);markDirty();});
-    tr.querySelector('[data-act=vol]').addEventListener('input',e=>{a.baseVolume=Number(e.target.value);e.target.nextElementSibling.textContent=Math.round(a.baseVolume/10)+'%';applyMix();markDirty();});
+    tr.querySelector('[data-act=name]').addEventListener('change',e=>{a.name=e.target.value||a.name;markDirty();renderPerform();renderLibrary();});
+    tr.querySelector('[data-act=cid]').addEventListener('change',e=>{a.customId=e.target.value.trim();markDirty();renderLibrary();});
+    tr.querySelector('[data-act=kind]').addEventListener('change',e=>{
+      a.kind=e.target.value;stopChannel(a.id);
+      if(a.kind==='se')a.faderNo=null;                 // SE has no interrupt fader slot
+      delete live.interrupt[a.id];
+      markDirty();renderPerform();renderLibrary();renderSceneChannels();
+    });
+    tr.querySelector('[data-act=tags]').addEventListener('change',e=>{a.tags=e.target.value.split(',').map(t=>t.trim()).filter(Boolean);markDirty();renderLibrary();});
+    tr.querySelector('[data-act=fader]').addEventListener('change',e=>{
+      const raw=e.target.value.trim();
+      const n=raw===''?null:Number(raw);
+      a.faderNo=(n==null||!isFinite(n))?null:n;        // assigning/clearing never touches scene values
+      if(a.faderNo==null)delete live.interrupt[a.id];
+      markDirty();renderPerform();renderLibrary();
+    });
+    tr.querySelector('[data-act=vol]').addEventListener('input',e=>{a.baseVolume=Number(e.target.value);e.target.nextElementSibling.textContent=pctText(a.baseVolume);applyMix();markDirty();});
     tr.querySelector('[data-act=loop]').addEventListener('change',e=>{a.loop=e.target.checked;stopChannel(a.id);markDirty();});
     tr.querySelector('[data-act=del]').addEventListener('click',async()=>{
       if(!confirm('音源「'+a.name+'」を削除しますか？'))return;
       stopChannel(a.id);engine.buffers.delete(a.id);await blobDel(a.id);
       state.audios=state.audios.filter(x=>x.id!==a.id);
       for(const s of state.scenes)delete s.values[a.id];
-      delete live.currentValues[a.id];
-      markDirty();renderLibrary();
+      delete live.currentValues[a.id];delete live.interrupt[a.id];
+      markDirty();renderPerform();renderLibrary();renderSceneChannels();
     });
     body.appendChild(tr);
+  }
+  const pager=$('#libPager');pager.innerHTML='';
+  if(pages>1){
+    const prev=document.createElement('button');prev.textContent='← 前';prev.disabled=libPage===0;
+    prev.addEventListener('click',()=>{libPage--;renderLibrary();});
+    const info=document.createElement('span');info.className='tiny';info.textContent=`${libPage+1} / ${pages} ページ`;
+    const next=document.createElement('button');next.textContent='次 →';next.disabled=libPage>=pages-1;
+    next.addEventListener('click',()=>{libPage++;renderLibrary();});
+    pager.append(prev,info,next);
   }
 }
 
@@ -888,7 +1348,7 @@ function b64ToBlob(b64,type){const bin=atob(b64);const u=new Uint8Array(bin.leng
 $('#exportBtn').addEventListener('click',async()=>{
   const blobs={};
   for(const a of state.audios){const b=await blobGet(a.id);if(b)blobs[a.id]={type:b.type,b64:await blobToB64(b)};}
-  const pack={app:'session-sound-operator',version:1,exportedAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(state)),blobs};
+  const pack={app:'session-sound-operator',version:STATE_VERSION,exportedAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(state)),blobs};
   const url=URL.createObjectURL(new Blob([JSON.stringify(pack)],{type:'application/json'}));
   const el=document.createElement('a');el.href=url;el.download='session-sound-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.ssopack.json';el.click();
   setTimeout(()=>URL.revokeObjectURL(url),5000);
@@ -902,23 +1362,28 @@ $('#packInput').addEventListener('change',async e=>{
     if(!confirm('現在のデータをインポート内容で置き換えますか？'))return;
     allStop();engine.buffers.clear();
     for(const k of await blobKeys())await blobDel(k);
-    state=pack.state;
+    state=migrate(pack.state);   // v1 packs are migrated on the way in
     for(const[id,b]of Object.entries(pack.blobs||{}))await blobPut(id,b64ToBlob(b.b64,b.type));
-    live.currentSceneId=null;live.currentValues={};live.nextSceneId=state.scenes[0]?.id||null;
-    markDirty();renderAll();
-    alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件）');
+    live.currentSceneId=null;live.currentValues={};live.interrupt={};live.muted=null;
+    live.nextSceneId=curScenes()[0]?.id||null;
+    editSceneId=null;edSessionId=null;libPage=0;libTagFilter.clear();
+    markDirty();applySecOpen();renderAll();
+    alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件・セッション '+state.sessions.length+' 件）');
   }catch(err){alert('インポートに失敗しました: '+err.message);}
 });
 $('#wipeBtn').addEventListener('click',async()=>{
-  if(!confirm('この端末の全データ（音源・シーン・設定）を削除しますか？'))return;
+  if(!confirm('この端末の全データ（音源・シーン・セッション・設定）を削除しますか？'))return;
   allStop();engine.buffers.clear();
   for(const k of await blobKeys())await blobDel(k);
-  state={version:1,updatedAt:Date.now(),audios:[],scenes:[],settings:{master:800,seVol:1000,driveClientId:''}};
-  live.currentSceneId=null;live.currentValues={};live.nextSceneId=null;
+  state=migrate(blankState());
+  state.updatedAt=Date.now();
+  live.currentSceneId=null;live.currentValues={};live.interrupt={};live.muted=null;live.nextSceneId=null;
+  editSceneId=null;edSessionId=null;libPage=0;libTagFilter.clear();
   await kvPut('state',JSON.parse(JSON.stringify(state)));
-  renderAll();
+  applySecOpen();renderAll();
 });
-
+</script>
+<script>
 /* ===================== Google Drive sync (GIS / drive.file) ===================== */
 const drive={
   token:null,folderId:null,fileIds:{},connected:false,stateTimer:null,pendingAudio:new Set(),
@@ -1006,9 +1471,9 @@ const drive={
       }
       if(remote&&(remote.updatedAt||0)>(state.updatedAt||0)){
         drive.log('Driveのデータが新しいため取り込みます');
-        state=remote;await kvPut('state',JSON.parse(JSON.stringify(state)));
-        live.nextSceneId=live.nextSceneId&&sceneById(live.nextSceneId)?live.nextSceneId:(state.scenes[0]?.id||null);
-        renderAll();
+        state=migrate(remote);await kvPut('state',JSON.parse(JSON.stringify(state)));
+        live.nextSceneId=live.nextSceneId&&sceneById(live.nextSceneId)?live.nextSceneId:(curScenes()[0]?.id||null);
+        applySecOpen();renderAll();
       }else{
         await drive.upload('state.json',new Blob([JSON.stringify(state)],{type:'application/json'}));
         drive.log('state.json をアップロードしました');
@@ -1137,49 +1602,73 @@ $('#demoBtn').addEventListener('click',async()=>{
   const btn=$('#demoBtn');btn.disabled=true;btn.textContent='生成中…';
   try{
     const defs=[
-      ['forest','森のパッド','bgm',['環境','森'],8,true],
-      ['battle','戦闘ドラム','bgm',['戦闘'],8,true],
-      ['cave','洞窟ドローン','bgm',['環境','洞窟'],8,true],
-      ['rain','雨','bgm',['環境','天候'],8,true],
-      ['gong','ドラ','se',['演出'],3,false],
-      ['clash','剣撃','se',['戦闘'],0.7,false],
-      ['bell','ベル','se',['演出'],2,false],
-      ['thunder','雷','se',['天候'],3,false],
+      ['forest','森のパッド','bgm',['環境','森'],8,true,1],
+      ['battle','戦闘ドラム','bgm',['戦闘'],8,true,2],
+      ['cave','洞窟ドローン','bgm',['環境','洞窟'],8,true,3],
+      ['rain','雨','bgm',['環境','天候'],8,true,4],
+      ['gong','ドラ','se',['演出'],3,false,null],
+      ['clash','剣撃','se',['戦闘'],0.7,false,null],
+      ['bell','ベル','se',['演出'],2,false,null],
+      ['thunder','雷','se',['天候'],3,false,null],
     ];
     const ids={};
-    for(const[key,name,kind,tags,dur,loop]of defs){
+    let n=1;
+    for(const[key,name,kind,tags,dur,loop,faderNo]of defs){
       const blob=await render(dur,demoBuilders[key]);
       const id=uid();ids[key]=id;
       await blobPut(id,blob);
-      state.audios.push({id,name,kind,tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
+      state.audios.push({id,name,kind,customId:'DEMO'+String(n++).padStart(2,'0'),faderNo,tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
       drive.scheduleAudioUpload(id);
     }
+    const sid=state.currentSessionId;
+    const base=nextOrderId(sid);
     state.scenes.push(
-      {id:uid(),name:'導入：森',mode:'fade',fadeSec:3,values:{[ids.forest]:800}},
-      {id:uid(),name:'緊張：洞窟',mode:'fade',fadeSec:4,values:{[ids.cave]:700,[ids.rain]:250}},
-      {id:uid(),name:'戦闘！',mode:'cut',fadeSec:0.1,values:{[ids.battle]:900,[ids.cave]:200}},
-      {id:uid(),name:'雨宿り',mode:'fade',fadeSec:3,values:{[ids.rain]:750,[ids.forest]:300}},
-      {id:uid(),name:'静寂（全停止）',mode:'fade',fadeSec:5,values:{}}
+      {id:uid(),sessionId:sid,orderId:base+0,name:'導入：森',mode:'fade',fadeSec:3,values:{[ids.forest]:800}},
+      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',mode:'fade',fadeSec:4,values:{[ids.cave]:700,[ids.rain]:250}},
+      {id:uid(),sessionId:sid,orderId:base+2,name:'戦闘！',mode:'cut',fadeSec:0.1,values:{[ids.battle]:900,[ids.cave]:200}},
+      {id:uid(),sessionId:sid,orderId:base+3,name:'雨宿り',mode:'fade',fadeSec:3,values:{[ids.rain]:750,[ids.forest]:300}},
+      {id:uid(),sessionId:sid,orderId:base+4,name:'静寂（全停止）',mode:'fade',fadeSec:5,values:{}}
     );
-    if(!live.nextSceneId)live.nextSceneId=state.scenes[0].id;
+    if(!live.nextSceneId)live.nextSceneId=curScenes()[0].id;
     markDirty();renderAll();
-    alert('デモ音源 8 件とシーン 5 件を生成しました。「メイン」画面で GO を押してみてください。');
+    alert('デモ音源 8 件とシーン 5 件を生成しました。「フェーダー」画面で GO を押してみてください。');
   }catch(e){alert('生成失敗: '+e.message);}
   btn.disabled=false;btn.textContent='🎚 デモ一式を生成';
+});
+/* dev: 200 dummy audios (very short silent wav) to check the UI at scale */
+$('#dummyBtn').addEventListener('click',async()=>{
+  const btn=$('#dummyBtn');btn.disabled=true;btn.textContent='生成中…';
+  try{
+    const blob=await render(0.05,()=>{}); // silence
+    const start=state.audios.length+1;
+    for(let i=0;i<200;i++){
+      const id=uid();
+      await blobPut(id,blob);
+      const n=start+i;
+      const isSe=(i%3===2);
+      state.audios.push({id,name:'ダミー'+String(n).padStart(3,'0'),kind:isSe?'se':'bgm',
+        customId:'D'+String(n).padStart(4,'0'),faderNo:null,
+        tags:['ダミー',isSe?'SE':'BGM','群'+(1+Math.floor(i/50))],
+        baseVolume:1000,loop:!isSe,duration:0.05,size:blob.size,type:'audio/wav'});
+    }
+    markDirty();renderAll();
+    alert('ダミー音源 200 件を生成しました（BGM '+state.audios.filter(a=>a.kind==='bgm'&&a.name.startsWith('ダミー')).length+' / SE '+state.audios.filter(a=>a.kind==='se'&&a.name.startsWith('ダミー')).length+' 件）。Driveへは自動アップロードしていません。');
+  }catch(e){alert('生成失敗: '+e.message);}
+  btn.disabled=false;btn.textContent='🧪 ダミー音源を200件生成（開発用）';
 });
 
 /* ===================== Init ===================== */
 function renderAll(){
-  renderPerform();renderScenesView();renderLibrary();syncBusFaders();
+  renderPerform();renderEditView();syncBusFaders();
   $('#clientIdInput').value=state.settings.driveClientId||'';
   drive.setBadge();
 }
 (async function init(){
   db=await openDB();
   const saved=await kvGet('state');
-  if(saved)state=Object.assign({version:1,audios:[],scenes:[],settings:{}},saved);
-  state.settings=Object.assign({master:800,seVol:1000,driveClientId:''},state.settings);
-  live.nextSceneId=state.scenes[0]?.id||null;
+  state=migrate(saved);
+  live.nextSceneId=curScenes()[0]?.id||null;
+  applySecOpen();
   renderAll();
   $('#saveState').textContent='';
   // unlock audio on first gesture
