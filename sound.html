@@ -67,7 +67,10 @@ main{flex:1;min-height:0;position:relative}
 /* ===== master bar (independent of both sections) ===== */
 #masterBar{flex:none;display:flex;align-items:center;gap:26px;flex-wrap:wrap;padding:9px 16px;border-top:1px solid var(--border);background:var(--surface)}
 .mb{display:flex;align-items:center;gap:10px;flex:1;min-width:250px}
-.mb .mbLab{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:92px}
+.mb .mbLab{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:104px}
+.mb.all{padding-right:20px;border-right:1px solid var(--border)}
+.mb.all .mbLab{color:var(--blue)}
+.mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:16px;height:16px}
 .mb .hslider{flex:1;max-width:340px}
 .mb .mbVal{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;width:52px;text-align:right}
 
@@ -144,6 +147,9 @@ main{flex:1;min-height:0;position:relative}
 .chan{width:100px;flex:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:7px 6px}
 .chan.silent{opacity:.6}
 .chan.stopped{border-color:var(--red)}
+.chan.sceneOnly{border-color:var(--green)}
+.chan.sceneOnly .cscene{color:var(--green)}
+.chan .relNote{color:var(--green);text-align:center}
 .chan .cslot{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--blue);background:var(--blue-soft);border-radius:4px;padding:0 6px;margin-bottom:2px}
 .chan .cname{font-size:11px;font-weight:600;width:100%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
 .chan .vfader{flex:1;height:auto;min-height:96px}
@@ -197,7 +203,7 @@ tr:last-child td{border-bottom:none}
 .scPill{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3)}
 .sc-id{width:66px}
 .sc-name{width:150px}
-.sc-fade{width:64px}
+.sc-fade,.sc-out,.sc-in{width:62px}
 .scSum{margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scGrid{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .scChans{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;margin-top:8px;max-height:340px;overflow-y:auto}
@@ -300,6 +306,11 @@ dialog h3{font-size:15px}
 
     <!-- ---- master bar: belongs to neither section ---- -->
     <div id="masterBar">
+      <div class="mb all">
+        <span class="mbLab">MASTER（全体）</span>
+        <input type="range" class="hslider" id="allMaster" min="0" max="1000" step="5">
+        <span class="mbVal" id="allMasterVal"></span>
+      </div>
       <div class="mb">
         <span class="mbLab">BGM MASTER</span>
         <input type="range" class="hslider" id="bgmMaster" min="0" max="1000" step="5">
@@ -455,6 +466,8 @@ dialog h3{font-size:15px}
     <label>Scene Name</label><input id="sfName">
     <label>遷移モード</label><select id="sfTrans"></select>
     <label id="sfFadeLab">フェード秒数</label><input id="sfFade" type="number" min="0.1" step="0.1">
+    <label id="sfOutLab">OUT秒（フェードアウト）</label><input id="sfOut" type="number" min="0.1" step="0.1">
+    <label id="sfInLab">IN秒（フェードイン）</label><input id="sfIn" type="number" min="0.1" step="0.1">
   </div>
   <div class="tiny" id="sfPreview" style="margin-bottom:14px"></div>
   <div class="rowflex" style="justify-content:flex-end">
@@ -466,7 +479,13 @@ dialog h3{font-size:15px}
 <!-- per-scene 🎚️ config -->
 <dialog id="sceneCfg">
   <h3 id="scfTitle">シーンの設定</h3>
-  <div class="small" style="margin:8px 0 4px">音量の設定（%）</div>
+  <div class="scHead" style="margin:10px 0 4px">
+    <span class="scPill">遷移</span><select class="sc-trans" id="scfTrans"></select>
+    <span class="fadeOne"><span class="scPill">フェード秒</span> <input class="sc-fade" id="scfFade" type="number" min="0.1" step="0.1"></span>
+    <span class="fadeTwo"><span class="scPill">OUT秒</span> <input class="sc-out" id="scfOut" type="number" min="0.1" step="0.1"></span>
+    <span class="fadeTwo"><span class="scPill">IN秒</span> <input class="sc-in" id="scfIn" type="number" min="0.1" step="0.1"></span>
+  </div>
+  <div class="small" style="margin:12px 0 4px">音量の設定（%）</div>
   <div class="rowflex" style="margin-bottom:6px">
     <input id="scfFilter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="flex:1;min-width:180px">
     <span class="tiny" id="scfCount"></span>
@@ -509,21 +528,40 @@ const TRANS=[
 const transDef=t=>TRANS.find(x=>x.v===t)||TRANS[0];
 const transShort=t=>transDef(t).short;
 /* gain multipliers for the outgoing / incoming layer at progress x */
-function transGains(t,x){
+/* mode 2 runs OUT then IN; `r` is the share of the timeline the OUT phase takes */
+function transGains(t,x,r){
   switch(t){
-    case 2: return x<0.5?{o:1-2*x,i:0}:{o:0,i:2*x-1};
+    case 2:{const k=clamp(r==null?0.5:r,0.02,0.98);
+      return x<k?{o:1-x/k,i:0}:{o:0,i:(x-k)/(1-k)};}
     case 3: return {o:1-x,i:x>=1?1:0};
     case 4: return {o:x>=1?0:1,i:x>=1?1:0};
     case 5: return {o:0,i:x};
     default:return {o:1-x,i:x};
   }
 }
-/* total duration in ms (mode 2 runs OUT then IN, so it takes fadeSec twice) */
+/* OUT / IN seconds: per-scene when set, otherwise the shared fadeSec */
+const fadeOf=s=>Math.max(0.1,Number(s&&s.fadeSec)||3);
+const outSec=s=>(typeof s.fadeOutSec==='number'&&s.fadeOutSec>0)?s.fadeOutSec:fadeOf(s);
+const inSec =s=>(typeof s.fadeInSec ==='number'&&s.fadeInSec >0)?s.fadeInSec :fadeOf(s);
+/* mode 2 spends OUT of the total on the outgoing scene */
+const outRatio=s=>{const o=outSec(s),i=inSec(s);return o/(o+i);};
+/* total duration in ms */
 function transDuration(s){
-  const f=Math.max(0.1,s.fadeSec||3)*1000;
   if(s.trans===4)return 40;
-  if(s.trans===2)return f*2;
-  return f;
+  if(s.trans===2)return (outSec(s)+inSec(s))*1000;
+  return fadeOf(s)*1000;
+}
+/* how the transition time is shown in the UI */
+function fadeLabel(s){
+  if(!transDef(s.trans).fade)return '';
+  if(s.trans===2)return `OUT ${outSec(s)}s / IN ${inSec(s)}s`;
+  return `${fadeOf(s)}s`;
+}
+/* the fade-time fields to store on a scene; only mode 2 keeps OUT/IN separately */
+function transFadeFields(trans,fadeRaw,outRaw,inRaw){
+  const f=Math.max(0.1,Number(fadeRaw)||3);
+  if(Number(trans)!==2)return {fadeSec:f};
+  return {fadeSec:f,fadeOutSec:Math.max(0.1,Number(outRaw)||f),fadeInSec:Math.max(0.1,Number(inRaw)||f)};
 }
 
 /* ===================== IndexedDB ===================== */
@@ -550,7 +588,7 @@ const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').obje
 const STATE_VERSION=2;
 function blankState(){
   return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
-          settings:{master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55}};
+          settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55}};
 }
 let state=blankState();
 let saveTimer=null;
@@ -558,8 +596,9 @@ let saveTimer=null;
 /* migration: v1 -> v2 (sessions / orderId / customId / faderNo) and mode -> trans. Idempotent. */
 function migrate(raw){
   const st=Object.assign(blankState(),raw||{});
-  st.settings=Object.assign({master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55},st.settings||{});
+  st.settings=Object.assign({masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55},st.settings||{});
   if(!st.settings.secOpen||typeof st.settings.secOpen!=='object')st.settings.secOpen={a:true,b:true};
+  st.settings.masterAll=typeof st.settings.masterAll==='number'&&isFinite(st.settings.masterAll)?clamp(st.settings.masterAll,0,1000):1000;
   st.settings.splitPct=typeof st.settings.splitPct==='number'&&isFinite(st.settings.splitPct)?clamp(st.settings.splitPct,20,80):55;
   if(!Array.isArray(st.sessions))st.sessions=[];
   if(!Array.isArray(st.audios))st.audios=[];
@@ -571,6 +610,9 @@ function migrate(raw){
     if(typeof s.orderId!=='number'||!isFinite(s.orderId))s.orderId=i+1;
     if(!s.values||typeof s.values!=='object')s.values={};
     if(typeof s.fadeSec!=='number')s.fadeSec=3;
+    // optional per-direction fade times (mode 2). Drop anything unusable so fadeSec takes over.
+    for(const k of ['fadeOutSec','fadeInSec'])
+      if(s[k]!=null&&!(typeof s[k]==='number'&&isFinite(s[k])&&s[k]>0))delete s[k];
     // v2 data only had mode:'fade'|'cut'  ->  fade=1 (crossfade), cut=4 (cut/cut)
     if(typeof s.trans!=='number'||!TRANS.some(t=>t.v===s.trans))s.trans=(s.mode==='cut')?4:1;
     s.mode=(s.trans===4)?'cut':'fade';  // keep the legacy field in sync
@@ -622,7 +664,7 @@ function ensureCtx(){
     engine.master=ctx.createGain();engine.master.connect(ctx.destination);
     engine.sceneBus=ctx.createGain();engine.sceneBus.connect(engine.master);
     engine.seBus=ctx.createGain();engine.seBus.connect(engine.master);
-    engine.master.gain.value=1;                                // BGM/SE each have their own master now
+    engine.master.gain.value=state.settings.masterAll/1000;     // MASTER: everything (BGM + SE)
     engine.sceneBus.gain.value=state.settings.master/1000;      // BGM MASTER (scene + interrupt)
     engine.seBus.gain.value=state.settings.seVol/1000;          // SE MASTER
   }
@@ -686,7 +728,7 @@ const intStopped=new Map(); // audioId -> {value, offset}  (interrupt fader stop
 /* scene-derived value (includes the running transition, OUT/IN layered per mode) */
 function sceneValue(id){
   if(live.trans){
-    const g=transGains(live.trans.trans,live.trans.x);
+    const g=transGains(live.trans.trans,live.trans.x,live.trans.ratio);
     return (live.trans.from[id]||0)*g.o+(live.trans.to[id]||0)*g.i;
   }
   return live.currentValues[id]||0;
@@ -718,7 +760,7 @@ async function beginTransition(mode){
   if(!live.nextSceneId)return false;
   const to=sceneById(live.nextSceneId);if(!to)return false;
   const from={};for(const a of bgmAudios())from[a.id]=sceneValue(a.id);
-  live.trans={from,to:{...to.values},x:0,mode,t0:performance.now(),dur:transDuration(to),toSceneId:to.id,trans:to.trans||1};
+  live.trans={from,to:{...to.values},x:0,mode,t0:performance.now(),dur:transDuration(to),toSceneId:to.id,trans:to.trans||1,ratio:outRatio(to)};
   live.muted=null;
   await startNeededChannels(to.values);
   return true;
@@ -971,7 +1013,7 @@ function renderSceneList(){
     d.querySelector('.sid').textContent=String(s.orderId);
     d.querySelector('.stxt').textContent=s.name;
     d.querySelector('.stxt').title=s.name;
-    d.querySelector('.smeta').textContent=transShort(s.trans)+(transDef(s.trans).fade?` ${s.fadeSec??3}s`:'');
+    d.querySelector('.smeta').textContent=[transShort(s.trans),fadeLabel(s)].filter(Boolean).join(' · ');
     if(s.id===live.currentSceneId)d.insertAdjacentHTML('afterbegin','<span class="badge cur">再生中</span>');
     else if(s.id===live.nextSceneId)d.insertAdjacentHTML('afterbegin','<span class="badge nxt">NEXT</span>');
     d.addEventListener('click',()=>{if(live.trans)return;live.nextSceneId=s.id;renderPerform();});
@@ -984,10 +1026,10 @@ function renderStage(){
   const next=live.nextSceneId?sceneById(live.nextSceneId):null;
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
   $('#nowName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
-  $('#nowSub').textContent=cur?`遷移: ${transShort(cur.trans)}${transDef(cur.trans).fade?' / '+(cur.fadeSec??3)+'秒':''}`:'シーンを選んで GO で再生します';
+  $('#nowSub').textContent=cur?`遷移: ${[transShort(cur.trans),fadeLabel(cur)].filter(Boolean).join(' / ')}`:'シーンを選んで GO で再生します';
   $('#nextName').textContent=next?`${next.orderId} ${next.name}`:'未選択';
   $('#goBtn').disabled=!next&&!live.trans;
-  $('#goInfo').textContent=next?`${transShort(next.trans)}${transDef(next.trans).fade?'（'+(next.fadeSec??3)+'秒）':''}で遷移`:'NEXT未選択';
+  $('#goInfo').textContent=next?`${transShort(next.trans)}${fadeLabel(next)?'（'+fadeLabel(next)+'）':''}で遷移`:'NEXT未選択';
   ui.xfader.setDisabled(!next&&!live.trans);
 }
 function renderSceneActions(){
@@ -1025,7 +1067,12 @@ ui.xfader=VFader($('#xfader'),{
 const _xfSet=ui.xfader.set;
 ui.xfader.set=(v,silent)=>{_xfSet(v);$('#xfVal').textContent=Math.round(v/10)+'%';};
 
-/* ---- BGM MASTER / SE MASTER (independent of both sections) ---- */
+/* ---- MASTER (all) / BGM MASTER / SE MASTER (independent of both sections) ---- */
+$('#allMaster').addEventListener('input',e=>{
+  const v=Number(e.target.value);
+  state.settings.masterAll=v;ensureCtx();setGainSmooth(engine.master.gain,v/1000);
+  $('#allMasterVal').textContent=pctText(v);markDirty();
+});
 $('#bgmMaster').addEventListener('input',e=>{
   const v=Number(e.target.value);
   state.settings.master=v;ensureCtx();setGainSmooth(engine.sceneBus.gain,v/1000);
@@ -1037,6 +1084,7 @@ $('#seMaster').addEventListener('input',e=>{
   $('#seMasterVal').textContent=pctText(v);markDirty();
 });
 function syncBusFaders(){
+  $('#allMaster').value=state.settings.masterAll;$('#allMasterVal').textContent=pctText(state.settings.masterAll);
   $('#bgmMaster').value=state.settings.master;$('#bgmMasterVal').textContent=pctText(state.settings.master);
   $('#seMaster').value=state.settings.seVol;$('#seMasterVal').textContent=pctText(state.settings.seVol);
 }
@@ -1120,28 +1168,50 @@ function renderInterruptFaders(){
     strip.appendChild(d);
   }
 }
-/* stop button, and after stopping: resume from where it stopped / from the start */
+/* Stop button. It only ever releases the interrupt overlay:
+   - the scene still wants this channel -> keep the source running, drop back to the scene value
+   - the scene does not want it -> really stop the source and offer resume from position / from start */
 function renderStopBtns(a,d,f){
   const box=d.querySelector('.cstop');box.innerHTML='';
   const st=intStopped.get(a.id);
   if(!st){
-    const b=document.createElement('button');b.textContent='■ 停止';b.className='danger';
+    const iv=Math.round(live.interrupt[a.id]||0);
+    const b=document.createElement('button');
+    b.textContent='■ 停止';b.className='danger';b.disabled=iv<=0;
+    const sceneOnly=iv<=0&&Math.round(sceneValue(a.id))>0;
+    d.classList.toggle('sceneOnly',sceneOnly);
+    b.title=sceneOnly?'割り込みは解除済みです（シーンの音は再生中）'
+      :iv<=0?'割り込みが0%なので停止するものがありません':'割り込みの上乗せ分を解除します';
     b.addEventListener('click',()=>{
       const value=live.interrupt[a.id]||0;
-      const offset=channelPosition(a.id);
-      intStopped.set(a.id,{value,offset});
+      if(value<=0)return;
+      const sv=Math.round(sceneValue(a.id));
       live.interrupt[a.id]=0;
-      stopChannel(a.id);            // forced stop, as specified
+      if(sv>0){
+        // scene keeps this channel: no source stop, so the audio never breaks up
+        applyMix();
+        d.classList.remove('stopped');
+      }else{
+        const offset=channelPosition(a.id);
+        intStopped.set(a.id,{value,offset});
+        stopChannel(a.id);
+        applyMix();
+        d.classList.add('stopped');
+      }
       f.set(0);
-      applyMix();
       d.querySelector('.cval').textContent=pctText(0);
-      d.classList.add('stopped');
+      d.classList.toggle('silent',sv<=0);
       renderStopBtns(a,d,f);
       renderSceneActions();
     });
     box.appendChild(b);
+    if(sceneOnly){
+      const note=document.createElement('div');note.className='tiny relNote';note.textContent='割り込み解除';
+      box.appendChild(note);
+    }
     return;
   }
+  d.classList.remove('sceneOnly');
   const resume=(fromStart)=>{
     const v=st.value>0?st.value:500;
     intStopped.delete(a.id);
@@ -1187,6 +1257,13 @@ function fillSessionOptions(sel,selectedId){
   }
   sel.value=selectedId||state.currentSessionId;
 }
+/* show one fade field, or the OUT/IN pair when the mode runs them in sequence (mode 2) */
+function syncFadeFields(root,trans){
+  const two=Number(trans)===2;
+  const one=transDef(Number(trans)).fade&&!two;
+  root.querySelectorAll('.fadeOne').forEach(e=>e.style.display=one?'':'none');
+  root.querySelectorAll('.fadeTwo').forEach(e=>e.style.display=two?'':'none');
+}
 function fillTransOptions(sel,v){
   sel.innerHTML='';
   for(const t of TRANS){
@@ -1206,6 +1283,8 @@ function openSceneForm(kind,sceneId){
   $('#sfOrder').value=sc?sc.orderId:nextOrderId(sid);
   $('#sfName').value=sc?sc.name:('Scene '+(scenesOf(sid).length+1));
   $('#sfFade').value=sc?(sc.fadeSec??3):3;
+  $('#sfOut').value=sc?outSec(sc):3;   // defaults to the scene's fadeSec
+  $('#sfIn').value=sc?inSec(sc):3;
   syncSfFade();
   const n=Object.keys(sfValues).length;
   $('#sfPreview').textContent=n
@@ -1214,25 +1293,36 @@ function openSceneForm(kind,sceneId){
   dlg.showModal();
 }
 function syncSfFade(){
-  const fade=transDef(Number($('#sfTrans').value)).fade;
-  $('#sfFadeLab').style.display=fade?'':'none';
-  $('#sfFade').style.display=fade?'':'none';
+  const t=Number($('#sfTrans').value);
+  const two=t===2;                            // mode 2 gets separate OUT / IN times
+  const one=transDef(t).fade&&!two;
+  for(const id of ['#sfFadeLab','#sfFade'])$(id).style.display=one?'':'none';
+  for(const id of ['#sfOutLab','#sfOut','#sfInLab','#sfIn'])$(id).style.display=two?'':'none';
 }
-$('#sfTrans').addEventListener('change',syncSfFade);
+$('#sfTrans').addEventListener('change',()=>{
+  if(Number($('#sfTrans').value)===2){
+    const sc=sfSceneId?sceneById(sfSceneId):null;
+    const f=Math.max(0.1,Number($('#sfFade').value)||3);
+    if(!sc||sc.fadeOutSec==null)$('#sfOut').value=f;
+    if(!sc||sc.fadeInSec==null)$('#sfIn').value=f;
+  }
+  syncSfFade();
+});
 $('#sfCancel').addEventListener('click',()=>dlg.close());
 $('#sfOk').addEventListener('click',()=>{
   const sid=$('#sfSession').value;
   const orderId=Number($('#sfOrder').value);
   const name=($('#sfName').value||'').trim();
   const trans=Number($('#sfTrans').value)||1;
-  const fadeSec=Math.max(0.1,Number($('#sfFade').value)||3);
   if(!isFinite(orderId)){alert('Scene ID には数値を入れてください（1.5 のような小数も可）');return;}
+  const fade=transFadeFields(trans,$('#sfFade').value,$('#sfOut').value,$('#sfIn').value);
   let target;
   if(sfKind==='overwrite'){
     target=sceneById(sfSceneId);if(!target){dlg.close();return;}
-    Object.assign(target,{sessionId:sid,orderId,name:name||target.name,trans,mode:trans===4?'cut':'fade',fadeSec,values:{...sfValues}});
+    delete target.fadeOutSec;delete target.fadeInSec;
+    Object.assign(target,{sessionId:sid,orderId,name:name||target.name,trans,mode:trans===4?'cut':'fade',values:{...sfValues}},fade);
   }else{
-    target={id:uid(),sessionId:sid,orderId,name:name||('Scene '+(scenesOf(sid).length+1)),trans,mode:trans===4?'cut':'fade',fadeSec,values:{...sfValues}};
+    target=Object.assign({id:uid(),sessionId:sid,orderId,name:name||('Scene '+(scenesOf(sid).length+1)),trans,mode:trans===4?'cut':'fade',values:{...sfValues}},fade);
     state.scenes.push(target);
   }
   /* commit: the interrupt values are now baked into the scene, so zero the faders.
@@ -1320,6 +1410,11 @@ function openSceneCfg(id){
   const s=sceneById(id);if(!s)return;
   cfgSceneId=id;
   $('#scfTitle').textContent=`🎚️ ${s.orderId} ${s.name}`;
+  fillTransOptions($('#scfTrans'),s.trans);
+  $('#scfFade').value=s.fadeSec??3;
+  $('#scfOut').value=outSec(s);
+  $('#scfIn').value=inSec(s);
+  syncFadeFields(cfgDlg,s.trans);
   $('#scfFilter').value='';
   renderChanRows($('#scfChans'),s,'',$('#scfCount'));
   renderCfgSwap();
@@ -1362,6 +1457,26 @@ function renderCfgSwap(){
 $('#scfFilter').addEventListener('input',()=>{
   const s=sceneById(cfgSceneId);if(s)renderChanRows($('#scfChans'),s,$('#scfFilter').value,$('#scfCount'));
 });
+/* transition mode + fade times can be edited straight from the 🎚️ dialog */
+function commitCfgTrans(){
+  const s=sceneById(cfgSceneId);if(!s)return;
+  const trans=Number($('#scfTrans').value);
+  s.trans=trans;s.mode=trans===4?'cut':'fade';
+  delete s.fadeOutSec;delete s.fadeInSec;
+  Object.assign(s,transFadeFields(trans,$('#scfFade').value,$('#scfOut').value,$('#scfIn').value));
+  markDirty();renderPerform();
+}
+$('#scfTrans').addEventListener('change',()=>{
+  const s=sceneById(cfgSceneId);
+  if(Number($('#scfTrans').value)===2&&s){
+    const f=Math.max(0.1,Number($('#scfFade').value)||3);
+    if(s.fadeOutSec==null)$('#scfOut').value=f;
+    if(s.fadeInSec==null)$('#scfIn').value=f;
+  }
+  syncFadeFields(cfgDlg,Number($('#scfTrans').value));
+  commitCfgTrans();
+});
+for(const id of ['#scfFade','#scfOut','#scfIn'])$(id).addEventListener('change',commitCfgTrans);
 $('#scfClose').addEventListener('click',()=>{cfgDlg.close();renderPerform();renderEditView();});
 $('#scfDel').addEventListener('click',()=>{
   const s=sceneById(cfgSceneId);if(!s)return;
@@ -1424,18 +1539,21 @@ function sceneCardEl(s,isInput){
       <span class="scPill">${isInput?'新規 ID':'ID'}</span><input class="sc-id" type="number" step="0.1">
       <span class="scPill">名前</span><input class="sc-name">
       <span class="scPill">遷移</span><select class="sc-trans"></select>
-      <span class="scPill scFadeLab">フェード秒</span><input class="sc-fade" type="number" min="0.1" step="0.1">
+      <span class="fadeOne"><span class="scPill">フェード秒</span> <input class="sc-fade" type="number" min="0.1" step="0.1"></span>
+      <span class="fadeTwo"><span class="scPill">OUT秒</span> <input class="sc-out" type="number" min="0.1" step="0.1"></span>
+      <span class="fadeTwo"><span class="scPill">IN秒</span> <input class="sc-in" type="number" min="0.1" step="0.1"></span>
       <span class="spacer"></span>
-      <button class="sc-toggle">音量を編集 ▾</button>
+      ${isInput?'':'<button class="sc-toggle">音量を編集 ▾</button>'}
       ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':'<button class="sc-del danger">削除</button>'}
     </div>
     <div class="scSum tiny"></div>
-    <div class="scGrid" style="display:none">
+    <div class="scGrid" style="display:${isInput?'':'none'}">
       <div class="rowflex"><input class="sc-filter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="flex:1;min-width:180px"><span class="tiny sc-count"></span></div>
       <div class="scChans"></div>
     </div>`;
   const idIn=card.querySelector('.sc-id'),nameIn=card.querySelector('.sc-name'),
         transSel=card.querySelector('.sc-trans'),fadeIn=card.querySelector('.sc-fade'),
+        outIn=card.querySelector('.sc-out'),inIn=card.querySelector('.sc-in'),
         sum=card.querySelector('.scSum'),grid=card.querySelector('.scGrid'),
         chans=card.querySelector('.scChans'),filter=card.querySelector('.sc-filter'),
         count=card.querySelector('.sc-count'),toggle=card.querySelector('.sc-toggle');
@@ -1443,55 +1561,69 @@ function sceneCardEl(s,isInput){
   idIn.value=s.orderId==null?'':s.orderId;
   nameIn.value=s.name||'';
   fadeIn.value=s.fadeSec??3;
-  const syncFade=()=>{
-    const on=transDef(Number(transSel.value)).fade;
-    card.querySelector('.scFadeLab').style.display=on?'':'none';
-    fadeIn.style.display=on?'':'none';
-  };
+  outIn.value=outSec(s);
+  inIn.value=inSec(s);
+  const syncFade=()=>syncFadeFields(card,Number(transSel.value));
   syncFade();
   sum.textContent=sceneSummary(s);
   const commit=()=>{
+    const trans=Number(transSel.value);
+    const fade=transFadeFields(trans,fadeIn.value,outIn.value,inIn.value);
     if(isInput){
       draft.orderId=idIn.value===''?null:Number(idIn.value);
-      draft.name=nameIn.value;draft.trans=Number(transSel.value);draft.fadeSec=Math.max(0.1,Number(fadeIn.value)||3);
+      draft.name=nameIn.value;draft.trans=trans;
+      delete draft.fadeOutSec;delete draft.fadeInSec;
+      Object.assign(draft,fade);
     }else{
       const v=Number(idIn.value);
       if(isFinite(v))s.orderId=v;else idIn.value=s.orderId;
       s.name=nameIn.value||s.name;
-      s.trans=Number(transSel.value);s.mode=s.trans===4?'cut':'fade';
-      s.fadeSec=Math.max(0.1,Number(fadeIn.value)||3);
+      s.trans=trans;s.mode=trans===4?'cut':'fade';
+      delete s.fadeOutSec;delete s.fadeInSec;
+      Object.assign(s,fade);
       markDirty();renderPerform();
     }
   };
   idIn.addEventListener('change',()=>{commit();if(!isInput)renderSceneCards();});
   nameIn.addEventListener('change',()=>{commit();if(!isInput)renderSceneCards();});
-  transSel.addEventListener('change',()=>{syncFade();commit();});
-  fadeIn.addEventListener('change',commit);
-  const key=isInput?'__input__':s.id;
-  const openGrid=()=>{
-    grid.style.display='';toggle.textContent='音量を閉じる ▴';openCardId=key;
-    renderChanRows(chans,s,filter.value,count);
-  };
-  toggle.addEventListener('click',()=>{
-    if(grid.style.display===''){grid.style.display='none';toggle.textContent='音量を編集 ▾';openCardId=null;}
-    else{openCardId=key;renderSceneCards();}
+  transSel.addEventListener('change',()=>{
+    if(Number(transSel.value)===2){
+      // "既定値は両方とも現在の fadeSec": seed OUT/IN from the fade seconds in the form
+      const f=Math.max(0.1,Number(fadeIn.value)||3),src=isInput?draft:s;
+      if(src.fadeOutSec==null)outIn.value=f;
+      if(src.fadeInSec==null)inIn.value=f;
+    }
+    syncFade();commit();
   });
+  for(const el of [fadeIn,outIn,inIn])el.addEventListener('change',commit);
   filter.addEventListener('input',()=>renderChanRows(chans,s,filter.value,count));
-  if(openCardId===key)openGrid();
   if(isInput){
+    /* the input card keeps its % editor open at all times */
+    renderChanRows(chans,s,filter.value,count);
     card.querySelector('.sc-add').addEventListener('click',()=>{
       commit();
       const sid=state.currentSessionId;
       const orderId=draft.orderId==null||!isFinite(draft.orderId)?nextOrderId(sid):draft.orderId;
-      const sc={id:uid(),sessionId:sid,orderId,
+      const sc=Object.assign({id:uid(),sessionId:sid,orderId,
         name:(draft.name||'').trim()||('Scene '+(scenesOf(sid).length+1)),
-        trans:draft.trans,mode:draft.trans===4?'cut':'fade',fadeSec:draft.fadeSec,values:{...draft.values}};
+        trans:draft.trans,mode:draft.trans===4?'cut':'fade',values:{...draft.values}},
+        transFadeFields(draft.trans,draft.fadeSec,draft.fadeOutSec,draft.fadeInSec));
       state.scenes.push(sc);
       draft={orderId:null,name:'',trans:1,fadeSec:3,values:{}};
       openCardId=null;
       markDirty();renderPerform();renderEditView();
     });
   }else{
+    const key=s.id;
+    const openGrid=()=>{
+      grid.style.display='';toggle.textContent='音量を閉じる ▴';openCardId=key;
+      renderChanRows(chans,s,filter.value,count);
+    };
+    toggle.addEventListener('click',()=>{
+      if(grid.style.display===''){grid.style.display='none';toggle.textContent='音量を編集 ▾';openCardId=null;}
+      else{openCardId=key;renderSceneCards();}
+    });
+    if(openCardId===key)openGrid();
     card.querySelector('.sc-del').addEventListener('click',()=>{
       if(!confirm('シーン「'+s.name+'」を削除しますか？'))return;
       deleteScene(s.id);
@@ -1965,7 +2097,7 @@ $('#demoBtn').addEventListener('click',async()=>{
     /* one scene per transition mode so all 5 can be tried straight away */
     state.scenes.push(
       {id:uid(),sessionId:sid,orderId:base+0,name:'導入：森',trans:1,mode:'fade',fadeSec:3,values:{[ids.forest]:800}},
-      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',trans:2,mode:'fade',fadeSec:2,values:{[ids.cave]:700,[ids.rain]:250}},
+      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',trans:2,mode:'fade',fadeSec:2,fadeOutSec:1.5,fadeInSec:3,values:{[ids.cave]:700,[ids.rain]:250}},
       {id:uid(),sessionId:sid,orderId:base+2,name:'戦闘！',trans:4,mode:'cut',fadeSec:0.1,values:{[ids.battle]:900,[ids.cave]:200}},
       {id:uid(),sessionId:sid,orderId:base+3,name:'雨宿り',trans:5,mode:'fade',fadeSec:3,values:{[ids.rain]:750,[ids.forest]:300}},
       {id:uid(),sessionId:sid,orderId:base+4,name:'静寂（全停止）',trans:3,mode:'fade',fadeSec:4,values:{}}
