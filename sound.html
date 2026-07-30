@@ -234,16 +234,20 @@ tr:last-child td{border-bottom:none}
 .scPill{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3)}
 .sc-id{width:66px}
 .sc-name{width:150px}
-.sc-fade,.sc-out,.sc-in{width:62px}
-.pickCaret{font-size:17px;line-height:1;vertical-align:-2px;margin-left:4px;color:var(--blue)}
-.sc-pick{padding:6px 12px}
-.scSel{flex:0 1 200px;min-width:120px;max-width:260px;font-size:11px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
-.scSel:empty{display:none}
-.scSel:hover{border-color:var(--blue)}
-.scSelAll{margin-top:6px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.7}
+/* §3-9: IN秒 / OUT秒 — no spinner arrows, narrower */
+.sc-fade,.sc-out,.sc-in{width:52px}
+.sc-out,.sc-in,.ppct{-moz-appearance:textfield;appearance:textfield}
+.sc-out::-webkit-inner-spin-button,.sc-in::-webkit-inner-spin-button,.ppct::-webkit-inner-spin-button,
+.sc-out::-webkit-outer-spin-button,.sc-in::-webkit-outer-spin-button,.ppct::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* §3-7 / §3-8: ▼ and ▲ are the same size (two steps smaller than before) and white */
+.pickCaret{font-size:12px;line-height:1;vertical-align:0;margin-left:4px;color:var(--text)}
+/* §3-2: these three buttons match the height of the 再生順 / シーン名 inputs */
+.sc-pick,.sc-temp,.sc-add{padding:4px 10px}
+/* §3-6: the selected sources are always listed, in white at the size of 「クロスフェード」 */
+.scSelAll{margin-top:6px;padding:6px 9px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.7;font-size:14px;color:var(--text)}
+.scSelAll .selRow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sc-temp.on{color:var(--wine);border-color:var(--wine);background:var(--wine-soft)}
 .xfLink{color:var(--blue)}
-.scSum{margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 音源選択 panel: BGM left, SE right */
 .scPick{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .pickCols{display:flex;gap:12px;align-items:flex-start}
@@ -252,15 +256,17 @@ tr:last-child td{border-bottom:none}
 .pickTools{margin-bottom:6px}
 .pickTools select{font-size:11px;padding:2px 4px}
 .pickRows{max-height:260px;overflow-y:auto}
-.pickRow{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:6px;font-size:12px}
+.pickRow{display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:4px 5px;border-radius:6px;font-size:12px}
 .pickRow:hover{background:var(--hover)}
 .pickRow.on{background:var(--blue-soft)}
 .pickRow.silentRow{border-bottom:1px dashed var(--border);margin-bottom:4px;padding-bottom:6px}
-.pickRow .pn{flex:1;min-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pickRow .pcid{width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pickRow .ptag{width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pickRow .lp{white-space:nowrap}
+/* §3-10: rows are packed to the left; the name column keeps the volume aligned */
+.pickRow .pn{flex:0 0 150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickRow .pgap{flex:none;width:16px}
+.pickRow .lp{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.pickRow .lp input{margin:0;vertical-align:middle}
 .pickRow .ppct{width:52px;text-align:right}
+.pickRow.silentRow .pn{flex:0 0 auto}
 .pickPrev{padding:1px 8px;font-size:11px;border-radius:6px;white-space:nowrap}
 .pickPrev.on{background:var(--orange-soft);border-color:var(--orange);color:var(--orange)}
 .pickAdd{padding:1px 6px;font-size:13px;line-height:1.3;border-radius:6px;background:none;border:1px solid var(--border)}
@@ -1049,28 +1055,29 @@ async function doGO(){
   }
 }
 /* ALL STOP / ALL START — Space toggles between them */
+/* §1-1: ALL STOP / ALL START are part of the scene system, so they leave the
+   ポン出し／割込フェーダー layer alone (its faders keep their values and its
+   sources keep playing). MUTE ALL and the全体MASTER stay global. */
 function allStop(){
-  const wasPlaying=bgmAudios().some(a=>effectiveValue(a.id)>0)||live.currentSceneId!=null||sePlaying.size>0;
-  /* remember everything that was sounding, SEs included */
+  const sceneSE=()=>[...sePlaying].map(src=>src.__se).filter(m=>m&&m.scene);
+  const wasPlaying=!!live.trans||live.currentSceneId!=null
+    ||Object.keys(live.currentValues).length>0||sceneSE().length>0;
   live.allStopped=wasPlaying?{
     currentSceneId:live.currentSceneId,
     currentValues:{...live.currentValues},
     currentLoops:{...live.currentLoops},
-    interrupt:{...live.interrupt},
-    se:[...sePlaying].map(src=>src.__se).filter(Boolean).map(m=>({...m})),
+    se:sceneSE().map(m=>({...m})),
   }:null;
   live.trans=null;
   live.currentSceneId=null;
   live.currentValues={};
   live.currentLoops={};
-  live.interrupt={};
-  live.muted=null;
   live.scenePaused=null;
-  intStopped.clear();
-  for(const a of state.audios)stopChannel(a.id);
-  stopAllSE();
+  /* only channels the scene was holding — an interrupt fader keeps its own */
+  for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
+  stopSceneSE();
   ui.xfader.set(0);
-  renderPerform();
+  applyMix();renderPerform();
 }
 function allStart(){
   const s=live.allStopped;if(!s)return;
@@ -1078,13 +1085,10 @@ function allStart(){
   live.currentSceneId=s.currentSceneId;
   live.currentValues={...s.currentValues};
   live.currentLoops={...(s.currentLoops||{})};
-  live.interrupt={...s.interrupt};
   ensureCtx();
-  const ids=new Set([...Object.keys(live.currentValues),...Object.keys(live.interrupt)]);
-  Promise.all([...ids].filter(id=>effectiveValue(id)>0).map(id=>ensureChannel(id)))
-    .then(()=>{applyMix();renderPerform();});
-  /* SEs always restart from the beginning; looping ones come back looping */
-  for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,m.scene);
+  startNeededChannels(live.currentValues).then(()=>{applyMix();renderPerform();});
+  /* scene SEs always restart from the beginning; looping ones come back looping */
+  for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,true);
   applyMix();renderPerform();
 }
 function toggleAllStop(){ live.allStopped?allStart():allStop(); }
@@ -1404,6 +1408,7 @@ function renderSceneActions(){
   pb.disabled=!live.scenePaused&&!live.currentSceneId&&!Object.keys(live.currentValues).length;
   const sb=$('#stopBtn');
   sb.textContent=live.allStopped?'▶ ALL START':'■ ALL STOP';
+  sb.title='シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）';
   sb.classList.toggle('danger',!live.allStopped);
   sb.classList.toggle('accent',!!live.allStopped);
   renderHelpLines();
@@ -1791,22 +1796,13 @@ function renderChanRows(container,scene,query,countEl){
   }
 }
 /* "BGM 森のパッド 100% ループON" — one line per registered source */
+/* §3-6: one line per selected source — 「BGM/SE【曲名】 音量：n%、ループ：ON/OFF」 */
 function selectedRows(s){
+  const row=(kind,id,v)=>`${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(s,id)?'ON':'OFF'}`;
   const out=[];
-  for(const[id,v]of Object.entries(s.values||{}))
-    if(v>0)out.push(`BGM ${(audioById(id)||{}).name||'?'} ${pctText(v)} ${sceneLoopOf(s,id)?'ループON':'ループOFF'}`);
-  for(const[id,v]of Object.entries(s.seValues||{}))
-    if(v>0)out.push(`SE ${(audioById(id)||{}).name||'?'} ${pctText(v)} ${sceneLoopOf(s,id)?'ループON':'ループOFF'}`);
+  for(const[id,v]of Object.entries(s.values||{}))if(v>0)out.push(row('BGM',id,v));
+  for(const[id,v]of Object.entries(s.seValues||{}))if(v>0)out.push(row('SE',id,v));
   return out;
-}
-function sceneSummary(s){
-  const bgm=Object.entries(s.values||{}).filter(([,v])=>v>0)
-    .map(([id,v])=>`${(audioById(id)||{}).name||'?'} ${pctText(v)}`);
-  const se=Object.entries(s.seValues||{}).filter(([,v])=>v>0)
-    .map(([id,v])=>`SE:${(audioById(id)||{}).name||'?'} ${pctText(v)}`);
-  const all=bgm.concat(se);
-  if(!all.length)return '（音無しシーン — 全チャンネル 0%）';
-  return all.join(' / ');
 }
 
 /* ---- 試聴: preview a source at the volume typed into its row ---- */
@@ -1901,14 +1897,15 @@ function renderPicker(root,scene,onChange){
     for(const a of list){
       const on=(bag(kind)[a.id]||0)>0;
       const r=document.createElement('div');r.className='pickRow'+(on?' on':'');
-      r.innerHTML=`<label class="tiny lp" title="このシーンでループ再生する"><input type="checkbox" class="ploop"> ループ</label>
-        <button class="pickPrev" title="この音量で試聴">試聴</button>
+      /* §3-10: 🔼 曲名 （空白） 音量 試聴 ループ — left aligned */
+      r.innerHTML=`<button class="pickAdd${on?' on':''}" title="${on?'このシーンから外す':'このシーンに入れる'}">🔼</button>
+        <span class="pn"></span><span class="pgap"></span>
         <input class="ppct pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>
-        <span class="pn"></span><span class="pcid tiny"></span><span class="ptag tiny"></span>
-        <button class="pickAdd${on?' on':''}" title="${on?'このシーンから外す':'このシーンに入れる'}">🔼</button>`;
-      r.querySelector('.pn').textContent=a.name;r.querySelector('.pn').title=a.name;
-      r.querySelector('.pcid').textContent=a.customId||'';
-      r.querySelector('.ptag').textContent=a.tags.join(', ');
+        <button class="pickPrev" title="この音量で試聴">試聴</button>
+        <label class="lp" title="このシーンでループ再生する"><span class="lpTxt">ループ</span><input type="checkbox" class="ploop"></label>`;
+      const nm=r.querySelector('.pn');
+      nm.textContent=a.name;
+      nm.title=[a.name,a.customId?'任意ID: '+a.customId:'',a.tags.length?'タグ: '+a.tags.join(', '):''].filter(Boolean).join(' / ');
       const pct=r.querySelector('.ppct');
       pct.value=fmtPct(bag(kind)[a.id]||1000);        // 追加時の初期音量は100%
       const lp=r.querySelector('.ploop');
@@ -2078,12 +2075,15 @@ function openSessionRow(mode){
 }
 function closeSessionRow(){$('#newSessionRow').style.display='none';}
 /* line the 登録/変更 button up with the ＋ 新規作成 button above it */
+/* §2-1: the two rows start at the same left edge (ラベルの左端を揃える), and the
+   入力欄 stretches so 「登録／変更」 still lines up under 「＋ 新規作成」 */
 function alignSessionRow(){
-  const row=$('#newSessionRow'),ok=$('#newSessionOk'),add=$('#addSessionBtn');
+  const row=$('#newSessionRow'),ok=$('#newSessionOk'),add=$('#addSessionBtn'),inp=$('#newSessionName');
   if(!row||row.style.display==='none')return;
   row.style.paddingLeft='0px';
+  inp.style.width='220px';
   const target=add.getBoundingClientRect().left,cur=ok.getBoundingClientRect().left;
-  row.style.paddingLeft=Math.max(0,Math.round(target-cur))+'px';
+  inp.style.width=Math.max(140,Math.round(220+(target-cur)))+'px';
 }
 $('#addSessionBtn').addEventListener('click',()=>openSessionRow('new'));
 $('#renameSessionBtn').addEventListener('click',()=>openSessionRow('rename'));
@@ -2137,6 +2137,7 @@ const tempKey=()=>state.currentSessionId;
 const hasTemp=()=>draftTemp.has(tempKey());
 let draft=newDraft();
 let openCardId=null;   // only one channel grid expanded at a time (keeps 200-audio rendering cheap)
+let inputPickOpen=false;  // §3-4: the input card's 音源選択 toggle survives a re-render
 function sceneCardEl(s,isInput){
   const card=document.createElement('div');
   card.className='sceneCard'+(isInput?' input':'');
@@ -2144,15 +2145,14 @@ function sceneCardEl(s,isInput){
   card.innerHTML=`
     <div class="scHead">
       <span class="scPill">再生順</span><input class="sc-id" type="number" step="0.1">
-      <span class="scPill">名前</span><input class="sc-name">
-      <span class="scSel" title="クリックで全件表示"></span>
+      <span class="scPill">シーン名（任意）</span><input class="sc-name">
       <button class="sc-pick">音源選択 <span class="pickCaret">▼</span></button>
       <button class="sc-temp">一時保存</button>
-      ${isInput?'':'<button class="sc-toggle">音量を編集 ▾</button>'}
+      ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':'<button class="sc-toggle">音量を編集 ▾</button>'}
       <span class="spacer"></span>
-      ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':'<button class="sc-del danger">削除</button>'}
+      ${isInput?'':'<button class="sc-del danger">削除</button>'}
     </div>
-    <div class="scSelAll tiny" style="display:none"></div>
+    <div class="scSelAll" style="display:none"></div>
     <div class="scHead" style="margin-top:7px">
       <span class="scPill">IN方法</span><select class="sc-way sc-inway"></select>
       <span class="fadeIn"><span class="scPill">IN秒</span> <input class="sc-in" type="number" min="0.1" step="0.1"></span>
@@ -2163,7 +2163,6 @@ function sceneCardEl(s,isInput){
       <input class="sc-master hslider" type="range" min="0" max="1000" step="5" style="width:110px">
       <span class="tiny sc-mval"></span>
     </div>
-    <div class="scSum tiny"></div>
     <div class="scPick" style="display:none"></div>
     <div class="scGrid" style="display:none">
       <div class="rowflex"><input class="sc-filter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="flex:1;min-width:180px"><span class="tiny sc-count"></span></div>
@@ -2173,7 +2172,7 @@ function sceneCardEl(s,isInput){
         outWay=card.querySelector('.sc-outway'),inWay=card.querySelector('.sc-inway'),
         outIn=card.querySelector('.sc-out'),inIn=card.querySelector('.sc-in'),
         mIn=card.querySelector('.sc-master'),mVal=card.querySelector('.sc-mval'),
-        sum=card.querySelector('.scSum'),grid=card.querySelector('.scGrid'),
+        grid=card.querySelector('.scGrid'),
         pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick'),
         chans=card.querySelector('.scChans'),filter=card.querySelector('.sc-filter'),
         count=card.querySelector('.sc-count'),toggle=card.querySelector('.sc-toggle');
@@ -2185,7 +2184,7 @@ function sceneCardEl(s,isInput){
   inIn.value=inSec(s);
   mIn.value=s.master??1000;
   mVal.textContent=pctText(s.master??1000);
-  const sel=card.querySelector('.scSel'),selAll=card.querySelector('.scSelAll'),
+  const selAll=card.querySelector('.scSelAll'),
         tempBtn=card.querySelector('.sc-temp'),xfLink=card.querySelector('.xfLink');
   /* #7: a scene whose predecessor crossfades out inherits that IN (same method and time) */
   const prevScene=(()=>{
@@ -2206,20 +2205,15 @@ function sceneCardEl(s,isInput){
     }
   };
   syncFade();
-  sum.textContent=sceneSummary(s);
-  /* §5-2 selected sources summary; click to expand every entry */
+  /* §3-6: the selected sources are listed as soon as anything is selected —
+     no click target, no separate 使っている曲リスト */
   const renderSel=()=>{
     const rows=selectedRows(s);
-    if(!rows.length){sel.textContent='';sel.style.display='none';selAll.style.display='none';return;}
-    sel.style.display='';
-    sel.textContent=rows[0]+(rows.length>1?`　ほか${rows.length-1}件`:'');
-    sel.title=rows.join(' / ');
-    selAll.innerHTML=rows.map(t=>`<div>${t}</div>`).join('');
+    selAll.style.display=rows.length?'':'none';
+    selAll.innerHTML=rows.map(t=>`<div class="selRow"></div>`).join('');
+    [...selAll.children].forEach((d,i)=>{d.textContent=rows[i];});
   };
   renderSel();
-  sel.addEventListener('click',()=>{
-    selAll.style.display=selAll.style.display==='none'?'':'none';
-  });
   const commit=()=>{
     /* Q2: an inherited IN is written through — the fields already hold the previous
        scene's crossfade, and linkXfadeIn keeps them in step from then on */
@@ -2261,13 +2255,22 @@ function sceneCardEl(s,isInput){
   mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit();});
   filter.addEventListener('input',()=>renderChanRows(chans,s,filter.value,count));
   /* 音源選択: BGM on the left, SE on the right; 🔼 puts the source into this scene */
+  const setPickOpen=open=>{
+    pick.style.display=open?'':'none';
+    pickBtn.innerHTML='音源選択 <span class="pickCaret">'+(open?'▲':'▼')+'</span>';
+    if(isInput)inputPickOpen=open;
+  };
   pickBtn.addEventListener('click',()=>{
     const open=pick.style.display==='none';
-    pick.style.display=open?'':'none';
-    pickBtn.textContent=open?'音源選択 ▴':'音源選択 ▾';
-    if(open)renderPicker(pick,s,()=>{sum.textContent=sceneSummary(s);renderSel();renderChanRows(chans,s,filter.value,count);});
+    setPickOpen(open);
+    if(open)renderPicker(pick,s,()=>{renderSel();renderChanRows(chans,s,filter.value,count);});
     if(!open)stopPreviewSrc();
   });
+  /* §3-4: an input card re-rendered by 一時保存データに戻す keeps the toggle open */
+  if(isInput&&inputPickOpen){
+    setPickOpen(true);
+    renderPicker(pick,s,()=>{renderSel();renderChanRows(chans,s,filter.value,count);});
+  }
   if(isInput){
     /* §6 一時保存 / 一時保存データに戻す */
     const syncTemp=()=>{
@@ -2280,8 +2283,11 @@ function sceneCardEl(s,isInput){
     tempBtn.addEventListener('click',()=>{
       commit();
       if(hasTemp()){
+        /* §3-5: restore once, then the button goes back to 一時保存 so the next
+           press stores the state as it is at that moment */
         draft=JSON.parse(JSON.stringify(draftTemp.get(tempKey())));
-        openCardId=null;renderEditView();
+        draftTemp.delete(tempKey());
+        renderEditView();
       }else{
         draftTemp.set(tempKey(),JSON.parse(JSON.stringify(draft)));
         syncTemp();
