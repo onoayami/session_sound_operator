@@ -262,6 +262,7 @@ tr:last-child td{border-bottom:none}
 .pickRow.silentRow{border-bottom:1px dashed var(--border);margin-bottom:4px;padding-bottom:6px}
 /* §3-10: rows are packed to the left; the name column keeps the volume aligned */
 .pickRow .pn{flex:0 0 150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickRow .ptag{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pickRow .pgap{flex:none;width:16px}
 .pickRow .lp{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
 .pickRow .lp input{margin:0;vertical-align:middle}
@@ -368,6 +369,7 @@ dialog h3{font-size:15px}
             <button id="scenePauseBtn">■ シーン停止</button>
             <button id="muteAllBtn" class="warn">MUTE ALL</button>
             <button id="stopBtn" class="danger">■ ALL STOP</button>
+            <button id="panicBtn" class="danger">■ 全停止</button>
           </div>
         </div>
       </div>
@@ -950,6 +952,7 @@ const live={
   muted:null,               // snapshot taken by MUTE ALL, or null
   scenePaused:null,         // snapshot taken by シーン停止, or null
   allStopped:null,          // snapshot taken by ALL STOP, or null (Space toggles it back)
+  allOff:null,              // snapshot taken by 全停止 (scene + pads + interrupt), or null
 };
 const intStopped=new Map(); // audioId -> {value, offset}  (interrupt fader stop button)
 
@@ -993,7 +996,7 @@ async function beginTransition(mode){
   const toVals=sceneValuesOf(to);
   live.trans={from,to:toVals,x:0,mode,t0:performance.now(),dur:plan.dur,toSceneId:to.id,
               outMode:plan.outMode,inMode:plan.inMode,ratio:plan.ratio};
-  live.muted=null;live.scenePaused=null;live.allStopped=null;
+  live.muted=null;live.scenePaused=null;live.allStopped=null;live.allOff=null;
   await startNeededChannels(toVals);
   return true;
 }
@@ -1092,6 +1095,56 @@ function allStart(){
   applyMix();renderPerform();
 }
 function toggleAllStop(){ live.allStopped?allStart():allStop(); }
+/* 全停止 / 全復帰 — the one button that takes down everything at once: the scene
+   layer, the ポン出し pads and the 割込フェーダー. Unlike MUTE ALL (which only
+   silences and keeps playing), this really stops the sources; 全復帰 puts the
+   whole mix back. */
+function panicStop(){
+  const anySound=sePlaying.size>0||live.currentSceneId!=null||!!live.trans
+    ||Object.keys(live.currentValues).length>0||Object.keys(live.interrupt).length>0
+    ||[...engine.channels.values()].some(c=>c.playing);
+  live.allOff=anySound?{
+    currentSceneId:live.currentSceneId,
+    currentValues:{...live.currentValues},
+    currentLoops:{...live.currentLoops},
+    interrupt:{...live.interrupt},
+    intStopped:[...intStopped.entries()].map(([id,v])=>[id,{...v}]),
+    se:[...sePlaying].map(src=>src.__se).filter(Boolean).map(m=>({...m})),
+    allStopped:live.allStopped?JSON.parse(JSON.stringify(live.allStopped)):null,
+  }:null;
+  live.trans=null;
+  live.currentSceneId=null;
+  live.currentValues={};
+  live.currentLoops={};
+  live.interrupt={};
+  live.muted=null;
+  live.scenePaused=null;
+  live.allStopped=null;
+  intStopped.clear();
+  for(const a of state.audios)stopChannel(a.id);
+  stopAllSE();
+  ui.xfader.set(0);
+  applyMix();renderPerform();
+}
+function panicStart(){
+  const s=live.allOff;if(!s)return;
+  live.allOff=null;
+  live.currentSceneId=s.currentSceneId;
+  live.currentValues={...s.currentValues};
+  live.currentLoops={...(s.currentLoops||{})};
+  live.interrupt={...s.interrupt};
+  live.allStopped=s.allStopped?JSON.parse(JSON.stringify(s.allStopped)):null;
+  intStopped.clear();
+  for(const[id,v]of (s.intStopped||[]))intStopped.set(id,v);
+  ensureCtx();
+  const ids=new Set([...Object.keys(live.currentValues),...Object.keys(live.interrupt)]);
+  Promise.all([...ids].filter(id=>effectiveValue(id)>0).map(id=>ensureChannel(id)))
+    .then(()=>{applyMix();renderPerform();});
+  /* every SE restarts from the top — scene ones as scene ones, pads as pads */
+  for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,m.scene);
+  applyMix();renderPerform();
+}
+function togglePanic(){ live.allOff?panicStart():panicStop(); }
 /* シーン停止 / 再開 — pauses only the scene-derived layer; the 割込 faders and pads keep going */
 function toggleScenePause(){
   if(live.scenePaused){
@@ -1400,6 +1453,7 @@ function renderSceneActions(){
   $('#overwriteSceneBtn').textContent=cur?`上書き（${cur.name}）`:'上書き';
   const mb=$('#muteAllBtn');
   mb.textContent=live.muted?'MUTE 解除':'MUTE ALL';
+  mb.title='鳴っている音を一時的に消します（再生は続いたままで、もう一度押すと同じ状態に戻ります）';
   mb.classList.toggle('warn',!live.muted);
   mb.classList.toggle('accent',!!live.muted);
   const pb=$('#scenePauseBtn');
@@ -1408,7 +1462,16 @@ function renderSceneActions(){
   pb.disabled=!live.scenePaused&&!live.currentSceneId&&!Object.keys(live.currentValues).length;
   const sb=$('#stopBtn');
   sb.textContent=live.allStopped?'▶ ALL START':'■ ALL STOP';
-  sb.title='シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）';
+  sb.title='シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）。もう一度押すと元のシーンに戻ります';
+  sb.classList.toggle('danger',!live.allStopped);
+  const pn=$('#panicBtn');
+  pn.textContent=live.allOff?'▶ 全復帰':'■ 全停止';
+  pn.title=live.allOff
+    ? '全停止する直前の状態（シーン・ポン出し・割込フェーダー）に戻します。SEは先頭から鳴り直します'
+    : 'シーン・ポン出し・割込フェーダーを全部止めます（MUTE ALL は再生を続けたまま音を消すだけ／こちらは再生自体を止めて「▶ 全復帰」で戻します）';
+  pn.classList.toggle('danger',!live.allOff);
+  pn.classList.toggle('accent',!!live.allOff);
+  pn.disabled=!live.allOff&&!(sePlaying.size||live.currentSceneId||Object.keys(live.interrupt).length||[...engine.channels.values()].some(c=>c.playing));
   sb.classList.toggle('danger',!live.allStopped);
   sb.classList.toggle('accent',!!live.allStopped);
   renderHelpLines();
@@ -1418,8 +1481,8 @@ function renderHelpLines(){
   const items=[
     ['<kbd>Enter</kbd> GO','NEXTシーンへ規定の時間で遷移します'],
     ['<kbd>←</kbd><kbd>→</kbd> NEXT選択','セッション内でループします'],
-    live.allStopped?['<kbd>Space</kbd> ALL START','停止した音を元に戻します']
-                   :['<kbd>Space</kbd> ALL STOP','すべての音を停止します'],
+    live.allStopped?['<kbd>Space</kbd> ALL START','止めたシーンの音を元に戻します']
+                   :['<kbd>Space</kbd> ALL STOP','シーンの音だけ止めます（全部止めるなら「■ 全停止」）'],
     ['手動フェーダー','動かした位置と速度に追従して遷移します'],
   ];
   $('#helpLines').innerHTML=items.map(([k,d])=>
@@ -1476,6 +1539,7 @@ $('#goBtn').addEventListener('click',doGO);
 $('#stopBtn').addEventListener('click',toggleAllStop);
 $('#muteAllBtn').addEventListener('click',toggleMuteAll);
 $('#scenePauseBtn').addEventListener('click',toggleScenePause);
+$('#panicBtn').addEventListener('click',togglePanic);
 
 /* ===================== Section B: SE pads (banks, toggle) ===================== */
 let sePadBank=0;
@@ -1546,7 +1610,7 @@ function renderInterruptFaders(){
     const f=VFader(d.querySelector('.vfader'),{
       onInput(val){
         live.interrupt[a.id]=val;
-        live.muted=null;live.allStopped=null;
+        live.muted=null;          /* MUTE ALL is global, so touching a fader lifts it */
         if(val>0){
           const resume=intStopped.get(a.id);
           intStopped.delete(a.id);
@@ -1728,7 +1792,7 @@ $('#sfOk').addEventListener('click',()=>{
   live.currentValues=sceneValuesOf(target);
   live.currentLoops={...(target.loops||{})};
   live.interrupt={};
-  live.muted=null;live.scenePaused=null;live.allStopped=null;
+  live.muted=null;live.scenePaused=null;live.allStopped=null;live.allOff=null;
   intStopped.clear();
   state.currentSessionId=sid;
   const list=curScenes();
@@ -1902,10 +1966,13 @@ function renderPicker(root,scene,onChange){
         <span class="pn"></span><span class="pgap"></span>
         <input class="ppct pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>
         <button class="pickPrev" title="この音量で試聴">試聴</button>
-        <label class="lp" title="このシーンでループ再生する"><span class="lpTxt">ループ</span><input type="checkbox" class="ploop"></label>`;
+        <label class="lp" title="このシーンでループ再生する"><span class="lpTxt">ループ</span><input type="checkbox" class="ploop"></label>
+        <span class="ptag tiny"></span>`;
       const nm=r.querySelector('.pn');
-      nm.textContent=a.name;
-      nm.title=[a.name,a.customId?'任意ID: '+a.customId:'',a.tags.length?'タグ: '+a.tags.join(', '):''].filter(Boolean).join(' / ');
+      nm.textContent=a.name;nm.title=a.name;
+      /* タグだけ常時表示。任意IDは行に出さない（ソート条件としてだけ残す） */
+      const tg=r.querySelector('.ptag');
+      tg.textContent=a.tags.join(', ');tg.title=a.tags.join(', ');
       const pct=r.querySelector('.ppct');
       pct.value=fmtPct(bag(kind)[a.id]||1000);        // 追加時の初期音量は100%
       const lp=r.querySelector('.ploop');
@@ -2135,6 +2202,10 @@ const newDraft=()=>({orderId:null,name:'',outMode:'xfade',inMode:'xfade',fadeSec
 const draftTemp=new Map();      // sessionId -> deep copy of the draft
 const tempKey=()=>state.currentSessionId;
 const hasTemp=()=>draftTemp.has(tempKey());
+/* the button offers 「戻す」 only until it has been used once — the snapshot itself
+   survives, so the same content can be restored again and again */
+const tempArmed=new Set();
+const tempIsArmed=()=>tempArmed.has(tempKey());
 let draft=newDraft();
 let openCardId=null;   // only one channel grid expanded at a time (keeps 200-audio rendering cheap)
 let inputPickOpen=false;  // §3-4: the input card's 音源選択 toggle survives a re-render
@@ -2274,7 +2345,7 @@ function sceneCardEl(s,isInput){
   if(isInput){
     /* §6 一時保存 / 一時保存データに戻す */
     const syncTemp=()=>{
-      const has=hasTemp();
+      const has=tempIsArmed();
       tempBtn.textContent=has?'一時保存データに戻す':'一時保存';
       tempBtn.classList.toggle('on',has);
       tempBtn.title=has?'一時保存した時点の入力内容に戻します':'いまの入力内容を一時保存します（追加登録前の退避）';
@@ -2282,14 +2353,16 @@ function sceneCardEl(s,isInput){
     syncTemp();
     tempBtn.addEventListener('click',()=>{
       commit();
-      if(hasTemp()){
-        /* §3-5: restore once, then the button goes back to 一時保存 so the next
-           press stores the state as it is at that moment */
+      if(tempIsArmed()){
+        /* restore, and keep the snapshot so it can be restored again later.
+           The button label goes back to 「一時保存」. */
         draft=JSON.parse(JSON.stringify(draftTemp.get(tempKey())));
-        draftTemp.delete(tempKey());
+        tempArmed.delete(tempKey());
         renderEditView();
       }else{
+        /* overwrite the snapshot with whatever is in the card right now */
         draftTemp.set(tempKey(),JSON.parse(JSON.stringify(draft)));
+        tempArmed.add(tempKey());
         syncTemp();
       }
     });
@@ -2308,6 +2381,7 @@ function sceneCardEl(s,isInput){
       state.scenes.push(sc);
       draft=newDraft();
       draftTemp.delete(tempKey());        // registered -> the snapshot is done with
+      tempArmed.delete(tempKey());
       openCardId=null;
       markDirty();renderPerform();renderEditView();
     });
@@ -2588,6 +2662,7 @@ $('#packInput').addEventListener('change',async e=>{
     state=migrate(pack.state);   // v1 / v2 packs are migrated on the way in
     for(const[id,b]of Object.entries(pack.blobs||{}))await blobPut(id,b64ToBlob(b.b64,b.type));
     live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;
+    live.allStopped=null;live.allOff=null;live.scenePaused=null;
     live.nextSceneId=curScenes()[0]?.id||null;
     draft=newDraft();openCardId=null;
     libPage.bgm=0;libPage.se=0;libTagFilter.clear();
