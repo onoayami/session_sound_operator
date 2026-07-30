@@ -48,7 +48,7 @@ main{flex:1;min-height:0;position:relative}
 #view-perform.active{display:flex;flex-direction:column;overflow:hidden}
 
 /* ===== left/right split ===== */
-#splitRow{flex:1;min-height:0;display:flex}
+#splitRow{flex:1;min-height:0;display:flex;overflow:hidden}
 .section{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .secHead{display:flex;align-items:center;gap:9px;padding:9px 14px;background:var(--surface);border:none;border-radius:0;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:800;letter-spacing:.08em;text-align:left;flex:none}
 .secHead:hover{background:var(--hover)}
@@ -65,22 +65,24 @@ main{flex:1;min-height:0;position:relative}
 #resizer::after{content:"";position:absolute;left:2px;top:50%;width:3px;height:34px;transform:translateY(-50%);background:var(--border2);border-radius:2px}
 
 /* ===== master bar (independent of both sections) ===== */
-#masterBar{flex:none;display:flex;align-items:center;gap:26px;flex-wrap:wrap;padding:9px 16px;border-top:1px solid var(--border);background:var(--surface)}
-.mb{display:flex;align-items:center;gap:10px;flex:1;min-width:250px}
-.mb .mbLab{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:104px}
-.mb.all{padding-right:20px;border-right:1px solid var(--border)}
+#masterBar{flex:none;display:flex;align-items:stretch;gap:22px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--border);background:var(--surface)}
+.mb{display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:290px;min-height:44px}
+.mb .mbLab{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:130px;flex:none}
+.mb.all{padding-right:22px;border-right:1px solid var(--border)}
 .mb.all .mbLab{color:var(--blue)}
-.mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:16px;height:16px}
-.mb .hslider{flex:1;max-width:340px}
-.mb .mbVal{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;width:52px;text-align:right}
+.mb .hslider{flex:1;min-width:110px;max-width:360px;height:9px;border-radius:5px}
+.mb .hslider::-webkit-slider-thumb{width:23px;height:23px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:25px;height:25px}
+.mb .mbVal{font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;width:64px;text-align:right;flex:none}
 
 /* ===== section A: scene playback ===== */
-#sceneToolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--border);flex:none}
+#sceneToolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);flex:none}
+#sceneToolbar button{font-size:13px;padding:7px 13px}
 .warn{color:var(--orange);border-color:var(--orange);background:var(--orange-soft)}
 /* 再生中 block — kept well clear of the crossfader thumb */
 #nowBlock{flex:none;padding:12px 14px 10px;border-bottom:1px solid var(--border);background:var(--raised)}
 #nowBlock .nowLab{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--green)}
-#nowName{font-size:22px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nowName{font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #nowSub{font-size:11px;color:var(--text3)}
 .colTitle{padding:10px 14px 6px;font-size:11px;letter-spacing:.1em;color:var(--text3);font-weight:700;display:flex;align-items:center;gap:10px;flex:none}
 /* scene playback splits again: list on the left, transition on the right */
@@ -104,23 +106,22 @@ main{flex:1;min-height:0;position:relative}
 /* transition group: crossfader + GO belong together */
 #transGroup{flex:none;margin:0 14px 8px;border:1px solid var(--border2);border-radius:12px;background:var(--raised);padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center}
 #transGroup{--ctlw:218px}
-#nextRow,#goInfo,#transGroup .grpDiv{width:100%}
+#goInfo,#manualNote,#transGroup .grpDiv{width:100%}
 #transGroup .grpDiv{border-top:1px solid var(--border);margin:10px 0 0}
-#nextRow{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
-#nextRow .nxLab{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--blue);flex:none}
-#nextName{font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* the manual fader block and GO share one width (基準: 「再生中」から「手動フェーダー」までの幅) */
 #xfBlock{width:var(--ctlw);margin:0 auto;display:flex;flex-direction:column;align-items:center}
-#xfCaption{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text2);margin-top:6px;text-align:center}
+#xfCaption{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text2);margin-top:10px;text-align:center}
 #xfRow{display:flex;align-items:stretch;gap:12px;justify-content:center;width:100%}
 #xfScale{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 0}
 #xfScale .top{color:var(--blue)}
 #xfScale .bot{color:var(--green)}
-#xfSide{display:flex;flex-direction:column;justify-content:space-between;padding:4px 0}
+#xfSide{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:4px 0;min-width:0}
+#nextName{font-size:11px;font-weight:700;color:var(--blue);max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #xfVal{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums}
-#goBtn{width:var(--ctlw);height:66px;margin:10px auto 0;font-size:28px;font-weight:800;letter-spacing:.2em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:12px}
+#goBtn{width:150px;height:44px;margin:10px auto 0;font-size:19px;font-weight:800;letter-spacing:.18em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:10px}
 #goBtn:hover:not(:disabled){background:rgba(114,188,143,.25)}
 #goInfo{text-align:center;font-size:12px;color:var(--text2);min-height:18px;margin-top:5px}
+#manualNote{font-size:11px;color:var(--orange);background:var(--orange-soft);border:1px solid var(--orange);border-radius:8px;padding:5px 8px;margin-top:8px;line-height:1.55}
 /* help text: one item = a key line + a description line */
 #helpLines{flex:none;padding:2px 14px 14px;font-size:12px;color:var(--text2)}
 #helpLines .hItem{margin-bottom:7px}
@@ -131,11 +132,11 @@ main{flex:1;min-height:0;position:relative}
 #padHelp kbd{margin-right:3px}
 
 /* ===== vertical fader ===== */
-.vfader{position:relative;width:44px;height:150px;cursor:ns-resize;touch-action:none}
-.vfader.big{width:74px;height:156px}
-.vfader .track{position:absolute;left:50%;top:6px;bottom:6px;width:6px;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:3px}
+.vfader{position:relative;--inset:6px;width:44px;height:150px;cursor:ns-resize;touch-action:none}
+.vfader.big{--inset:18px;width:74px;height:176px}
+.vfader .track{position:absolute;left:50%;top:var(--inset);bottom:var(--inset);width:6px;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:3px}
 .vfader.big .track{width:12px;border-radius:6px}
-.vfader .fill{position:absolute;left:50%;bottom:6px;width:6px;transform:translateX(-50%);background:var(--blue);border-radius:3px}
+.vfader .fill{position:absolute;left:50%;bottom:var(--inset);width:6px;transform:translateX(-50%);background:var(--blue);border-radius:3px}
 .vfader.big .fill{width:12px;border-radius:6px}
 .vfader .thumb{position:absolute;left:50%;width:34px;height:16px;transform:translate(-50%,50%);background:linear-gradient(180deg,#4a4a48,#2e2e2d);border:1px solid var(--border2);border-radius:4px;box-shadow:0 2px 5px rgba(0,0,0,.5)}
 .vfader.big .thumb{width:44px;height:30px;border-radius:6px}
@@ -152,8 +153,9 @@ main{flex:1;min-height:0;position:relative}
 .sePad .pname{font-size:11px;font-weight:600;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sePad .pkey{font-size:10px;color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:0 5px}
 .sePad.flash{background:var(--orange-soft);border-color:var(--orange)}
-.sePad.on{background:var(--orange-soft);border-color:var(--orange);box-shadow:0 0 0 1px var(--orange) inset;color:var(--orange)}
-.sePad.on .pname{color:var(--orange)}
+.sePad.on{box-shadow:0 0 0 3px var(--orange) inset,0 0 10px rgba(222,146,85,.45);border-color:var(--orange)}
+.sePad.on .pkey{border-color:var(--orange);color:var(--orange)}
+.sePad.flash{box-shadow:0 0 0 3px var(--text) inset}
 #bankBar{display:flex;gap:4px;margin-left:auto}
 #bankBar button{font-size:11px;font-weight:700;padding:2px 10px;border-radius:6px}
 #bankBar button.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
@@ -195,6 +197,14 @@ tr:last-child td{border-bottom:none}
 .tagChip{display:inline-block;font-size:10px;padding:2px 10px;border-radius:999px;background:var(--hover);color:var(--text2);cursor:pointer;border:1px solid transparent;margin:0 4px 4px 0}
 .tagChip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 .libPager{display:flex;gap:10px;align-items:center;justify-content:center;padding:8px 6px 2px}
+.swatch{width:26px;height:22px;padding:0;border-radius:6px;border:1px solid var(--border2)}
+.swatch:hover{border-color:var(--blue)}
+.palette{position:fixed;z-index:50;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:9px;box-shadow:0 8px 24px rgba(0,0,0,.55)}
+.palTitle{margin-bottom:6px}
+.palGrid{display:grid;grid-template-columns:repeat(6,22px);gap:6px}
+.palDot{width:22px;height:22px;padding:0;border-radius:5px;border:1px solid rgba(255,255,255,.25)}
+.palDot:hover{outline:2px solid var(--text2)}
+.palDot.on{outline:2px solid var(--blue)}
 /* library: BGM / SE side by side */
 #libCols{display:flex;gap:16px;align-items:flex-start}
 .libCol{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px}
@@ -204,7 +214,7 @@ tr:last-child td{border-bottom:none}
 .libCol{overflow-x:auto}
 .libCol table{min-width:100%}
 .libCol td input[data-act=name]{min-width:104px}
-.libCol td input[data-act=cid]{min-width:38px}
+.libCol td input[data-act=cid]{min-width:56px}
 .libCol td input[data-act=tags]{min-width:86px}
 .libCol td input[data-act=fader]{min-width:46px}
 .libCol td:last-child{white-space:nowrap}
@@ -218,6 +228,14 @@ tr:last-child td{border-bottom:none}
 .sc-id{width:66px}
 .sc-name{width:150px}
 .sc-fade,.sc-out,.sc-in{width:62px}
+.pickCaret{font-size:17px;line-height:1;vertical-align:-2px;margin-left:4px;color:var(--blue)}
+.sc-pick{padding:6px 12px}
+.scSel{flex:0 1 200px;min-width:120px;max-width:260px;font-size:11px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.scSel:empty{display:none}
+.scSel:hover{border-color:var(--blue)}
+.scSelAll{margin-top:6px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.7}
+.sc-temp.on{color:var(--wine);border-color:var(--wine);background:var(--wine-soft)}
+.xfLink{color:var(--blue)}
 .scSum{margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 音源選択 panel: BGM left, SE right */
 .scPick{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
@@ -253,9 +271,18 @@ dialog h3{font-size:15px}
 .formGrid{display:grid;grid-template-columns:auto 1fr;gap:9px 10px;align-items:center;margin:14px 0}
 .formGrid label{font-size:12px;color:var(--text2)}
 @media (max-width:1200px){#libCols{flex-direction:column}.libCol{width:100%}}
+/* narrow: the three masters stack full width and keep the same height */
+@media (max-width:900px){
+  #masterBar{gap:8px;padding:10px 12px}
+  .mb{flex:1 1 100%;min-width:0;min-height:38px}
+  .mb.all{padding-right:0;border-right:none;border-bottom:1px solid var(--border);padding-bottom:8px}
+  .mb .mbLab{width:112px;font-size:11px}
+  .mb .hslider{max-width:none}
+}
 @media (max-width:1000px){#playSplit{flex-direction:column}#listPane{border-right:none;border-bottom:1px solid var(--border)}}
 @media (max-width:820px){
-  #splitRow{flex-direction:column}
+  /* stacked panels scroll inside the row so they never paint over the master bar */
+  #splitRow{flex-direction:column;overflow-y:auto}
   #resizer{display:none!important}
   .section{flex:none!important}
   .section.collapsed .secHead{writing-mode:horizontal-tb;height:auto;padding:9px 14px}
@@ -292,13 +319,6 @@ dialog h3{font-size:15px}
       <div class="section" data-sec="a" id="secA">
         <button class="secHead"><span class="caret">◀︎</span><span>シーン再生</span><span class="hint">再生中 → NEXT のシーン遷移</span></button>
         <div class="secBody">
-          <div id="sceneToolbar">
-            <button id="saveSceneBtn" class="accent">◉ 今の音をシーンに保存</button>
-            <button id="overwriteSceneBtn">上書き</button>
-            <button id="scenePauseBtn">■ シーン停止</button>
-            <button id="muteAllBtn" class="warn">MUTE ALL</button>
-            <button id="stopBtn" class="danger">■ ALL STOP</button>
-          </div>
           <div id="nowBlock">
             <div class="nowLab">再生中</div>
             <div id="nowName">（無音）</div>
@@ -312,21 +332,28 @@ dialog h3{font-size:15px}
             <div id="transPane">
               <div class="colTitle"><span>シーン遷移</span></div>
               <div id="transGroup">
-                <div id="nextRow"><span class="nxLab">NEXT</span><span id="nextName">未選択</span></div>
                 <div id="xfBlock">
                   <div id="xfRow">
-                    <div id="xfScale"><span class="top">NEXT</span><span class="bot">再生中</span></div>
+                    <div id="xfScale"><span class="top"></span><span class="bot">再生中</span></div>
                     <div class="vfader big" id="xfader"></div>
-                    <div id="xfSide"><span id="xfVal">0%</span></div>
+                    <div id="xfSide"><span id="nextName">未選択</span><span id="xfVal">0%</span></div>
                   </div>
                   <div id="xfCaption">手動フェーダー</div>
                 </div>
                 <div class="grpDiv"></div>
                 <button id="goBtn">GO</button>
                 <div id="goInfo"></div>
+                <div id="manualNote">手動フェーダーを動かした場合は、設定したフェード秒数より<b>手の動き（位置と速度）が優先</b>されます。</div>
               </div>
               <div id="helpLines"></div>
             </div>
+          </div>
+          <div id="sceneToolbar">
+            <button id="saveSceneBtn" class="accent">◉ 今の音をシーンに入れる</button>
+            <button id="overwriteSceneBtn">上書き</button>
+            <button id="scenePauseBtn">■ シーン停止</button>
+            <button id="muteAllBtn" class="warn">MUTE ALL</button>
+            <button id="stopBtn" class="danger">■ ALL STOP</button>
           </div>
         </div>
       </div>
@@ -378,15 +405,15 @@ dialog h3{font-size:15px}
       <div class="card">
         <h3>セッション管理（マスター）</h3>
         <div class="small" style="margin-bottom:10px">ここで選択中のセッションが、下のシーン編集とメイン画面のシーンリストのマスターになります。</div>
-        <div class="rowflex">
+        <div class="rowflex" id="sessionRow1">
           <span class="scPill">現在のセッション：</span>
           <select id="edSessionSelect" style="min-width:200px"></select>
-          <button id="addSessionBtn" class="accent">＋ セッション追加</button>
           <button id="renameSessionBtn">改名</button>
+          <button id="addSessionBtn" class="accent">＋ 新規作成</button>
           <button id="delSessionBtn" class="danger">削除</button>
         </div>
         <div class="rowflex" id="newSessionRow" style="display:none;margin-top:10px">
-          <span class="scPill">セッション名</span>
+          <span class="scPill">セッション名：</span>
           <input id="newSessionName" style="width:220px" placeholder="例: 第2卓 / 第1話">
           <button id="newSessionOk" class="accent">登録</button>
           <button id="newSessionCancel">キャンセル</button>
@@ -418,7 +445,7 @@ dialog h3{font-size:15px}
             <thead><tr>
               <th style="width:26px"></th>
               <th data-sort="name" data-col="bgm">名前</th>
-              <th data-sort="customId" data-col="bgm" style="width:40px">任意ID</th>
+              <th data-sort="customId" data-col="bgm" style="width:56px">任意ID</th>
               <th style="width:96px">タグ</th>
               <th data-sort="faderNo" data-col="bgm" style="width:74px">フェーダー割当</th>
               <th style="width:70px">基準音量</th>
@@ -437,9 +464,10 @@ dialog h3{font-size:15px}
             <thead><tr>
               <th style="width:26px"></th>
               <th data-sort="name" data-col="se">名前</th>
-              <th data-sort="customId" data-col="se" style="width:40px">任意ID</th>
+              <th data-sort="customId" data-col="se" style="width:56px">任意ID</th>
               <th style="width:96px">タグ</th>
               <th data-sort="padNo" data-col="se" style="width:66px">ボタン割当</th>
+              <th style="width:44px">色</th>
               <th style="width:70px">基準音量</th>
               <th data-sort="duration" data-col="se" style="width:46px">長さ</th>
               <th style="width:110px"></th>
@@ -518,10 +546,10 @@ dialog h3{font-size:15px}
     <label>セッション</label><select id="sfSession"></select>
     <label>再生順</label><input id="sfOrder" type="number" step="0.1" placeholder="1.5 のような小数も可">
     <label>Scene Name</label><input id="sfName">
-    <label>OUT方法（このシーンから出るとき）</label><select id="sfOutWay"></select>
-    <label id="sfOutLab">OUT秒</label><input id="sfOut" type="number" min="0.1" step="0.1">
     <label>IN方法（このシーンに入るとき）</label><select id="sfInWay"></select>
     <label id="sfInLab">IN秒</label><input id="sfIn" type="number" min="0.1" step="0.1">
+    <label>OUT方法（このシーンから出るとき）</label><select id="sfOutWay"></select>
+    <label id="sfOutLab">OUT秒</label><input id="sfOut" type="number" min="0.1" step="0.1">
     <label>シーンのマスター音量</label>
     <span class="rowflex"><input id="sfMaster" type="range" class="hslider" min="0" max="1000" step="5" style="flex:1"><span class="tiny" id="sfMasterVal"></span></span>
   </div>
@@ -536,10 +564,10 @@ dialog h3{font-size:15px}
 <dialog id="sceneCfg">
   <h3 id="scfTitle">シーンの設定</h3>
   <div class="scHead" style="margin:10px 0 4px">
-    <span class="scPill">OUT方法</span><select class="sc-way" id="scfOutWay"></select>
-    <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" id="scfOut" type="number" min="0.1" step="0.1"></span>
     <span class="scPill">IN方法</span><select class="sc-way" id="scfInWay"></select>
     <span class="fadeIn"><span class="scPill">IN秒</span> <input class="sc-in" id="scfIn" type="number" min="0.1" step="0.1"></span>
+    <span class="scPill">OUT方法</span><select class="sc-way" id="scfOutWay"></select>
+    <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" id="scfOut" type="number" min="0.1" step="0.1"></span>
   </div>
   <div class="scHead" style="margin:8px 0 4px">
     <span class="scPill">シーンのマスター音量</span>
@@ -578,6 +606,16 @@ const fmtPct = v => String(Math.round(Number(v||0))/10);
 const pctText = v => fmtPct(v)+'%';
 const pctToVal = p => clamp(Math.round(Number(p)*10),0,1000);
 
+/* ---- pad colours: a visual palette (cool / warm / neutral / achromatic) ---- */
+const PAD_DEFAULT_COLOR='#3A3A38';
+const PAD_PALETTE=[
+  '#E4573D','#E97366','#D94F70','#C2427E','#9B4DCA','#7B5BD6',
+  '#5E7FE8','#5E9FE8','#3FB6D8','#37B3A6','#3FB574','#72BC8F',
+  '#8CC152','#B7C948','#E0C341','#E8A13C','#D98324','#B5651D',
+  '#8C5A3C','#A0715A','#C99A82','#E0B49A','#6B7A8F','#8895A8',
+  '#A8B2C0','#5B6E5A','#7E8C6A','#A3AE8C','#1E1E1D','#3A3A38',
+  '#5A5A57','#7C7C78','#A0A09B','#C6C6C1',
+];
 /* ---- transitions: each scene declares its own IN方法 and OUT方法 ----
    OUT belongs to the scene that is leaving, IN to the scene that is arriving.
    'xfade' overlaps the other side over the whole move; 'fade' takes its own half
@@ -609,9 +647,12 @@ const inSec =s=>(typeof s.fadeInSec ==='number'&&s.fadeInSec >0)?s.fadeInSec :fa
 /* the move from `from` to `to`: OUT comes from `from`, IN from `to` */
 function transPlan(from,to){
   const outMode=from?(from.outMode||'xfade'):'cut';
-  const inMode=to?(to.inMode||'xfade'):'xfade';
+  let inMode=to?(to.inMode||'xfade'):'xfade';
   const oT=(!from||outMode==='cut')?0:outSec(from);
-  const iT=(!to||inMode==='cut')?0:inSec(to);
+  let iT=(!to||inMode==='cut')?0:inSec(to);
+  /* #7: when the leaving scene crossfades, the arriving scene crossfades with it,
+     over the same time — the two sides are one movement. */
+  if(outMode==='xfade'&&from){inMode='xfade';iT=oT;}
   const seq=isSeq(outMode,inMode);
   const total=seq?(oT+iT):Math.max(oT,iT);
   return {outMode,inMode,oT,iT,
@@ -653,7 +694,7 @@ const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
 const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
 
 /* ===================== State (version 3) ===================== */
-const STATE_VERSION=4;
+const STATE_VERSION=5;
 function blankState(){
   return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
           settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55}};
@@ -721,6 +762,7 @@ function migrate(raw){
     if(a.padNo===undefined||a.padNo==='')a.padNo=null;            // v3: ボタン割当
     if(a.padNo!==null)a.padNo=Number(a.padNo);
     if(a.padNo!==null&&!isFinite(a.padNo))a.padNo=null;
+    if(typeof a.padColor!=='string'||!/^#[0-9a-fA-F]{6}$/.test(a.padColor))a.padColor=PAD_DEFAULT_COLOR;  // v5
     if(!Array.isArray(a.tags))a.tags=[];
   });
   if(!st.currentSessionId||!st.sessions.some(x=>x.id===st.currentSessionId))st.currentSessionId=st.sessions[0].id;
@@ -1144,24 +1186,24 @@ function tick(){
 requestAnimationFrame(tick);
 
 /* ===================== Vertical fader component ===================== */
-function VFader(el,{onInput,onChange,max=1000}={}){
+function VFader(el,{onInput,onChange,max=1000,inset=6}={}){
   let value=0,ghost=null,disabled=false;
   const track=document.createElement('div');track.className='track';
   const fill=document.createElement('div');fill.className='fill';
   const thumb=document.createElement('div');thumb.className='thumb';
   const ghostEl=document.createElement('div');ghostEl.className='ghost';ghostEl.style.display='none';
   el.append(track,fill,ghostEl,thumb);
-  function h(){return Math.max(1,el.clientHeight-12);}
+  function h(){return Math.max(1,el.clientHeight-inset*2);}
   function render(){
     const r=clamp(value/max,0,1);
     fill.style.height=(r*h())+'px';
-    thumb.style.bottom=(6+r*h())+'px';
+    thumb.style.bottom=(inset+r*h())+'px';
     if(ghost==null)ghostEl.style.display='none';
-    else{ghostEl.style.display='';ghostEl.style.bottom=(6+clamp(ghost/max,0,1)*h())+'px';}
+    else{ghostEl.style.display='';ghostEl.style.bottom=(inset+clamp(ghost/max,0,1)*h())+'px';}
   }
   function fromEvent(e){
     const rect=el.getBoundingClientRect();
-    const y=clamp(rect.bottom-6-e.clientY,0,h());
+    const y=clamp(rect.bottom-inset-e.clientY,0,h());
     return Math.round((y/h())*max);
   }
   let dragging=false;
@@ -1174,6 +1216,9 @@ function VFader(el,{onInput,onChange,max=1000}={}){
     get(){return value;},
     setGhost(v){ghost=v;render();},
     setDisabled(d){disabled=d;el.classList.toggle('disabled',d);},
+    /* stop tracking the pointer: used when reaching an end finalises the move,
+       otherwise holding at the top would re-trigger the transition every frame */
+    endDrag(){dragging=false;},
     el
   };
 }
@@ -1275,7 +1320,10 @@ function renderSceneList(){
     d.querySelector('.sid').textContent=String(s.orderId);
     d.querySelector('.stxt').textContent=s.name;
     d.querySelector('.stxt').title=s.name;
+    const prev=scenes[scenes.indexOf(s)-1];
+    const lk=prev&&(prev.outMode||'xfade')==='xfade';
     d.querySelector('.smeta').textContent=[wayLabel(s),fadeLabel(s)].filter(Boolean).join(' · ')
+      +(lk?' · IN連動':'')
       +(sceneMaster(s)<1?` · マスター ${pctText(s.master)}`:'');
     if(s.id===live.currentSceneId)d.insertAdjacentHTML('afterbegin','<span class="badge cur">再生中</span>');
     else if(s.id===live.nextSceneId)d.insertAdjacentHTML('afterbegin','<span class="badge nxt">NEXT</span>');
@@ -1283,7 +1331,7 @@ function renderSceneList(){
     d.querySelector('.scGear').addEventListener('click',ev=>{ev.stopPropagation();openSceneCfg(s.id);});
     list.appendChild(d);
   }
-  if(!scenes.length)list.innerHTML='<div class="small" style="padding:12px">このセッションにはシーンがありません。フェーダーで音を作って「◉ 今の音をシーンに保存」でどうぞ。</div>';
+  if(!scenes.length)list.innerHTML='<div class="small" style="padding:12px">このセッションにはシーンがありません。フェーダーで音を作って「◉ 今の音をシーンに入れる」でどうぞ。</div>';
 }
 function renderStage(){
   const next=live.nextSceneId?sceneById(live.nextSceneId):null;
@@ -1292,7 +1340,8 @@ function renderStage(){
   $('#nowSub').textContent=live.scenePaused?'シーン停止中（「▶ シーン再開」で戻ります）'
     :cur?`OUT方法: ${wayShort(cur.outMode)}${(cur.outMode||'xfade')!=='cut'?'（'+outSec(cur)+'秒）':''}`
     :'シーンを選んで GO で再生します';
-  $('#nextName').textContent=next?`${next.orderId} ${next.name}`:'未選択';
+  $('#nextName').textContent=next?`${next.orderId} ${next.name}`:'次シーン未選択';
+  $('#nextName').title=next?`次のシーン: ${next.orderId} ${next.name}`:'シーンリストから次のシーンを選んでください';
   $('#goBtn').disabled=!next&&!live.trans;
   /* the条件 shown here is the actual move: OUT from 再生中, IN from NEXT */
   if(next){
@@ -1301,7 +1350,7 @@ function renderStage(){
     if(cur)bits.push(`OUT ${wayShort(p.outMode)}${p.oT?' '+p.oT+'秒':''}`);
     bits.push(`IN ${wayShort(p.inMode)}${p.iT?' '+p.iT+'秒':''}`);
     $('#goInfo').textContent=`${bits.join(' → ')}　計 ${Math.round(p.dur)/1000}秒で遷移`;
-  }else $('#goInfo').textContent='NEXT未選択';
+  }else $('#goInfo').textContent='次のシーンが未選択です';
   ui.xfader.setDisabled(!next&&!live.trans);
 }
 function renderSceneActions(){
@@ -1342,6 +1391,7 @@ function renderPerform(){
 
 /* ---- crossfader: follows the hand in real time ---- */
 ui.xfader=VFader($('#xfader'),{
+  inset:18,
   async onInput(v){
     if(live.trans&&live.trans.mode==='auto')return;
     if(!live.trans){
@@ -1353,8 +1403,8 @@ ui.xfader=VFader($('#xfader'),{
     live.trans.x=v/1000;
     $('#xfVal').textContent=Math.round(v/10)+'%';
     applyMix();updateInterruptReadouts();
-    if(v>=1000){finalizeTransition();$('#xfVal').textContent='0%';}
-    else if(v<=0){cancelTransition();$('#xfVal').textContent='0%';}
+    if(v>=1000){ui.xfader.endDrag();finalizeTransition();$('#xfVal').textContent='0%';}
+    else if(v<=0){ui.xfader.endDrag();cancelTransition();$('#xfVal').textContent='0%';}
   }
 });
 const _xfSet=ui.xfader.set;
@@ -1406,16 +1456,32 @@ function renderSEPads(){
   }
   const wrap=$('#sePads');wrap.innerHTML='';
   const list=bankSEAudios();
-  if(!list.length){wrap.innerHTML='<div class="emptyNote">SE音源がありません。「詳細編集 → 音源を検索」のSE列で取り込むとパッドに並びます。</div>';return;}
+  if(!list.length){
+    wrap.innerHTML='<div class="emptyNote">ポン出しパッドは空です。「詳細編集 → 音源を検索」のSE列で音源を取り込み、<b>ボタン割当</b>（1〜9でバンクA、10〜18でバンクB…）を入れると、ここに番号順で並びます。<br>パッドはシーン再生とは独立して、いつでも単発で鳴らせます。</div>';
+    return;
+  }
   list.forEach((a,i)=>{
     const b=document.createElement('button');b.className='sePad'+((seActive.get(a.id)||{size:0}).size?' on':'');
     b.dataset.id=a.id;
+    applyPadColor(b,a.padColor||PAD_DEFAULT_COLOR);
     b.innerHTML=`<span class="pname"></span><span class="pkey">${i+1}</span>`;
     b.querySelector('.pname').textContent=a.name;
     b.title=a.name+(a.padNo!=null?'（ボタン割当 '+a.padNo+'）':'')+' — もう一度押すと停止';
     b.addEventListener('click',()=>triggerSE(a.id));
     wrap.appendChild(b);
   });
+}
+
+/* a pad's colour tints its face and border; the playing ring stays readable on top */
+function applyPadColor(el,hex){
+  const c=/^#[0-9a-fA-F]{6}$/.test(hex||'')?hex:PAD_DEFAULT_COLOR;
+  const n=parseInt(c.slice(1),16);
+  const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  el.style.background=`rgba(${r},${g},${b},.42)`;
+  el.style.borderColor=`rgb(${r},${g},${b})`;
+  /* pick readable text for the tint */
+  el.style.color=(0.299*r+0.587*g+0.114*b)>150?'#14140f':'var(--text)';
+  el.dataset.padColor=c;
 }
 
 /* ===================== Section B: interrupt BGM faders ===================== */
@@ -1688,6 +1754,15 @@ function renderChanRows(container,scene,query,countEl){
     container.appendChild(row);
   }
 }
+/* "BGM 森のパッド 100% ループON" — one line per registered source */
+function selectedRows(s){
+  const out=[];
+  for(const[id,v]of Object.entries(s.values||{}))
+    if(v>0)out.push(`BGM ${(audioById(id)||{}).name||'?'} ${pctText(v)} ${sceneLoopOf(s,id)?'ループON':'ループOFF'}`);
+  for(const[id,v]of Object.entries(s.seValues||{}))
+    if(v>0)out.push(`SE ${(audioById(id)||{}).name||'?'} ${pctText(v)} ${sceneLoopOf(s,id)?'ループON':'ループOFF'}`);
+  return out;
+}
 function sceneSummary(s){
   const bgm=Object.entries(s.values||{}).filter(([,v])=>v>0)
     .map(([id,v])=>`${(audioById(id)||{}).name||'?'} ${pctText(v)}`);
@@ -1939,33 +2014,52 @@ function deleteScene(id){
 }
 
 /* ===================== Edit view: sessions ===================== */
-/* session add: an inline row, like the scene input card (no prompt popup) */
-$('#addSessionBtn').addEventListener('click',()=>{
-  $('#newSessionRow').style.display='';
-  $('#newSessionName').value='セッション '+(state.sessions.length+1);
+/* both 新規作成 and 改名 use the same inline row (no prompt popup) */
+let sessionRowMode='new';   // 'new' | 'rename'
+function openSessionRow(mode){
+  sessionRowMode=mode;
+  const row=$('#newSessionRow');
+  row.style.display='';
+  $('#newSessionOk').textContent=mode==='rename'?'変更':'登録';
+  $('#newSessionName').value=mode==='rename'
+    ?(sessionById(state.currentSessionId)||{}).name||''
+    :'セッション '+(state.sessions.length+1);
+  alignSessionRow();
   $('#newSessionName').focus();
   $('#newSessionName').select();
-});
-$('#newSessionCancel').addEventListener('click',()=>{$('#newSessionRow').style.display='none';});
-function commitNewSession(){
+}
+function closeSessionRow(){$('#newSessionRow').style.display='none';}
+/* line the 登録/変更 button up with the ＋ 新規作成 button above it */
+function alignSessionRow(){
+  const row=$('#newSessionRow'),ok=$('#newSessionOk'),add=$('#addSessionBtn');
+  if(!row||row.style.display==='none')return;
+  row.style.paddingLeft='0px';
+  const target=add.getBoundingClientRect().left,cur=ok.getBoundingClientRect().left;
+  row.style.paddingLeft=Math.max(0,Math.round(target-cur))+'px';
+}
+$('#addSessionBtn').addEventListener('click',()=>openSessionRow('new'));
+$('#renameSessionBtn').addEventListener('click',()=>openSessionRow('rename'));
+$('#newSessionCancel').addEventListener('click',closeSessionRow);
+function commitSessionRow(){
   const raw=($('#newSessionName').value||'').trim();
+  if(sessionRowMode==='rename'){
+    const s=sessionById(state.currentSessionId);
+    if(s&&raw)s.name=raw;
+    closeSessionRow();
+    markDirty();renderPerform();renderEditView();
+    return;
+  }
   const s={id:uid(),name:raw||('セッション '+(state.sessions.length+1)),createdAt:Date.now()};
   state.sessions.push(s);
-  $('#newSessionRow').style.display='none';
+  closeSessionRow();
   switchSession(s.id);
 }
-$('#newSessionOk').addEventListener('click',commitNewSession);
+$('#newSessionOk').addEventListener('click',commitSessionRow);
 $('#newSessionName').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){e.preventDefault();commitNewSession();}
-  else if(e.key==='Escape'){e.preventDefault();$('#newSessionRow').style.display='none';}
+  if(e.key==='Enter'){e.preventDefault();commitSessionRow();}
+  else if(e.key==='Escape'){e.preventDefault();closeSessionRow();}
 });
-$('#renameSessionBtn').addEventListener('click',()=>{
-  const s=sessionById(state.currentSessionId);if(!s)return;
-  const name=prompt('セッション名',s.name);
-  if(name===null)return;
-  s.name=name.trim()||s.name;
-  markDirty();renderPerform();renderEditView();
-});
+window.addEventListener('resize',alignSessionRow);
 $('#delSessionBtn').addEventListener('click',()=>{
   const s=sessionById(state.currentSessionId);if(!s)return;
   if(state.sessions.length<=1){alert('セッションは1つ以上必要です。最後のセッションは削除できません。');return;}
@@ -1988,6 +2082,11 @@ $('#delSessionBtn').addEventListener('click',()=>{
 
 /* ===================== Edit view: scene cards (wine input card on top) ===================== */
 const newDraft=()=>({orderId:null,name:'',outMode:'xfade',inMode:'xfade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{},seValues:{},loops:{}});
+/* 一時保存: snapshots of the not-yet-registered input card, kept per session and
+   only for this page load (no persistence — a work bench, not saved data). */
+const draftTemp=new Map();      // sessionId -> deep copy of the draft
+const tempKey=()=>state.currentSessionId;
+const hasTemp=()=>draftTemp.has(tempKey());
 let draft=newDraft();
 let openCardId=null;   // only one channel grid expanded at a time (keeps 200-audio rendering cheap)
 function sceneCardEl(s,isInput){
@@ -1998,23 +2097,27 @@ function sceneCardEl(s,isInput){
     <div class="scHead">
       <span class="scPill">再生順</span><input class="sc-id" type="number" step="0.1">
       <span class="scPill">名前</span><input class="sc-name">
-      <button class="sc-pick">音源選択 ▾</button>
-      <span class="spacer"></span>
+      <span class="scSel" title="クリックで全件表示"></span>
+      <button class="sc-pick">音源選択 <span class="pickCaret">▼</span></button>
+      <button class="sc-temp">一時保存</button>
       ${isInput?'':'<button class="sc-toggle">音量を編集 ▾</button>'}
+      <span class="spacer"></span>
       ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':'<button class="sc-del danger">削除</button>'}
     </div>
+    <div class="scSelAll tiny" style="display:none"></div>
     <div class="scHead" style="margin-top:7px">
-      <span class="scPill">OUT方法</span><select class="sc-way sc-outway"></select>
-      <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" type="number" min="0.1" step="0.1"></span>
       <span class="scPill">IN方法</span><select class="sc-way sc-inway"></select>
       <span class="fadeIn"><span class="scPill">IN秒</span> <input class="sc-in" type="number" min="0.1" step="0.1"></span>
+      <span class="scPill xfLink" style="display:none">前シーンのOUT（クロスフェード）に連動</span>
+      <span class="scPill">OUT方法</span><select class="sc-way sc-outway"></select>
+      <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" type="number" min="0.1" step="0.1"></span>
       <span class="scPill">マスター音量</span>
       <input class="sc-master hslider" type="range" min="0" max="1000" step="5" style="width:110px">
       <span class="tiny sc-mval"></span>
     </div>
     <div class="scSum tiny"></div>
     <div class="scPick" style="display:none"></div>
-    <div class="scGrid" style="display:${isInput?'':'none'}">
+    <div class="scGrid" style="display:none">
       <div class="rowflex"><input class="sc-filter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="flex:1;min-width:180px"><span class="tiny sc-count"></span></div>
       <div class="scChans"></div>
     </div>`;
@@ -2034,18 +2137,55 @@ function sceneCardEl(s,isInput){
   inIn.value=inSec(s);
   mIn.value=s.master??1000;
   mVal.textContent=pctText(s.master??1000);
-  const syncFade=()=>syncFadeFields(card,outWay.value,inWay.value);
+  const sel=card.querySelector('.scSel'),selAll=card.querySelector('.scSelAll'),
+        tempBtn=card.querySelector('.sc-temp'),xfLink=card.querySelector('.xfLink');
+  /* #7: a scene whose predecessor crossfades out inherits that IN (same method and time) */
+  const prevScene=(()=>{
+    if(isInput)return null;
+    const list=curScenes();const i=list.findIndex(x=>x.id===s.id);
+    return i>0?list[i-1]:null;
+  })();
+  const linked=!!(prevScene&&(prevScene.outMode||'xfade')==='xfade');
+  const syncFade=()=>{
+    syncFadeFields(card,outWay.value,inWay.value);
+    if(linked){
+      inWay.value='xfade';inWay.disabled=true;
+      inIn.value=outSec(prevScene);inIn.disabled=true;
+      card.querySelectorAll('.fadeIn').forEach(e=>e.style.display='');
+      xfLink.style.display='';
+    }else{
+      inWay.disabled=false;inIn.disabled=false;xfLink.style.display='none';
+    }
+  };
   syncFade();
   sum.textContent=sceneSummary(s);
+  /* §5-2 selected sources summary; click to expand every entry */
+  const renderSel=()=>{
+    const rows=selectedRows(s);
+    if(!rows.length){sel.textContent='';sel.style.display='none';selAll.style.display='none';return;}
+    sel.style.display='';
+    sel.textContent=rows[0]+(rows.length>1?`　ほか${rows.length-1}件`:'');
+    sel.title=rows.join(' / ');
+    selAll.innerHTML=rows.map(t=>`<div>${t}</div>`).join('');
+  };
+  renderSel();
+  sel.addEventListener('click',()=>{
+    selAll.style.display=selAll.style.display==='none'?'':'none';
+  });
   const commit=()=>{
-    const fade=transFadeFields(outWay.value,inWay.value,outIn.value,inIn.value);
-    const base={outMode:outWay.value,inMode:inWay.value,
-                mode:(outWay.value==='cut'&&inWay.value==='cut')?'cut':'fade',
+    /* while the IN side is inherited from the previous scene, keep this scene's own
+       stored IN untouched so it comes back if the predecessor stops crossfading */
+    const inWayVal=linked?((isInput?draft:s).inMode||'xfade'):inWay.value;
+    const inSecVal=linked?((isInput?draft:s).fadeInSec??(isInput?draft:s).fadeSec??3):inIn.value;
+    const fade=transFadeFields(outWay.value,inWayVal,outIn.value,inSecVal);
+    const base={outMode:outWay.value,inMode:inWayVal,
+                mode:(outWay.value==='cut'&&inWayVal==='cut')?'cut':'fade',
                 master:clamp(Number(mIn.value)||0,0,1000)};
     if(isInput){
       draft.orderId=idIn.value===''?null:Number(idIn.value);
       draft.name=nameIn.value;
       Object.assign(draft,base,fade);
+      draft.loops={...(draft.loops||{})};
     }else{
       const v=Number(idIn.value);
       if(isFinite(v))s.orderId=v;else idIn.value=s.orderId;
@@ -2061,8 +2201,16 @@ function sceneCardEl(s,isInput){
   };
   idIn.addEventListener('change',()=>{commit();if(!isInput)renderSceneCards();});
   nameIn.addEventListener('change',()=>{commit();if(!isInput)renderSceneCards();});
-  for(const el of [outWay,inWay])el.addEventListener('change',()=>{syncFade();commit();});
-  for(const el of [outIn,inIn])el.addEventListener('change',commit);
+  for(const el of [outWay,inWay])el.addEventListener('change',()=>{
+    syncFade();commit();
+    /* the next scene's IN may now be inherited (or released) — redraw the list */
+    if(!isInput)renderSceneCards();
+  });
+  for(const el of [outIn,inIn])el.addEventListener('change',()=>{
+    commit();
+    /* an inherited IN shows the previous scene's OUT seconds — keep it in step */
+    if(!isInput)renderSceneCards();
+  });
   mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit();});
   filter.addEventListener('input',()=>renderChanRows(chans,s,filter.value,count));
   /* 音源選択: BGM on the left, SE on the right; 🔼 puts the source into this scene */
@@ -2070,11 +2218,29 @@ function sceneCardEl(s,isInput){
     const open=pick.style.display==='none';
     pick.style.display=open?'':'none';
     pickBtn.textContent=open?'音源選択 ▴':'音源選択 ▾';
-    if(open)renderPicker(pick,s,()=>{sum.textContent=sceneSummary(s);renderChanRows(chans,s,filter.value,count);});
+    if(open)renderPicker(pick,s,()=>{sum.textContent=sceneSummary(s);renderSel();renderChanRows(chans,s,filter.value,count);});
+    if(!open)stopPreviewSrc();
   });
   if(isInput){
-    /* the input card keeps its % editor open at all times */
-    renderChanRows(chans,s,filter.value,count);
+    /* §6 一時保存 / 一時保存データに戻す */
+    const syncTemp=()=>{
+      const has=hasTemp();
+      tempBtn.textContent=has?'一時保存データに戻す':'一時保存';
+      tempBtn.classList.toggle('on',has);
+      tempBtn.title=has?'一時保存した時点の入力内容に戻します':'いまの入力内容を一時保存します（追加登録前の退避）';
+    };
+    syncTemp();
+    tempBtn.addEventListener('click',()=>{
+      commit();
+      if(hasTemp()){
+        draft=JSON.parse(JSON.stringify(draftTemp.get(tempKey())));
+        openCardId=null;renderEditView();
+      }else{
+        draftTemp.set(tempKey(),JSON.parse(JSON.stringify(draft)));
+        syncTemp();
+      }
+    });
+    /* #7: nothing is listed until 音源選択 is pressed */
     card.querySelector('.sc-add').addEventListener('click',()=>{
       commit();
       const sid=state.currentSessionId;
@@ -2088,10 +2254,12 @@ function sceneCardEl(s,isInput){
         transFadeFields(draft.outMode,draft.inMode,draft.fadeOutSec??draft.fadeSec,draft.fadeInSec??draft.fadeSec));
       state.scenes.push(sc);
       draft=newDraft();
+      draftTemp.delete(tempKey());        // registered -> the snapshot is done with
       openCardId=null;
       markDirty();renderPerform();renderEditView();
     });
   }else{
+    tempBtn.style.display='none';         // 一時保存 is only for the input card
     const key=s.id;
     const openGrid=()=>{
       grid.style.display='';toggle.textContent='音量を閉じる ▴';openCardId=key;
@@ -2135,7 +2303,7 @@ async function importFiles(files){
     let dur=0;
     try{const ab=await f.arrayBuffer();const buf=await engine.ctx.decodeAudioData(ab.slice(0));dur=buf.duration;engine.buffers.set(id,buf);}catch(e){alert('読み込めませんでした: '+f.name);continue;}
     await blobPut(id,f);
-    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId:'',faderNo:null,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
+    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId:'',faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
     drive.scheduleAudioUpload(id);
   }
   markDirty();renderAll();prewarmBuffers();
@@ -2233,7 +2401,7 @@ function renderLibColumn(kind){
       <td><input data-act="cid" style="width:100%" placeholder="任意"></td>
       <td><input data-act="tags" list="tagList" style="width:100%" placeholder="例: 戦闘,森"></td>
       ${kind==='bgm'?'<td><input data-act="fader" type="number" min="1" step="1" style="width:100%" placeholder="—"></td>'
-                    :'<td><input data-act="pad" type="number" min="1" step="1" style="width:100%" placeholder="—"></td>'}
+                    :'<td><input data-act="pad" type="number" min="1" step="1" style="width:100%" placeholder="—"></td><td><button class="swatch" data-act="color" title="パッドの色を選ぶ"></button></td>'}
       <td><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10" style="width:44px"> <span class="tiny"></span></td>
       ${kind==='bgm'?'<td style="text-align:center"><input type="checkbox" data-act="loop"></td>':''}
       <td class="small">${fmtDur(a.duration)}</td>
@@ -2255,6 +2423,9 @@ function renderLibColumn(kind){
       });
       tr.querySelector('[data-act=loop]').addEventListener('change',e=>{a.loop=e.target.checked;stopChannel(a.id);markDirty();});
     }else{
+      const sw=tr.querySelector('[data-act=color]');
+      sw.style.background=a.padColor||PAD_DEFAULT_COLOR;
+      sw.addEventListener('click',e=>{e.stopPropagation();openPalette(sw,a);});
       tr.querySelector('[data-act=pad]').value=a.padNo==null?'':a.padNo;
       tr.querySelector('[data-act=pad]').addEventListener('change',e=>{
         const raw=e.target.value.trim();
@@ -2311,6 +2482,34 @@ function renderLibrary(){
   $('#libCount').textContent=shown===state.audios.length
     ?`BGM ${nb} 件 / SE ${ns} 件`
     :`BGM ${nb} 件 / SE ${ns} 件（全 ${state.audios.length} 件中）`;
+}
+
+/* ---- pad colour palette popover (anchored to the swatch in the SE row) ---- */
+let paletteEl=null;
+function closePalette(){if(paletteEl){paletteEl.remove();paletteEl=null;document.removeEventListener('pointerdown',onPaletteOutside,true);}}
+function onPaletteOutside(e){if(paletteEl&&!paletteEl.contains(e.target))closePalette();}
+function openPalette(anchor,a){
+  closePalette();
+  const box=document.createElement('div');box.className='palette';
+  box.innerHTML='<div class="tiny palTitle">パッドの色</div><div class="palGrid"></div>';
+  const grid=box.querySelector('.palGrid');
+  for(const c of PAD_PALETTE){
+    const b=document.createElement('button');b.className='palDot'+((a.padColor||PAD_DEFAULT_COLOR).toLowerCase()===c.toLowerCase()?' on':'');
+    b.style.background=c;b.title=c;
+    b.addEventListener('click',()=>{
+      a.padColor=c;markDirty();
+      anchor.style.background=c;
+      closePalette();renderPerform();renderLibrary();
+    });
+    grid.appendChild(b);
+  }
+  document.body.appendChild(box);
+  const r=anchor.getBoundingClientRect();
+  const w=box.offsetWidth||220,h=box.offsetHeight||180;
+  box.style.left=Math.max(6,Math.min(window.innerWidth-w-6,r.left-w+r.width))+'px';
+  box.style.top=(r.bottom+6+h>window.innerHeight?Math.max(6,r.top-h-6):r.bottom+6)+'px';
+  paletteEl=box;
+  setTimeout(()=>document.addEventListener('pointerdown',onPaletteOutside,true),0);
 }
 
 /* ===================== Export / Import ===================== */
@@ -2590,7 +2789,8 @@ $('#demoBtn').addEventListener('click',async()=>{
       const blob=await render(dur,demoBuilders[key]);
       const id=uid();ids[key]=id;
       await blobPut(id,blob);
-      state.audios.push({id,name,kind,customId:'DEMO'+String(n++).padStart(2,'0'),faderNo,tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
+      state.audios.push({id,name,kind,customId:'DEMO'+String(n++).padStart(2,'0'),faderNo,padNo:null,
+        padColor:PAD_PALETTE[(n*5)%PAD_PALETTE.length],tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
       drive.scheduleAudioUpload(id);
     }
     const sid=state.currentSessionId;
@@ -2621,7 +2821,7 @@ $('#dummyBtn').addEventListener('click',async()=>{
       const n=start+i;
       const isSe=(i%3===2);
       state.audios.push({id,name:'ダミー'+String(n).padStart(3,'0'),kind:isSe?'se':'bgm',
-        customId:'D'+String(n).padStart(4,'0'),faderNo:null,
+        customId:'D'+String(n).padStart(4,'0'),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,
         tags:['ダミー',isSe?'SE':'BGM','群'+(1+Math.floor(i/50))],
         baseVolume:1000,loop:!isSe,duration:0.05,size:blob.size,type:'audio/wav'});
     }
