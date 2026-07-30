@@ -272,7 +272,6 @@ tr:last-child td{border-bottom:none}
 .pickPrev.on{background:var(--orange-soft);border-color:var(--orange);color:var(--orange)}
 .pickAdd{padding:1px 6px;font-size:13px;line-height:1.3;border-radius:6px;background:none;border:1px solid var(--border)}
 .pickAdd.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
-.scGrid{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .scChans{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;margin-top:8px;max-height:340px;overflow-y:auto}
 .sceneChanRow{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
 .sceneChanRow .n{flex:1;min-width:60px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1970,9 +1969,11 @@ function renderPicker(root,scene,onChange){
         <span class="ptag tiny"></span>`;
       const nm=r.querySelector('.pn');
       nm.textContent=a.name;nm.title=a.name;
-      /* タグだけ常時表示。任意IDは行に出さない（ソート条件としてだけ残す） */
+      /* タグだけ常時表示。任意IDは行に出さない（ソート条件としてだけ残す）。
+         ループのチェックの右に全角スペース1つ＋「タグ：」を付ける */
       const tg=r.querySelector('.ptag');
-      tg.textContent=a.tags.join(', ');tg.title=a.tags.join(', ');
+      tg.textContent=a.tags.length?'\u3000タグ：'+a.tags.join(', '):'';
+      tg.title=a.tags.join(', ');
       const pct=r.querySelector('.ppct');
       pct.value=fmtPct(bag(kind)[a.id]||1000);        // 追加時の初期音量は100%
       const lp=r.querySelector('.ploop');
@@ -2207,7 +2208,6 @@ const hasTemp=()=>draftTemp.has(tempKey());
 const tempArmed=new Set();
 const tempIsArmed=()=>tempArmed.has(tempKey());
 let draft=newDraft();
-let openCardId=null;   // only one channel grid expanded at a time (keeps 200-audio rendering cheap)
 let inputPickOpen=false;  // §3-4: the input card's 音源選択 toggle survives a re-render
 function sceneCardEl(s,isInput){
   const card=document.createElement('div');
@@ -2219,7 +2219,7 @@ function sceneCardEl(s,isInput){
       <span class="scPill">シーン名（任意）</span><input class="sc-name">
       <button class="sc-pick">音源選択 <span class="pickCaret">▼</span></button>
       <button class="sc-temp">一時保存</button>
-      ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':'<button class="sc-toggle">音量を編集 ▾</button>'}
+      ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':''}
       <span class="spacer"></span>
       ${isInput?'':'<button class="sc-del danger">削除</button>'}
     </div>
@@ -2234,19 +2234,12 @@ function sceneCardEl(s,isInput){
       <input class="sc-master hslider" type="range" min="0" max="1000" step="5" style="width:110px">
       <span class="tiny sc-mval"></span>
     </div>
-    <div class="scPick" style="display:none"></div>
-    <div class="scGrid" style="display:none">
-      <div class="rowflex"><input class="sc-filter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="flex:1;min-width:180px"><span class="tiny sc-count"></span></div>
-      <div class="scChans"></div>
-    </div>`;
+    <div class="scPick" style="display:none"></div>`;
   const idIn=card.querySelector('.sc-id'),nameIn=card.querySelector('.sc-name'),
         outWay=card.querySelector('.sc-outway'),inWay=card.querySelector('.sc-inway'),
         outIn=card.querySelector('.sc-out'),inIn=card.querySelector('.sc-in'),
         mIn=card.querySelector('.sc-master'),mVal=card.querySelector('.sc-mval'),
-        grid=card.querySelector('.scGrid'),
-        pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick'),
-        chans=card.querySelector('.scChans'),filter=card.querySelector('.sc-filter'),
-        count=card.querySelector('.sc-count'),toggle=card.querySelector('.sc-toggle');
+        pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick');
   fillWayOptions(outWay,s.outMode);
   fillWayOptions(inWay,s.inMode);
   idIn.value=s.orderId==null?'':s.orderId;
@@ -2324,7 +2317,6 @@ function sceneCardEl(s,isInput){
     if(!isInput)renderSceneCards();
   });
   mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit();});
-  filter.addEventListener('input',()=>renderChanRows(chans,s,filter.value,count));
   /* 音源選択: BGM on the left, SE on the right; 🔼 puts the source into this scene */
   const setPickOpen=open=>{
     pick.style.display=open?'':'none';
@@ -2334,13 +2326,13 @@ function sceneCardEl(s,isInput){
   pickBtn.addEventListener('click',()=>{
     const open=pick.style.display==='none';
     setPickOpen(open);
-    if(open)renderPicker(pick,s,()=>{renderSel();renderChanRows(chans,s,filter.value,count);});
+    if(open)renderPicker(pick,s,()=>renderSel());
     if(!open)stopPreviewSrc();
   });
   /* §3-4: an input card re-rendered by 一時保存データに戻す keeps the toggle open */
   if(isInput&&inputPickOpen){
     setPickOpen(true);
-    renderPicker(pick,s,()=>{renderSel();renderChanRows(chans,s,filter.value,count);});
+    renderPicker(pick,s,()=>renderSel());
   }
   if(isInput){
     /* §6 一時保存 / 一時保存データに戻す */
@@ -2382,21 +2374,10 @@ function sceneCardEl(s,isInput){
       draft=newDraft();
       draftTemp.delete(tempKey());        // registered -> the snapshot is done with
       tempArmed.delete(tempKey());
-      openCardId=null;
       markDirty();renderPerform();renderEditView();
     });
   }else{
     tempBtn.style.display='none';         // 一時保存 is only for the input card
-    const key=s.id;
-    const openGrid=()=>{
-      grid.style.display='';toggle.textContent='音量を閉じる ▴';openCardId=key;
-      renderChanRows(chans,s,filter.value,count);
-    };
-    toggle.addEventListener('click',()=>{
-      if(grid.style.display===''){grid.style.display='none';toggle.textContent='音量を編集 ▾';openCardId=null;}
-      else{openCardId=key;renderSceneCards();}
-    });
-    if(openCardId===key)openGrid();
     card.querySelector('.sc-del').addEventListener('click',()=>{
       if(!confirm('シーン「'+s.name+'」を削除しますか？'))return;
       deleteScene(s.id);
@@ -2664,7 +2645,7 @@ $('#packInput').addEventListener('change',async e=>{
     live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;
     live.allStopped=null;live.allOff=null;live.scenePaused=null;
     live.nextSceneId=curScenes()[0]?.id||null;
-    draft=newDraft();openCardId=null;
+    draft=newDraft();
     libPage.bgm=0;libPage.se=0;libTagFilter.clear();
     markDirty();applySecOpen();renderAll();
     alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件・セッション '+state.sessions.length+' 件）');
@@ -2677,7 +2658,7 @@ $('#wipeBtn').addEventListener('click',async()=>{
   state=migrate(blankState());
   state.updatedAt=Date.now();
   live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;live.nextSceneId=null;
-  draft=newDraft();openCardId=null;
+  draft=newDraft();
   libPage.bgm=0;libPage.se=0;libTagFilter.clear();
   await kvPut('state',JSON.parse(JSON.stringify(state)));
   applySecOpen();renderAll();
