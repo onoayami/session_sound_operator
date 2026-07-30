@@ -236,6 +236,8 @@ tr:last-child td{border-bottom:none}
 .pickRow .ptag{width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pickRow .lp{white-space:nowrap}
 .pickRow .ppct{width:52px;text-align:right}
+.pickPrev{padding:1px 8px;font-size:11px;border-radius:6px;white-space:nowrap}
+.pickPrev.on{background:var(--orange-soft);border-color:var(--orange);color:var(--orange)}
 .pickAdd{padding:1px 6px;font-size:13px;line-height:1.3;border-radius:6px;background:none;border:1px solid var(--border)}
 .pickAdd.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 .scGrid{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
@@ -651,7 +653,7 @@ const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
 const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
 
 /* ===================== State (version 3) ===================== */
-const STATE_VERSION=3;
+const STATE_VERSION=4;
 function blankState(){
   return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
           settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55}};
@@ -684,6 +686,7 @@ function migrate(raw){
     if(typeof s.orderId!=='number'||!isFinite(s.orderId))s.orderId=i+1;
     if(!s.values||typeof s.values!=='object')s.values={};
     if(!s.seValues||typeof s.seValues!=='object')s.seValues={};   // v3: SEs registered in the scene
+    if(!s.loops||typeof s.loops!=='object')s.loops={};             // v4: loop flag per scene registration
     if(typeof s.fadeSec!=='number')s.fadeSec=3;
     // optional per-direction fade times. Drop anything unusable so fadeSec takes over.
     for(const k of ['fadeOutSec','fadeInSec'])
@@ -695,6 +698,15 @@ function migrate(raw){
       if(!WAYS.some(w=>w.v===s.outMode))s.outMode=legacy.outMode;
       if(!WAYS.some(w=>w.v===s.inMode))s.inMode=legacy.inMode;
     }
+    // v4: seed each registration's loop from the audio's own flag, then keep them independent
+    for(const id of [...Object.keys(s.values),...Object.keys(s.seValues)]){
+      if(typeof s.loops[id]!=='boolean'){
+        const a=(st.audios||[]).find(x=>x.id===id);
+        s.loops[id]=a?!!a.loop:false;
+      }
+    }
+    for(const id of Object.keys(s.loops))
+      if(!(id in s.values)&&!(id in s.seValues))delete s.loops[id];
     // v3: per-scene master volume (a ceiling over every channel of this scene)
     if(typeof s.master!=='number'||!isFinite(s.master))s.master=1000;
     s.master=clamp(s.master,0,1000);
@@ -750,6 +762,8 @@ const padAudios=()=>{
 };
 /* a scene's channel value, with the per-scene master applied as a ceiling */
 const sceneMaster=s=>(typeof s.master==='number'?clamp(s.master,0,1000):1000)/1000;
+/* whether this scene wants the given source to loop (independent of the library flag) */
+const sceneLoopOf=(s,id)=>!!(s&&s.loops&&s.loops[id]);
 function sceneValuesOf(s){
   const m=sceneMaster(s),out={};
   for(const[id,v]of Object.entries(s.values||{})){const x=Math.round((v||0)*m);if(x>0)out[id]=x;}
@@ -785,35 +799,41 @@ async function getBuffer(id){
   engine.decoding.set(id,p);return p;
 }
 function setGainSmooth(param,v){const t=engine.ctx.currentTime;param.setTargetAtTime(v,t,0.015);}
-function startChannel(id,a,buf,offset){
+function startChannel(id,a,buf,offset,loopFlag){
+  const lp=(loopFlag===undefined)?!!a.loop:!!loopFlag;
   const gain=engine.ctx.createGain();gain.gain.value=0;gain.connect(engine.sceneBus);
-  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=!!a.loop;
+  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=lp;
   src.connect(gain);
   const off=buf.duration?(Number(offset)||0)%buf.duration:0;
   src.start(0,off);
-  const ch={gain,src,playing:true,startedAt:engine.ctx.currentTime,offset:off,dur:buf.duration,loop:!!a.loop};
-  src.onended=()=>{if(!a.loop&&engine.channels.get(id)===ch){ch.playing=false;}};
+  const ch={gain,src,playing:true,startedAt:engine.ctx.currentTime,offset:off,dur:buf.duration,loop:lp};
+  src.onended=()=>{if(!ch.loop&&engine.channels.get(id)===ch){ch.playing=false;}};
   engine.channels.set(id,ch);
   return ch;
 }
+/* the loop flag a BGM channel should use right now: the playing scene decides */
+function channelLoop(id){
+  if(id in live.currentLoops)return !!live.currentLoops[id];
+  const a=audioById(id);return !!(a&&a.loop);
+}
 /* synchronous start — only possible once the buffer is decoded (see prewarm) */
-function ensureChannelNow(id,offset){
+function ensureChannelNow(id,offset,loopFlag){
   ensureCtx();
   const ch=engine.channels.get(id);
   if(ch&&ch.playing)return ch;
   const a=audioById(id);if(!a)return null;
   const buf=engine.buffers.get(id);
   if(!buf)return null;
-  return startChannel(id,a,buf,offset);
+  return startChannel(id,a,buf,offset,loopFlag===undefined?channelLoop(id):loopFlag);
 }
-async function ensureChannel(id,offset){
-  const now=ensureChannelNow(id,offset);
+async function ensureChannel(id,offset,loopFlag){
+  const now=ensureChannelNow(id,offset,loopFlag);
   if(now)return now;
   const a=audioById(id);if(!a)return null;
   const buf=await getBuffer(id);
   const ch=engine.channels.get(id);
   if(ch&&ch.playing)return ch; // decoded twice guard
-  return startChannel(id,a,buf,offset);
+  return startChannel(id,a,buf,offset,loopFlag===undefined?channelLoop(id):loopFlag);
 }
 /* decode everything that can be triggered by a single press, so it fires with no wait */
 let prewarming=false;
@@ -842,6 +862,7 @@ function channelPosition(id){
 const live={
   currentSceneId:null,      // null = silence
   currentValues:{},         // audioId -> permille (scene-derived)
+  currentLoops:{},          // audioId -> bool (loop flags of the playing scene)
   nextSceneId:null,
   trans:null,               // {from,to,x,mode:'auto'|'manual',t0,dur,toSceneId,outMode,inMode,ratio}
   interrupt:{},             // audioId -> permille (interrupt fader; never written to scenes)
@@ -900,20 +921,29 @@ function finalizeTransition(){
   const to=sceneById(t.toSceneId);
   live.currentSceneId=t.toSceneId;
   live.currentValues={...t.to};
+  live.currentLoops=to?{...(to.loops||{})}:{};
   live.trans=null;
   for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
+  /* a channel carried over from the previous scene adopts the new scene's loop setting */
+  for(const[id,ch]of engine.channels){
+    if(!ch.playing)continue;
+    const lp=channelLoop(id);
+    if(ch.loop!==lp){ch.loop=lp;try{ch.src.loop=lp;}catch(e){}}
+  }
   live.nextSceneId=sceneAfter(t.toSceneId);
   applyMix();
-  if(to)fireSceneSE(to);          // SEs registered in the scene are one-shots on arrival
+  if(to)fireSceneSE(to);          // the arriving scene's SEs start here
   ui.xfader.set(0);
   renderPerform();
 }
-/* SEs registered in a scene fire once when the scene becomes 再生中 */
+/* SEs registered in a scene start when the scene becomes 再生中.
+   The previous scene's SEs (including looping ones) stop first. */
 function fireSceneSE(s){
+  stopSceneSE();
   const m=sceneMaster(s);
   for(const[id,v]of Object.entries(s.seValues||{})){
     const a=audioById(id);
-    if(a&&a.kind==='se'&&(v||0)>0)triggerSE(id,Math.round((v||0)*m));
+    if(a&&a.kind==='se'&&(v||0)>0)playSE(id,Math.round((v||0)*m),sceneLoopOf(s,id),true);
   }
 }
 function cancelTransition(){
@@ -945,11 +975,19 @@ async function doGO(){
 }
 /* ALL STOP / ALL START — Space toggles between them */
 function allStop(){
-  const wasPlaying=bgmAudios().some(a=>effectiveValue(a.id)>0)||live.currentSceneId!=null;
-  live.allStopped=wasPlaying?{currentSceneId:live.currentSceneId,currentValues:{...live.currentValues},interrupt:{...live.interrupt}}:null;
+  const wasPlaying=bgmAudios().some(a=>effectiveValue(a.id)>0)||live.currentSceneId!=null||sePlaying.size>0;
+  /* remember everything that was sounding, SEs included */
+  live.allStopped=wasPlaying?{
+    currentSceneId:live.currentSceneId,
+    currentValues:{...live.currentValues},
+    currentLoops:{...live.currentLoops},
+    interrupt:{...live.interrupt},
+    se:[...sePlaying].map(src=>src.__se).filter(Boolean).map(m=>({...m})),
+  }:null;
   live.trans=null;
   live.currentSceneId=null;
   live.currentValues={};
+  live.currentLoops={};
   live.interrupt={};
   live.muted=null;
   live.scenePaused=null;
@@ -964,11 +1002,14 @@ function allStart(){
   live.allStopped=null;
   live.currentSceneId=s.currentSceneId;
   live.currentValues={...s.currentValues};
+  live.currentLoops={...(s.currentLoops||{})};
   live.interrupt={...s.interrupt};
   ensureCtx();
   const ids=new Set([...Object.keys(live.currentValues),...Object.keys(live.interrupt)]);
   Promise.all([...ids].filter(id=>effectiveValue(id)>0).map(id=>ensureChannel(id)))
     .then(()=>{applyMix();renderPerform();});
+  /* SEs always restart from the beginning; looping ones come back looping */
+  for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,m.scene);
   applyMix();renderPerform();
 }
 function toggleAllStop(){ live.allStopped?allStart():allStop(); }
@@ -978,16 +1019,25 @@ function toggleScenePause(){
     const p=live.scenePaused;live.scenePaused=null;
     live.currentSceneId=p.currentSceneId;
     live.currentValues={...p.currentValues};
+    live.currentLoops={...(p.currentLoops||{})};
     ensureCtx();
     startNeededChannels(live.currentValues).then(()=>{applyMix();renderPerform();});
+    /* the scene's looping SEs come back from the top */
+    const sc=live.currentSceneId?sceneById(live.currentSceneId):null;
+    if(sc){
+      const m=sceneMaster(sc);
+      for(const[id,v]of Object.entries(sc.seValues||{}))
+        if((v||0)>0&&sceneLoopOf(sc,id))playSE(id,Math.round((v||0)*m),true,true);
+    }
     applyMix();renderPerform();
     return;
   }
   if(!live.currentSceneId&&!Object.keys(live.currentValues).length)return;
-  live.scenePaused={currentSceneId:live.currentSceneId,currentValues:{...live.currentValues}};
+  live.scenePaused={currentSceneId:live.currentSceneId,currentValues:{...live.currentValues},currentLoops:{...live.currentLoops}};
   live.trans=null;
   live.currentValues={};
   for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
+  stopSceneSE();
   ui.xfader.set(0);
   applyMix();renderPerform();
 }
@@ -1019,30 +1069,42 @@ function toggleMuteAll(){
 }
 /* ---- SE one-shot (toggle: pressing a playing pad stops it) ---- */
 const sePlaying=new Set();
-const seActive=new Map(); // audioId -> Set<AudioBufferSourceNode>
+const seActive=new Map();     // audioId -> Set<AudioBufferSourceNode>
+const sceneSESrcs=new Set();  // sources started because the playing scene registered them
 function markPad(id,on){
   const pad=$(`.sePad[data-id="${id}"]`);
   if(pad)pad.classList.toggle('on',!!on);
 }
 function stopSE(id){
   const set=seActive.get(id);
-  if(set){for(const s of set){try{s.stop();}catch(e){}sePlaying.delete(s);}}
+  if(set){for(const s of set){try{s.stop();}catch(e){}sePlaying.delete(s);sceneSESrcs.delete(s);}}
   seActive.delete(id);
   markPad(id,false);
+}
+/* stop only what the playing scene started (pads keep going) */
+function stopSceneSE(){
+  for(const src of [...sceneSESrcs]){
+    try{src.stop();}catch(e){}
+    sePlaying.delete(src);sceneSESrcs.delete(src);
+    const m=src.__se;
+    if(m){const set=seActive.get(m.id);if(set){set.delete(src);if(!set.size){seActive.delete(m.id);markPad(m.id,false);}}}
+  }
 }
 function stopAllSE(){
   for(const id of [...seActive.keys()])stopSE(id);
   for(const p of sePlaying){try{p.stop();}catch(e){}}
-  sePlaying.clear();
+  sePlaying.clear();sceneSESrcs.clear();
 }
-function startSE(id,a,buf,vol){
+function startSE(id,a,buf,vol,loop,isScene){
   const lvl=(vol==null?1000:clamp(vol,0,1000))/1000;
   const g=engine.ctx.createGain();g.gain.value=lvl*((a.baseVolume??1000)/1000);g.connect(engine.seBus);
-  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=false;src.connect(g);
+  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=!!loop;src.connect(g);
+  src.__se={id,vol:(vol==null?1000:clamp(vol,0,1000)),loop:!!loop,scene:!!isScene};
   let set=seActive.get(id);if(!set){set=new Set();seActive.set(id,set);}
   set.add(src);sePlaying.add(src);
+  if(isScene)sceneSESrcs.add(src);
   src.onended=()=>{
-    sePlaying.delete(src);set.delete(src);
+    sePlaying.delete(src);set.delete(src);sceneSESrcs.delete(src);
     try{g.disconnect();}catch(e){}
     if(!set.size){seActive.delete(id);markPad(id,false);}
   };
@@ -1051,14 +1113,22 @@ function startSE(id,a,buf,vol){
   const pad=$(`.sePad[data-id="${id}"]`);
   if(pad){pad.classList.add('flash');setTimeout(()=>pad.classList.remove('flash'),180);}
 }
-/* synchronous when the buffer is already decoded (prewarm keeps it that way) */
-function triggerSE(id,vol){
+/* play without toggling — used by scenes and by ALL START */
+function playSE(id,vol,loop,isScene){
+  ensureCtx();
+  const a=audioById(id);if(!a)return;
+  const buf=engine.buffers.get(id);
+  if(buf){startSE(id,a,buf,vol,loop,isScene);return;}
+  getBuffer(id).then(b=>startSE(id,a,b,vol,loop,isScene)).catch(()=>{});
+}
+/* pad press: toggles. Synchronous when the buffer is already decoded (prewarm keeps it that way) */
+function triggerSE(id,vol,loop){
   ensureCtx();
   if(seActive.get(id)&&seActive.get(id).size){stopSE(id);return;} // second press = stop
   const a=audioById(id);if(!a)return;
   const buf=engine.buffers.get(id);
-  if(buf){startSE(id,a,buf,vol);return;}
-  getBuffer(id).then(b=>{if(!(seActive.get(id)||{size:0}).size)startSE(id,a,b,vol);}).catch(()=>{});
+  if(buf){startSE(id,a,buf,vol,loop,false);return;}
+  getBuffer(id).then(b=>{if(!(seActive.get(id)||{size:0}).size)startSE(id,a,b,vol,loop,false);}).catch(()=>{});
 }
 /* ---- animation loop ---- */
 function tick(){
@@ -1542,13 +1612,14 @@ $('#sfOk').addEventListener('click',()=>{
     target=sceneById(sfSceneId);if(!target){dlg.close();return;}
     Object.assign(target,base,{name:name||target.name},fade);
   }else{
-    target=Object.assign({id:uid(),name:name||('Scene '+(scenesOf(sid).length+1)),seValues:{}},base,fade);
+    target=Object.assign({id:uid(),name:name||('Scene '+(scenesOf(sid).length+1)),seValues:{},loops:{}},base,fade);
     state.scenes.push(target);
   }
   /* commit: the interrupt values are now baked into the scene, so zero the faders.
      The effective mix is unchanged because scene value >= previous interrupt value. */
   live.currentSceneId=target.id;
   live.currentValues=sceneValuesOf(target);
+  live.currentLoops={...(target.loops||{})};
   live.interrupt={};
   live.muted=null;live.scenePaused=null;live.allStopped=null;
   intStopped.clear();
@@ -1627,6 +1698,34 @@ function sceneSummary(s){
   return all.join(' / ');
 }
 
+/* ---- 試聴: preview a source at the volume typed into its row ---- */
+let previewSrc=null,previewSrcId=null;
+function stopPreviewSrc(){
+  if(previewSrc){try{previewSrc.stop();}catch(e){}previewSrc=null;}
+  previewSrcId=null;
+  $$('.pickPrev.on').forEach(b=>b.classList.remove('on'));
+}
+function togglePreviewAt(id,vol){
+  ensureCtx();
+  if(previewSrcId===id){stopPreviewSrc();return;}
+  stopPreviewSrc();
+  const a=audioById(id);if(!a)return;
+  const play=buf=>{
+    if(previewSrcId&&previewSrcId!==id)return;
+    const g=engine.ctx.createGain();
+    g.gain.value=(clamp(Number(vol)||0,0,1000)/1000)*((a.baseVolume??1000)/1000);
+    g.connect(engine.seBus);
+    const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=false;src.connect(g);
+    src.onended=()=>{try{g.disconnect();}catch(e){}if(previewSrc===src)stopPreviewSrc();};
+    src.start();previewSrc=src;previewSrcId=id;
+    const btn=[...document.querySelectorAll('.pickRow')].map(r=>r).find(r=>r.__pid===id);
+    if(btn)btn.querySelector('.pickPrev').classList.add('on');
+  };
+  previewSrcId=id;
+  const buf=engine.buffers.get(id);
+  if(buf)play(buf);else getBuffer(id).then(play).catch(()=>{previewSrcId=null;});
+}
+
 /* ===================== 音源選択 (left BGM / right SE) ===================== */
 const pickSort={bgm:'name',se:'name'};   // 'name' | 'customId' | 'tag'
 const pickQuery={bgm:'',se:''};
@@ -1672,7 +1771,7 @@ function renderPicker(root,scene,onChange){
       const none=!Object.values(scene.values||{}).some(v=>v>0)&&!Object.values(scene.seValues||{}).some(v=>v>0);
       r.innerHTML=`<button class="pickAdd${none?' on':''}" title="このシーンを無音にする">🔼</button><span class="pn">音無しシーン</span><span class="tiny">選ぶと全チャンネル0%になります</span>`;
       r.querySelector('.pickAdd').addEventListener('click',()=>{
-        scene.values={};scene.seValues={};
+        scene.values={};scene.seValues={};scene.loops={};
         if(scene.id===live.currentSceneId&&!live.trans){
           live.currentValues={};
           for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
@@ -1691,22 +1790,40 @@ function renderPicker(root,scene,onChange){
     for(const a of list){
       const on=(bag(kind)[a.id]||0)>0;
       const r=document.createElement('div');r.className='pickRow'+(on?' on':'');
-      r.innerHTML=`<button class="pickAdd${on?' on':''}" title="${on?'このシーンから外す':'このシーンに入れる'}">🔼</button>
+      r.innerHTML=`<label class="tiny lp" title="このシーンでループ再生する"><input type="checkbox" class="ploop"> ループ</label>
+        <button class="pickPrev" title="この音量で試聴">試聴</button>
+        <input class="ppct pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>
         <span class="pn"></span><span class="pcid tiny"></span><span class="ptag tiny"></span>
-        ${kind==='bgm'?'<label class="tiny lp"><input type="checkbox" class="ploop"> ループ</label>':''}
-        <input class="ppct pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>`;
+        <button class="pickAdd${on?' on':''}" title="${on?'このシーンから外す':'このシーンに入れる'}">🔼</button>`;
       r.querySelector('.pn').textContent=a.name;r.querySelector('.pn').title=a.name;
       r.querySelector('.pcid').textContent=a.customId||'';
       r.querySelector('.ptag').textContent=a.tags.join(', ');
       const pct=r.querySelector('.ppct');
-      pct.value=fmtPct(bag(kind)[a.id]||(kind==='bgm'?800:800));
-      if(kind==='bgm'){
-        const lp=r.querySelector('.ploop');
-        lp.checked=!!a.loop;
-        lp.addEventListener('change',()=>{a.loop=lp.checked;stopChannel(a.id);markDirty();renderLibrary();});
-      }
+      pct.value=fmtPct(bag(kind)[a.id]||1000);        // 追加時の初期音量は100%
+      const lp=r.querySelector('.ploop');
+      /* loop is per scene registration; the library's own flag is only the seed */
+      lp.checked=(scene.loops&&typeof scene.loops[a.id]==='boolean')?scene.loops[a.id]:!!a.loop;
+      lp.addEventListener('change',()=>{
+        if(!scene.loops)scene.loops={};
+        scene.loops[a.id]=lp.checked;
+        if(scene.id===live.currentSceneId&&!live.trans){
+          live.currentLoops[a.id]=lp.checked;
+          const ch=engine.channels.get(a.id);
+          if(ch&&ch.playing){ch.loop=lp.checked;try{ch.src.loop=lp.checked;}catch(e){}}
+        }
+        markDirty();onChange&&onChange();
+      });
+      r.__pid=a.id;
+      r.querySelector('.pickPrev').addEventListener('click',()=>togglePreviewAt(a.id,pctToVal(pct.value)));
       const apply=v=>{
-        if(v>0)bag(kind)[a.id]=v;else delete bag(kind)[a.id];
+        if(v>0){
+          bag(kind)[a.id]=v;
+          if(!scene.loops)scene.loops={};
+          if(typeof scene.loops[a.id]!=='boolean')scene.loops[a.id]=!!lp.checked;
+        }else{
+          delete bag(kind)[a.id];
+          if(scene.loops)delete scene.loops[a.id];
+        }
         if(kind==='bgm'&&scene.id===live.currentSceneId&&!live.trans){
           live.currentValues=sceneValuesOf(scene);
           startNeededChannels(live.currentValues).then(applyMix);
@@ -1716,7 +1833,7 @@ function renderPicker(root,scene,onChange){
         markDirty();onChange&&onChange();renderPerform();
       };
       r.querySelector('.pickAdd').addEventListener('click',()=>{
-        apply(on?0:pctToVal(pct.value||80));
+        apply(on?0:pctToVal(pct.value||100));
         fill(kind);if(kind==='bgm')fill('bgm');
       });
       pct.addEventListener('input',()=>{if((bag(kind)[a.id]||0)>0)apply(pctToVal(pct.value));});
@@ -1870,7 +1987,7 @@ $('#delSessionBtn').addEventListener('click',()=>{
 });
 
 /* ===================== Edit view: scene cards (wine input card on top) ===================== */
-const newDraft=()=>({orderId:null,name:'',outMode:'xfade',inMode:'xfade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{},seValues:{}});
+const newDraft=()=>({orderId:null,name:'',outMode:'xfade',inMode:'xfade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{},seValues:{},loops:{}});
 let draft=newDraft();
 let openCardId=null;   // only one channel grid expanded at a time (keeps 200-audio rendering cheap)
 function sceneCardEl(s,isInput){
@@ -1967,7 +2084,7 @@ function sceneCardEl(s,isInput){
         outMode:draft.outMode||'xfade',inMode:draft.inMode||'xfade',
         mode:((draft.outMode==='cut'&&draft.inMode==='cut')?'cut':'fade'),
         master:typeof draft.master==='number'?draft.master:1000,
-        values:{...draft.values},seValues:{...(draft.seValues||{})}},
+        values:{...draft.values},seValues:{...(draft.seValues||{})},loops:{...(draft.loops||{})}},
         transFadeFields(draft.outMode,draft.inMode,draft.fadeOutSec??draft.fadeSec,draft.fadeInSec??draft.fadeSec));
       state.scenes.push(sc);
       draft=newDraft();
@@ -2218,7 +2335,7 @@ $('#packInput').addEventListener('change',async e=>{
     for(const k of await blobKeys())await blobDel(k);
     state=migrate(pack.state);   // v1 / v2 packs are migrated on the way in
     for(const[id,b]of Object.entries(pack.blobs||{}))await blobPut(id,b64ToBlob(b.b64,b.type));
-    live.currentSceneId=null;live.currentValues={};live.interrupt={};live.muted=null;
+    live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;
     live.nextSceneId=curScenes()[0]?.id||null;
     draft=newDraft();openCardId=null;
     libPage.bgm=0;libPage.se=0;libTagFilter.clear();
@@ -2232,7 +2349,7 @@ $('#wipeBtn').addEventListener('click',async()=>{
   for(const k of await blobKeys())await blobDel(k);
   state=migrate(blankState());
   state.updatedAt=Date.now();
-  live.currentSceneId=null;live.currentValues={};live.interrupt={};live.muted=null;live.nextSceneId=null;
+  live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;live.nextSceneId=null;
   draft=newDraft();openCardId=null;
   libPage.bgm=0;libPage.se=0;libTagFilter.clear();
   await kvPut('state',JSON.parse(JSON.stringify(state)));
@@ -2480,11 +2597,11 @@ $('#demoBtn').addEventListener('click',async()=>{
     const base=nextOrderId(sid);
     /* one scene per transition mode so all 5 can be tried straight away */
     state.scenes.push(
-      {id:uid(),sessionId:sid,orderId:base+0,name:'導入：森',outMode:'xfade',inMode:'xfade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.forest]:800},seValues:{}},
-      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',outMode:'fade',inMode:'fade',mode:'fade',fadeSec:1.5,fadeOutSec:1.5,fadeInSec:3,master:1000,values:{[ids.cave]:700,[ids.rain]:250},seValues:{[ids.gong]:700}},
-      {id:uid(),sessionId:sid,orderId:base+2,name:'戦闘！',outMode:'cut',inMode:'cut',mode:'cut',fadeSec:0.1,fadeOutSec:0.1,fadeInSec:0.1,master:1000,values:{[ids.battle]:900,[ids.cave]:200},seValues:{}},
-      {id:uid(),sessionId:sid,orderId:base+3,name:'雨宿り',outMode:'cut',inMode:'fade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.rain]:750,[ids.forest]:300},seValues:{}},
-      {id:uid(),sessionId:sid,orderId:base+4,name:'静寂（音無しシーン）',outMode:'fade',inMode:'cut',mode:'fade',fadeSec:4,fadeOutSec:4,fadeInSec:4,master:1000,values:{},seValues:{}}
+      {id:uid(),sessionId:sid,orderId:base+0,name:'導入：森',outMode:'xfade',inMode:'xfade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.forest]:800},seValues:{},loops:{[ids.forest]:true}},
+      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',outMode:'fade',inMode:'fade',mode:'fade',fadeSec:1.5,fadeOutSec:1.5,fadeInSec:3,master:1000,values:{[ids.cave]:700,[ids.rain]:250},seValues:{[ids.gong]:700},loops:{[ids.cave]:true,[ids.rain]:true,[ids.gong]:false}},
+      {id:uid(),sessionId:sid,orderId:base+2,name:'戦闘！',outMode:'cut',inMode:'cut',mode:'cut',fadeSec:0.1,fadeOutSec:0.1,fadeInSec:0.1,master:1000,values:{[ids.battle]:900,[ids.cave]:200},seValues:{},loops:{[ids.battle]:true,[ids.cave]:true}},
+      {id:uid(),sessionId:sid,orderId:base+3,name:'雨宿り',outMode:'cut',inMode:'fade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.rain]:750,[ids.forest]:300},seValues:{},loops:{[ids.rain]:true,[ids.forest]:true}},
+      {id:uid(),sessionId:sid,orderId:base+4,name:'静寂（音無しシーン）',outMode:'fade',inMode:'cut',mode:'fade',fadeSec:4,fadeOutSec:4,fadeInSec:4,master:1000,values:{},seValues:{},loops:{}}
     );
     if(!live.nextSceneId)live.nextSceneId=curScenes()[0].id;
     markDirty();renderAll();prewarmBuffers();
