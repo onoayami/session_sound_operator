@@ -65,8 +65,8 @@ main{flex:1;min-height:0;position:relative}
 #resizer::after{content:"";position:absolute;left:2px;top:50%;width:3px;height:34px;transform:translateY(-50%);background:var(--border2);border-radius:2px}
 
 /* ===== master bar (independent of both sections) ===== */
-#masterBar{flex:none;display:flex;align-items:stretch;gap:22px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--border);background:var(--surface)}
-.mb{display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:290px;min-height:44px}
+#masterBar{flex:none;display:flex;align-items:stretch;gap:22px;flex-wrap:wrap;padding:10px 18px;border-top:1px solid var(--border);background:var(--surface)}
+.mb{display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:290px;min-height:39px}
 .mb .mbLab{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:130px;flex:none}
 .mb.all{padding-right:22px;border-right:1px solid var(--border)}
 .mb.all .mbLab{color:var(--blue)}
@@ -105,23 +105,30 @@ main{flex:1;min-height:0;position:relative}
 .scGear:hover{background:var(--raised);border-color:var(--border)}
 /* transition group: crossfader + GO belong together */
 #transGroup{flex:none;margin:0 14px 8px;border:1px solid var(--border2);border-radius:12px;background:var(--raised);padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center}
-#transGroup{--ctlw:218px}
 #goInfo,#manualNote,#transGroup .grpDiv{width:100%}
 #transGroup .grpDiv{border-top:1px solid var(--border);margin:10px 0 0}
-/* the manual fader block and GO share one width (基準: 「再生中」から「手動フェーダー」までの幅) */
-#xfBlock{width:var(--ctlw);margin:0 auto;display:flex;flex-direction:column;align-items:center}
-#xfCaption{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text2);margin-top:10px;text-align:center}
-#xfRow{display:flex;align-items:stretch;gap:12px;justify-content:center;width:100%}
-#xfScale{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 0}
-#xfScale .top{color:var(--blue)}
-#xfScale .bot{color:var(--green)}
-#xfSide{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:4px 0;min-width:0}
-#nextName{font-size:11px;font-weight:700;color:var(--blue);max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#xfVal{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums}
-#goBtn{width:150px;height:44px;margin:10px auto 0;font-size:19px;font-weight:800;letter-spacing:.18em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:10px}
+/* the fader, its caption and GO all sit on the panel's horizontal centre axis.
+   1fr | auto | 1fr keeps the two side columns the same width, so however long the
+   two scene names are, the fader in the middle never moves off centre. */
+#xfBlock{width:100%;display:flex;flex-direction:column;align-items:center}
+#xfCaption{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text2);margin-top:4px;text-align:center}
+#xfRow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;width:100%}
+.xfSide{min-width:0;display:flex;flex-direction:column;gap:3px;justify-content:center;padding:4px 0}
+#xfNow{align-items:flex-end;text-align:right}
+#xfNext{align-items:flex-start;text-align:left}
+.xfSide .lab{font-size:10px;font-weight:800;letter-spacing:.1em;white-space:nowrap}
+#xfNow .lab{color:var(--green)}
+#xfNext .lab{color:var(--blue)}
+.xfSide .nm{font-size:11px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#xfNowName{color:var(--green)}
+#nextName{color:var(--blue)}
+#xfVal{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:8px}
+#goBtn{width:100px;height:45px;margin:10px auto 0;font-size:19px;font-weight:800;letter-spacing:.18em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:10px}
 #goBtn:hover:not(:disabled){background:rgba(114,188,143,.25)}
 #goInfo{text-align:center;font-size:12px;color:var(--text2);min-height:18px;margin-top:5px}
-#manualNote{font-size:11px;color:var(--orange);background:var(--orange-soft);border:1px solid var(--orange);border-radius:8px;padding:5px 8px;margin-top:8px;line-height:1.55}
+/* a quiet hint, not a warning box: no border, a yellow-leaning pale orange fill
+   that reads clearly apart from the green 再生中 blocks above */
+#manualNote{font-size:11px;color:var(--orange);background:rgba(226,176,72,.16);border:none;border-radius:8px;padding:6px 9px;margin-top:8px;line-height:1.55;text-align:center}
 /* help text: one item = a key line + a description line */
 #helpLines{flex:none;padding:2px 14px 14px;font-size:12px;color:var(--text2)}
 #helpLines .hItem{margin-bottom:7px}
@@ -274,7 +281,7 @@ dialog h3{font-size:15px}
 /* narrow: the three masters stack full width and keep the same height */
 @media (max-width:900px){
   #masterBar{gap:8px;padding:10px 12px}
-  .mb{flex:1 1 100%;min-width:0;min-height:38px}
+  .mb{flex:1 1 100%;min-width:0;min-height:34px}
   .mb.all{padding-right:0;border-right:none;border-bottom:1px solid var(--border);padding-bottom:8px}
   .mb .mbLab{width:112px;font-size:11px}
   .mb .hslider{max-width:none}
@@ -334,16 +341,17 @@ dialog h3{font-size:15px}
               <div id="transGroup">
                 <div id="xfBlock">
                   <div id="xfRow">
-                    <div id="xfScale"><span class="top"></span><span class="bot">再生中</span></div>
+                    <div class="xfSide" id="xfNow"><span class="lab">再生中</span><span class="nm" id="xfNowName">（無音）</span></div>
                     <div class="vfader big" id="xfader"></div>
-                    <div id="xfSide"><span id="nextName">未選択</span><span id="xfVal">0%</span></div>
+                    <div class="xfSide" id="xfNext"><span class="lab">次シーン</span><span class="nm" id="nextName">未選択</span></div>
                   </div>
+                  <div id="xfVal">0%</div>
                   <div id="xfCaption">手動フェーダー</div>
                 </div>
                 <div class="grpDiv"></div>
                 <button id="goBtn">GO</button>
                 <div id="goInfo"></div>
-                <div id="manualNote">手動フェーダーを動かした場合は、設定したフェード秒数より<b>手の動き（位置と速度）が優先</b>されます。</div>
+                <div id="manualNote">手動フェーダーはフェード時間設定より優先されます</div>
               </div>
               <div id="helpLines"></div>
             </div>
@@ -766,11 +774,36 @@ function migrate(raw){
     if(!Array.isArray(a.tags))a.tags=[];
   });
   if(!st.currentSessionId||!st.sessions.some(x=>x.id===st.currentSessionId))st.currentSessionId=st.sessions[0].id;
+  linkXfadeIn(st);                 // Q2: stored IN follows the previous scene's crossfade OUT
   st.version=STATE_VERSION;
   return st;
 }
 
+/* Q2: when a scene crossfades OUT, the next scene's IN is *overwritten* with that
+   crossfade (same method, same time) — the linkage is stored, not only displayed.
+   Idempotent, so it can run on every load and after every edit. */
+function linkXfadeIn(st){
+  let changed=false;
+  const groups=new Map();
+  (st.scenes||[]).forEach((sc,i)=>{
+    if(!groups.has(sc.sessionId))groups.set(sc.sessionId,[]);
+    groups.get(sc.sessionId).push([sc,i]);
+  });
+  for(const g of groups.values()){
+    g.sort((a,b)=>(a[0].orderId-b[0].orderId)||(a[1]-b[1]));
+    for(let i=1;i<g.length;i++){
+      const prev=g[i-1][0],cur=g[i][0];
+      if((prev.outMode||'xfade')!=='xfade')continue;
+      const t=outSec(prev);
+      if(cur.inMode!=='xfade'){cur.inMode='xfade';changed=true;}
+      if(cur.fadeInSec!==t){cur.fadeInSec=t;changed=true;}
+      if(cur.mode!=='fade'){cur.mode='fade';changed=true;}        // IN is no longer a cut
+    }
+  }
+  return changed;
+}
 function markDirty(){
+  linkXfadeIn(state);
   state.updatedAt=Date.now();
   $('#saveState').textContent='保存中…';
   clearTimeout(saveTimer);
@@ -1064,12 +1097,13 @@ function toggleScenePause(){
     live.currentLoops={...(p.currentLoops||{})};
     ensureCtx();
     startNeededChannels(live.currentValues).then(()=>{applyMix();renderPerform();});
-    /* the scene's looping SEs come back from the top */
+    /* Q1: every SE the scene registers comes back from the top — the one-shots too,
+       so 再開 sounds the same as arriving at the scene again */
     const sc=live.currentSceneId?sceneById(live.currentSceneId):null;
     if(sc){
       const m=sceneMaster(sc);
       for(const[id,v]of Object.entries(sc.seValues||{}))
-        if((v||0)>0&&sceneLoopOf(sc,id))playSE(id,Math.round((v||0)*m),true,true);
+        if((v||0)>0)playSE(id,Math.round((v||0)*m),sceneLoopOf(sc,id),true);
     }
     applyMix();renderPerform();
     return;
@@ -1340,6 +1374,8 @@ function renderStage(){
   $('#nowSub').textContent=live.scenePaused?'シーン停止中（「▶ シーン再開」で戻ります）'
     :cur?`OUT方法: ${wayShort(cur.outMode)}${(cur.outMode||'xfade')!=='cut'?'（'+outSec(cur)+'秒）':''}`
     :'シーンを選んで GO で再生します';
+  $('#xfNowName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
+  $('#xfNowName').title=cur?`再生中: ${cur.orderId} ${cur.name}`:'まだ何も再生していません';
   $('#nextName').textContent=next?`${next.orderId} ${next.name}`:'次シーン未選択';
   $('#nextName').title=next?`次のシーン: ${next.orderId} ${next.name}`:'シーンリストから次のシーンを選んでください';
   $('#goBtn').disabled=!next&&!live.trans;
@@ -1921,6 +1957,11 @@ function renderPicker(root,scene,onChange){
 /* ===================== 🎚️ per-scene config dialog ===================== */
 const cfgDlg=$('#sceneCfg');
 let cfgSceneId=null;
+/* is this scene's IN inherited from the previous scene's crossfade OUT? */
+function cfgLinkedIn(s){
+  const list=scenesOf(s.sessionId);const i=list.findIndex(x=>x.id===s.id);
+  return i>0&&(list[i-1].outMode||'xfade')==='xfade';
+}
 function openSceneCfg(id){
   const s=sceneById(id);if(!s)return;
   cfgSceneId=id;
@@ -1932,6 +1973,10 @@ function openSceneCfg(id){
   $('#scfMaster').value=s.master??1000;
   $('#scfMasterVal').textContent=pctText(s.master??1000);
   syncFadeFields(cfgDlg,s.outMode,s.inMode);
+  const lk=cfgLinkedIn(s);      // Q2: inherited IN is not editable here either
+  $('#scfInWay').disabled=lk;$('#scfIn').disabled=lk;
+  const lkTitle=lk?'前シーンのOUT（クロスフェード）に連動しています':'';
+  $('#scfInWay').title=lkTitle;$('#scfIn').title=lkTitle;
   $('#scfFilter').value='';
   renderChanRows($('#scfChans'),s,'',$('#scfCount'));
   renderCfgSwap();
@@ -1980,7 +2025,10 @@ function commitCfgTrans(){
   s.outMode=$('#scfOutWay').value;s.inMode=$('#scfInWay').value;
   s.mode=(s.outMode==='cut'&&s.inMode==='cut')?'cut':'fade';
   Object.assign(s,transFadeFields(s.outMode,s.inMode,$('#scfOut').value,$('#scfIn').value));
-  markDirty();renderPerform();
+  markDirty();                      // may rewrite an inherited IN — mirror it back
+  $('#scfInWay').value=s.inMode;$('#scfIn').value=inSec(s);
+  const lk=cfgLinkedIn(s);$('#scfInWay').disabled=lk;$('#scfIn').disabled=lk;
+  renderPerform();
 }
 for(const id of ['#scfOutWay','#scfInWay'])$(id).addEventListener('change',()=>{
   syncFadeFields(cfgDlg,$('#scfOutWay').value,$('#scfInWay').value);
@@ -2173,10 +2221,9 @@ function sceneCardEl(s,isInput){
     selAll.style.display=selAll.style.display==='none'?'':'none';
   });
   const commit=()=>{
-    /* while the IN side is inherited from the previous scene, keep this scene's own
-       stored IN untouched so it comes back if the predecessor stops crossfading */
-    const inWayVal=linked?((isInput?draft:s).inMode||'xfade'):inWay.value;
-    const inSecVal=linked?((isInput?draft:s).fadeInSec??(isInput?draft:s).fadeSec??3):inIn.value;
+    /* Q2: an inherited IN is written through — the fields already hold the previous
+       scene's crossfade, and linkXfadeIn keeps them in step from then on */
+    const inWayVal=inWay.value,inSecVal=inIn.value;
     const fade=transFadeFields(outWay.value,inWayVal,outIn.value,inSecVal);
     const base={outMode:outWay.value,inMode:inWayVal,
                 mode:(outWay.value==='cut'&&inWayVal==='cut')?'cut':'fade',
@@ -2798,9 +2845,9 @@ $('#demoBtn').addEventListener('click',async()=>{
     /* one scene per transition mode so all 5 can be tried straight away */
     state.scenes.push(
       {id:uid(),sessionId:sid,orderId:base+0,name:'導入：森',outMode:'xfade',inMode:'xfade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.forest]:800},seValues:{},loops:{[ids.forest]:true}},
-      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',outMode:'fade',inMode:'fade',mode:'fade',fadeSec:1.5,fadeOutSec:1.5,fadeInSec:3,master:1000,values:{[ids.cave]:700,[ids.rain]:250},seValues:{[ids.gong]:700},loops:{[ids.cave]:true,[ids.rain]:true,[ids.gong]:false}},
+      {id:uid(),sessionId:sid,orderId:base+1,name:'緊張：洞窟',outMode:'fade',inMode:'xfade',mode:'fade',fadeSec:1.5,fadeOutSec:1.5,fadeInSec:3,master:1000,values:{[ids.cave]:700,[ids.rain]:250},seValues:{[ids.gong]:700},loops:{[ids.cave]:true,[ids.rain]:true,[ids.gong]:false}},
       {id:uid(),sessionId:sid,orderId:base+2,name:'戦闘！',outMode:'cut',inMode:'cut',mode:'cut',fadeSec:0.1,fadeOutSec:0.1,fadeInSec:0.1,master:1000,values:{[ids.battle]:900,[ids.cave]:200},seValues:{},loops:{[ids.battle]:true,[ids.cave]:true}},
-      {id:uid(),sessionId:sid,orderId:base+3,name:'雨宿り',outMode:'cut',inMode:'fade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.rain]:750,[ids.forest]:300},seValues:{},loops:{[ids.rain]:true,[ids.forest]:true}},
+      {id:uid(),sessionId:sid,orderId:base+3,name:'雨宿り',outMode:'fade',inMode:'fade',mode:'fade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{[ids.rain]:750,[ids.forest]:300},seValues:{},loops:{[ids.rain]:true,[ids.forest]:true}},
       {id:uid(),sessionId:sid,orderId:base+4,name:'静寂（音無しシーン）',outMode:'fade',inMode:'cut',mode:'fade',fadeSec:4,fadeOutSec:4,fadeInSec:4,master:1000,values:{},seValues:{},loops:{}}
     );
     if(!live.nextSceneId)live.nextSceneId=curScenes()[0].id;
