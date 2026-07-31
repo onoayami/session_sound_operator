@@ -384,7 +384,6 @@ dialog h3{font-size:15px}
             <button id="overwriteSceneBtn">上書き</button>
             <button id="scenePauseBtn">■ シーン停止</button>
             <button id="muteAllBtn" class="warn">MUTE ALL</button>
-            <button id="stopBtn" class="danger">■ ALL STOP</button>
             <button id="panicBtn" class="danger">■ 全停止</button>
           </div>
         </div>
@@ -1134,18 +1133,20 @@ function restorePadLayer(s){for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,f
 
 /* ■ シーン停止 / ▶ シーン再開 ＝ ■ ALL STOP / ▶ ALL START（同じ scene 層） */
 function stopScene(){
-  if(live.allOff||ownerOf('scene')||!sceneAlive())return;
+  if(ownerOf('scene')||!sceneAlive())return;
   live.stops.push({kind:'scene',layers:{scene:capScene()}});
   stopSceneLayer();applyMix();renderPerform();
 }
 function startScene(){
-  const e=ownerOf('scene');if(!e||live.allOff)return;
+  /* §2（#12 Q3）: 全停止中でもシーン層だけ先に戻せる。
+     割込・ポン出し層は全停止側が持ち続け、「▶ 全再生開始」で戻る。 */
+  const e=ownerOf('scene');if(!e)return;
   const snap=e.layers.scene;delete e.layers.scene;dropEmptyStops();
   restoreSceneLayer(snap);applyMix();renderPerform();
 }
 function toggleScenePause(){ ownerOf('scene')?startScene():stopScene(); }
-const allStop=stopScene, allStart=startScene;
-function toggleAllStop(){ toggleScenePause(); }
+/* Space も「シーン停止／シーン再開」のトグル（#12 §1: ALL STOP ボタンは廃止） */
+const allStop=stopScene, allStart=startScene, toggleAllStop=toggleScenePause;
 
 /* ■ 全停止 / ▶ 全再生開始 — シーン・ポン出し・割込のすべて */
 function panicStop(){
@@ -1182,7 +1183,13 @@ function togglePanic(){ live.allOff?panicStart():panicStop(); }
 let panicAsk=null;
 function askPanic(desc,action,onCancel){
   panicAsk={action,onCancel};
-  $('#panicAskLead').textContent=`全停止中です（${desc}）。全停止を解除してよいですか？`;
+  /* §2: シーン層をすでに戻しているときは「全部クリア」ではなく「残りは戻さない」 */
+  const sceneLeft=!!ownerOf('scene');
+  $('#panicAskLead').textContent=`全停止中です（${desc}）。全停止を解除してよいですか？`
+    +(sceneLeft?'':'（シーンは再開済み。割込・ポン出しが停止中です）');
+  $('#panicAsk1').textContent=sceneLeft?'① 元の状態から始める':'① 残りも元の状態から始める';
+  $('#panicAsk2').textContent=sceneLeft?'② 全部クリアしてこの操作だけ鳴らす':'② 残りは戻さずこの操作だけ鳴らす';
+  $('#panicAsk3').textContent=sceneLeft?'③ 元の状態＋この操作も鳴らす':'③ 残りも戻して、この操作も鳴らす';
   $('#panicAsk').style.display='';
 }
 function closePanicAsk(){
@@ -1260,8 +1267,11 @@ function playSE(id,vol,loop,isScene){
 function triggerSE(id,vol,loop){
   ensureCtx();
   if(seActive.get(id)&&seActive.get(id).size){stopSE(id);return;} // second press = stop
-  /* §6-2: 全停止中のポン出しは確認してから */
-  if(guardPanic('ポン出し '+((audioById(id)||{}).name||''),()=>triggerSE(id,vol,loop)))return;
+  /* §6-2: 全停止中のポン出しは確認してから。
+     ③（元の状態＋この操作）で復帰側が同じパッドを鳴らし直している場合は、
+     トグルで消してしまわないよう「鳴っていなければ鳴らす」にする。 */
+  if(guardPanic('ポン出し '+((audioById(id)||{}).name||''),
+     ()=>{if(!(seActive.get(id)||{size:0}).size)triggerSE(id,vol,loop);}))return;
   const a=audioById(id);if(!a)return;
   const buf=engine.buffers.get(id);
   if(buf){startSE(id,a,buf,vol,loop,false);return;}
@@ -1432,7 +1442,9 @@ function renderStage(){
   const next=live.nextSceneId?sceneById(live.nextSceneId):null;
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
   $('#nowName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
-  $('#nowSub').textContent=live.allOff?'全停止中（「▶ 全再生開始」で戻ります）'
+  /* §2: シーンだけ先に戻したときに「全停止中」とだけ出ると矛盾するので出し分ける */
+  $('#nowSub').textContent=(live.allOff&&live.sceneStopped)?'全停止中（「▶ シーン再開」でシーンだけ／「▶ 全再生開始」で全部戻ります）'
+    :live.allOff?'割込・ポン出しが停止中（「▶ 全再生開始」で戻ります）'
     :live.sceneStopped?'シーン停止中（「▶ シーン再開」で戻ります）'
     :cur?`OUT方法: ${wayShort(cur.outMode)}${(cur.outMode||'xfade')!=='cut'?'（'+outSec(cur)+'秒）':''}`
     :'シーンを選んで GO で再生します';
@@ -1462,25 +1474,21 @@ function renderSceneActions(){
   mb.title='全体マスターの音量を0にします（再生は止まらないので、解除すると曲の続きから聞こえます）';
   mb.classList.toggle('warn',!live.muted);
   mb.classList.toggle('accent',!!live.muted);
-  /* シーン停止 と ALL STOP は同じ scene 層の操作。全停止中はどちらも使わない */
+  /* #12 §1: 停止系は「■ シーン停止」と「■ 全停止」の2つ。
+     §2: 全停止中でも「▶ シーン再開」は押せる（シーン層だけ先に戻す）。 */
   const paused=live.sceneStopped,off=live.allOff;
-  const sceneBtnDisabled=off||(!paused&&!sceneAlive());
   const pb=$('#scenePauseBtn');
   pb.textContent=paused?'▶ シーン再開':'■ シーン停止';
   pb.classList.toggle('accent',paused);
-  pb.disabled=sceneBtnDisabled;
-  pb.title=off?'全停止中です。「▶ 全再生開始」で戻してください':'シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）';
-  const sb=$('#stopBtn');
-  sb.textContent=paused?'▶ ALL START':'■ ALL STOP';
-  sb.title=off?'全停止中です。「▶ 全再生開始」で戻してください'
-    :'シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）。「■ シーン停止」と同じ操作です';
-  sb.disabled=sceneBtnDisabled;
-  sb.classList.toggle('danger',!paused);
-  sb.classList.toggle('accent',paused);
+  pb.disabled=!paused&&!sceneAlive();
+  pb.title=paused
+    ?(off?'シーンの音だけ先に戻します（割込・ポン出しは「▶ 全再生開始」で戻ります）':'止めたシーンの音を戻します')
+    :'シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）';
   const pn=$('#panicBtn');
   pn.textContent=off?'▶ 全再生開始':'■ 全停止';
   pn.title=off
     ? '全停止する前の状態（シーン・ポン出し・割込フェーダー）から全再生を開始します。SEは先頭から鳴り直します'
+      +(live.sceneStopped?'':'（シーンはすでに再開済みなので、残りの割込・ポン出しが戻ります）')
     : 'シーン・ポン出し・割込フェーダーを全部止めます（MUTE ALL は音量を0にするだけ／こちらは再生自体を止めて「▶ 全再生開始」で戻します）';
   pn.classList.toggle('danger',!off);
   pn.classList.toggle('accent',off);
@@ -1492,8 +1500,8 @@ function renderHelpLines(){
   const items=[
     ['<kbd>Enter</kbd> GO','NEXTシーンへ規定の時間で遷移します'],
     ['<kbd>←</kbd><kbd>→</kbd> NEXT選択','セッション内でループします'],
-    live.sceneStopped?['<kbd>Space</kbd> ALL START','止めたシーンの音を元に戻します（「▶ シーン再開」と同じ）']
-                     :['<kbd>Space</kbd> ALL STOP','シーンの音だけ止めます（全部止めるなら「■ 全停止」）'],
+    live.sceneStopped?['<kbd>Space</kbd> シーン再開','止めたシーンの音を戻します（「▶ シーン再開」と同じ）']
+                     :['<kbd>Space</kbd> シーン停止','シーンの音だけ止めます（全部止めるなら「■ 全停止」）'],
     ['手動フェーダー','動かした位置と速度に追従して遷移します'],
   ];
   $('#helpLines').innerHTML=items.map(([k,d])=>
@@ -1548,7 +1556,6 @@ function syncBusFaders(){
   $('#seMaster').value=state.settings.seVol;$('#seMasterVal').textContent=pctText(state.settings.seVol);
 }
 $('#goBtn').addEventListener('click',doGO);
-$('#stopBtn').addEventListener('click',toggleAllStop);
 $('#muteAllBtn').addEventListener('click',toggleMuteAll);
 $('#scenePauseBtn').addEventListener('click',toggleScenePause);
 $('#panicBtn').addEventListener('click',togglePanic);
