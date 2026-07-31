@@ -42,6 +42,7 @@ nav button.active{background:var(--hover);color:var(--text)}
 #headerRight{margin-left:auto;display:flex;align-items:center;gap:12px}
 #driveBadge{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text3)}
 #driveBadge.on{color:var(--green);border-color:var(--green);background:var(--green-soft)}
+#driveBadge.warn{color:var(--orange);border-color:var(--orange);background:var(--orange-soft)}
 main{flex:1;min-height:0;position:relative}
 .view{position:absolute;inset:0;display:none;overflow:auto}
 .view.active{display:block}
@@ -76,6 +77,10 @@ main{flex:1;min-height:0;position:relative}
 .mb .mbVal{font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;width:64px;text-align:right;flex:none}
 
 /* ===== section A: scene playback ===== */
+/* §6-2: 全停止中に音を出す操作が来たときの確認バー（alert を使わない画面内UI） */
+#panicAsk{flex:none;padding:9px 14px;border-top:1px solid var(--orange);background:rgba(226,176,72,.16);color:var(--orange);font-size:12px}
+#panicAsk button{font-size:12px;padding:5px 10px}
+#panicAskLead{font-weight:700}
 #sceneToolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);flex:none}
 #sceneToolbar button{font-size:13px;padding:7px 13px}
 .warn{color:var(--orange);border-color:var(--orange);background:var(--orange-soft)}
@@ -245,7 +250,9 @@ tr:last-child td{border-bottom:none}
 .sc-pick,.sc-temp,.sc-add{padding:4px 10px}
 /* §3-6: the selected sources are always listed, in white at the size of 「クロスフェード」 */
 .scSelAll{margin-top:6px;padding:6px 9px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.7;font-size:14px;color:var(--text)}
-.scSelAll .selRow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scSelAll .selRow{display:flex;align-items:center;gap:8px}
+.scSelAll .selTxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scSelAll .selDel{flex:none;padding:1px 7px;font-size:12px;line-height:1.4}
 .sc-temp.on{color:var(--wine);border-color:var(--wine);background:var(--wine-soft)}
 .xfLink{color:var(--blue)}
 /* 音源選択 panel: BGM left, SE right */
@@ -360,6 +367,16 @@ dialog h3{font-size:15px}
                 <div id="manualNote">手動フェーダーはフェード時間設定より優先されます</div>
               </div>
               <div id="helpLines"></div>
+            </div>
+          </div>
+          <div id="panicAsk" style="display:none">
+            <div id="panicAskLead"></div>
+            <div class="rowflex" style="margin-top:7px">
+              <button id="panicAsk1" class="accent">① 元の状態から始める</button>
+              <button id="panicAsk2">② 全部クリアしてこの操作だけ鳴らす</button>
+              <button id="panicAsk3">③ 元の状態＋この操作も鳴らす</button>
+              <span class="spacer"></span>
+              <button id="panicAskCancel">キャンセル（全停止のまま）</button>
             </div>
           </div>
           <div id="sceneToolbar">
@@ -917,15 +934,28 @@ async function ensureChannel(id,offset,loopFlag){
   if(ch&&ch.playing)return ch; // decoded twice guard
   return startChannel(id,a,buf,offset,loopFlag===undefined?channelLoop(id):loopFlag);
 }
-/* decode everything that can be triggered by a single press, so it fires with no wait */
+/* decode what a single press must fire instantly — but not the long BGMs.
+   §5-1（指摘6）: デコード後のPCMは1分で約21MB。SEは全件、BGMは60秒以下の
+   フェーダー割当分だけ先読みし、長尺BGMは起動時に展開しない。 */
+const PREWARM_MAX_SEC=60;
 let prewarming=false;
 async function prewarmBuffers(){
   if(prewarming||!engine.ctx)return;
   prewarming=true;
   try{
-    const ids=[...new Set([...seAudios().map(a=>a.id),...faderAudios().map(a=>a.id)])];
+    const ids=[...new Set([...seAudios().map(a=>a.id),
+      ...faderAudios().filter(a=>!(Number(a.duration)>PREWARM_MAX_SEC)).map(a=>a.id)])];
     for(const id of ids){if(!engine.buffers.has(id)){try{await getBuffer(id);}catch(e){}}}
   }finally{prewarming=false;}
+}
+/* §5-2（指摘12）: NEXTが決まった時点でそのシーンの音源だけ用意しておく。
+   これで「初回GOでデコードを待つ」がなくなる（メモリは必要な分だけ増える）。
+   すでにデコード済みなら Map を引くだけなので、描画ごとに呼んでも軽い。 */
+function prewarmScene(id){
+  if(!engine.ctx)return;                     // 最初のジェスチャ前は何もしない
+  const s=id?sceneById(id):null;if(!s)return;
+  for(const k of [...Object.keys(s.values||{}),...Object.keys(s.seValues||{})])
+    if(!engine.buffers.has(k))getBuffer(k).catch(()=>{});
 }
 function stopChannel(id){
   const ch=engine.channels.get(id);
@@ -948,11 +978,14 @@ const live={
   nextSceneId:null,
   trans:null,               // {from,to,x,mode:'auto'|'manual',t0,dur,toSceneId,outMode,inMode,ratio}
   interrupt:{},             // audioId -> permille (interrupt fader; never written to scenes)
-  muted:null,               // snapshot taken by MUTE ALL, or null
-  scenePaused:null,         // snapshot taken by シーン停止, or null
-  allStopped:null,          // snapshot taken by ALL STOP, or null (Space toggles it back)
-  allOff:null,              // snapshot taken by 全停止 (scene + pads + interrupt), or null
+  muted:false,              // MUTE ALL: master gain 0 のみ（再生は止めない）
+  stops:[],                 // §1: 停止系の復帰スタック [{kind:'scene'|'all',layers:{scene?,int?,pad?}}]
 };
+/* 派生フラグ（読み取り専用）: 状態の正はいつも live.stops */
+Object.defineProperties(live,{
+  sceneStopped:{get(){return live.stops.some(e=>e.layers.scene);}},
+  allOff:{get(){return live.stops.some(e=>e.kind==='all');}},
+});
 const intStopped=new Map(); // audioId -> {value, offset}  (interrupt fader stop button)
 
 /* scene-derived value (includes the running transition, OUT/IN layered per side) */
@@ -995,7 +1028,7 @@ async function beginTransition(mode){
   const toVals=sceneValuesOf(to);
   live.trans={from,to:toVals,x:0,mode,t0:performance.now(),dur:plan.dur,toSceneId:to.id,
               outMode:plan.outMode,inMode:plan.inMode,ratio:plan.ratio};
-  live.muted=null;live.scenePaused=null;live.allStopped=null;live.allOff=null;
+  live.stops=[];closePanicAsk();     // GO は停止系を解除して遷移する（MUTEは音量なので触らない）
   await startNeededChannels(toVals);
   return true;
 }
@@ -1056,147 +1089,117 @@ async function doGO(){
     renderPerform();
   }
 }
-/* ALL STOP / ALL START — Space toggles between them */
-/* §1-1: ALL STOP / ALL START are part of the scene system, so they leave the
-   ポン出し／割込フェーダー layer alone (its faders keep their values and its
-   sources keep playing). MUTE ALL and the全体MASTER stay global. */
-function allStop(){
-  const sceneSE=()=>[...sePlaying].map(src=>src.__se).filter(m=>m&&m.scene);
-  const wasPlaying=!!live.trans||live.currentSceneId!=null
-    ||Object.keys(live.currentValues).length>0||sceneSE().length>0;
-  live.allStopped=wasPlaying?{
-    currentSceneId:live.currentSceneId,
-    currentValues:{...live.currentValues},
-    currentLoops:{...live.currentLoops},
-    se:sceneSE().map(m=>({...m})),
-  }:null;
+/* ===================== stop system: one snapshot stack =====================
+   §1（指摘1）: 停止系はボタンごとに変数を持たず、「何を黙らせたか」を1本のスタック
+   （live.stops）に積む。戻すときは自分が持っている層だけ取り出して復帰させる。
+   層は scene（シーン層）/ int（割込フェーダー）/ pad（ポン出し）の3つ。
+   「■ シーン停止」と「■ ALL STOP」は同じ scene 層を止める同一操作なので、
+   1つの記録を共有する（= どちらのボタンからでも復帰できる）。 */
+const layerSE=isScene=>[...sePlaying].map(x=>x.__se).filter(m=>m&&!!m.scene===isScene).map(m=>({...m}));
+const capScene=()=>({id:live.currentSceneId,values:{...live.currentValues},loops:{...live.currentLoops},se:layerSE(true)});
+const capInt=()=>({values:{...live.interrupt},stopped:[...intStopped.entries()].map(([id,v])=>[id,{...v}])});
+const capPad=()=>({se:layerSE(false)});
+const sceneAlive=()=>live.currentSceneId!=null||!!live.trans||Object.keys(live.currentValues).length>0||layerSE(true).length>0;
+const intAlive=()=>Object.values(live.interrupt).some(v=>v>0)||intStopped.size>0;
+const padAlive=()=>layerSE(false).length>0;
+/* 各層の持ち主は多くても1つ（積むときに空いていることを確認しているため） */
+const ownerOf=layer=>live.stops.find(e=>e.layers[layer])||null;
+const dropEmptyStops=()=>{live.stops=live.stops.filter(e=>Object.keys(e.layers).length>0);};
+
+function stopSceneLayer(){
   live.trans=null;
-  live.currentSceneId=null;
-  live.currentValues={};
-  live.currentLoops={};
-  live.scenePaused=null;
-  /* only channels the scene was holding — an interrupt fader keeps its own */
-  for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
+  live.currentSceneId=null;live.currentValues={};live.currentLoops={};
+  for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);   // 割込が支えている音は残す
   stopSceneSE();
   ui.xfader.set(0);
-  applyMix();renderPerform();
 }
-function allStart(){
-  const s=live.allStopped;if(!s)return;
-  live.allStopped=null;
-  live.currentSceneId=s.currentSceneId;
-  live.currentValues={...s.currentValues};
-  live.currentLoops={...(s.currentLoops||{})};
+function restoreSceneLayer(s){
+  live.currentSceneId=s.id;live.currentValues={...s.values};live.currentLoops={...s.loops};
   ensureCtx();
   startNeededChannels(live.currentValues).then(()=>{applyMix();renderPerform();});
-  /* scene SEs always restart from the beginning; looping ones come back looping */
-  for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,true);
-  applyMix();renderPerform();
+  /* Session 7 Q1 の確定仕様: 再開ではシーン登録SEをループ・単発とも先頭から鳴らす
+     （シーンに入り直したときと同じ）。シーンが消えている場合だけ記録から復元する。 */
+  const sc=s.id?sceneById(s.id):null;
+  if(sc)fireSceneSE(sc);
+  else for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,true);
 }
-function toggleAllStop(){ live.allStopped?allStart():allStop(); }
-/* 全停止 / 全復帰 — the one button that takes down everything at once: the scene
-   layer, the ポン出し pads and the 割込フェーダー. Unlike MUTE ALL (which only
-   silences and keeps playing), this really stops the sources; 全復帰 puts the
-   whole mix back. */
+function restoreIntLayer(s){
+  live.interrupt={...s.values};
+  intStopped.clear();for(const[id,v]of (s.stopped||[]))intStopped.set(id,v);
+  ensureCtx();
+  Promise.all(Object.keys(live.interrupt).filter(id=>effectiveValue(id)>0).map(id=>ensureChannel(id)))
+    .then(()=>{applyMix();renderPerform();});
+}
+function restorePadLayer(s){for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,false);}
+
+/* ■ シーン停止 / ▶ シーン再開 ＝ ■ ALL STOP / ▶ ALL START（同じ scene 層） */
+function stopScene(){
+  if(live.allOff||ownerOf('scene')||!sceneAlive())return;
+  live.stops.push({kind:'scene',layers:{scene:capScene()}});
+  stopSceneLayer();applyMix();renderPerform();
+}
+function startScene(){
+  const e=ownerOf('scene');if(!e||live.allOff)return;
+  const snap=e.layers.scene;delete e.layers.scene;dropEmptyStops();
+  restoreSceneLayer(snap);applyMix();renderPerform();
+}
+function toggleScenePause(){ ownerOf('scene')?startScene():stopScene(); }
+const allStop=stopScene, allStart=startScene;
+function toggleAllStop(){ toggleScenePause(); }
+
+/* ■ 全停止 / ▶ 全再生開始 — シーン・ポン出し・割込のすべて */
 function panicStop(){
-  const anySound=sePlaying.size>0||live.currentSceneId!=null||!!live.trans
-    ||Object.keys(live.currentValues).length>0||Object.keys(live.interrupt).length>0
-    ||[...engine.channels.values()].some(c=>c.playing);
-  live.allOff=anySound?{
-    currentSceneId:live.currentSceneId,
-    currentValues:{...live.currentValues},
-    currentLoops:{...live.currentLoops},
-    interrupt:{...live.interrupt},
-    intStopped:[...intStopped.entries()].map(([id,v])=>[id,{...v}]),
-    se:[...sePlaying].map(src=>src.__se).filter(Boolean).map(m=>({...m})),
-    allStopped:live.allStopped?JSON.parse(JSON.stringify(live.allStopped)):null,
-  }:null;
-  live.trans=null;
-  live.currentSceneId=null;
-  live.currentValues={};
-  live.currentLoops={};
-  live.interrupt={};
-  live.muted=null;
-  live.scenePaused=null;
-  live.allStopped=null;
-  intStopped.clear();
+  if(live.allOff)return;
+  const layers={};
+  if(!ownerOf('scene')&&sceneAlive())layers.scene=capScene();
+  if(!ownerOf('int')&&intAlive())layers.int=capInt();
+  if(!ownerOf('pad')&&padAlive())layers.pad=capPad();
+  if(!Object.keys(layers).length&&!live.stops.length)return;   // 止めるものが何も無い
+  live.stops.push({kind:'all',layers});
+  stopSceneLayer();
+  live.interrupt={};intStopped.clear();
   for(const a of state.audios)stopChannel(a.id);
   stopAllSE();
-  ui.xfader.set(0);
   applyMix();renderPerform();
 }
+/* §6-1: 全再生開始 — 全停止前の状態から全部鳴らし始める。
+   シーン停止のあとに全停止していた場合も、シーン層まで含めて復帰させる。 */
 function panicStart(){
-  const s=live.allOff;if(!s)return;
-  live.allOff=null;
-  live.currentSceneId=s.currentSceneId;
-  live.currentValues={...s.currentValues};
-  live.currentLoops={...(s.currentLoops||{})};
-  live.interrupt={...s.interrupt};
-  live.allStopped=s.allStopped?JSON.parse(JSON.stringify(s.allStopped)):null;
-  intStopped.clear();
-  for(const[id,v]of (s.intStopped||[]))intStopped.set(id,v);
-  ensureCtx();
-  const ids=new Set([...Object.keys(live.currentValues),...Object.keys(live.interrupt)]);
-  Promise.all([...ids].filter(id=>effectiveValue(id)>0).map(id=>ensureChannel(id)))
-    .then(()=>{applyMix();renderPerform();});
-  /* every SE restarts from the top — scene ones as scene ones, pads as pads */
-  for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,m.scene);
+  if(!live.stops.length)return;
+  const sc=ownerOf('scene'),it=ownerOf('int'),pd=ownerOf('pad');
+  const sSnap=sc&&sc.layers.scene,iSnap=it&&it.layers.int,pSnap=pd&&pd.layers.pad;
+  live.stops=[];
+  if(iSnap)restoreIntLayer(iSnap);
+  if(sSnap)restoreSceneLayer(sSnap);
+  if(pSnap)restorePadLayer(pSnap);
+  closePanicAsk();
   applyMix();renderPerform();
 }
 function togglePanic(){ live.allOff?panicStart():panicStop(); }
-/* シーン停止 / 再開 — pauses only the scene-derived layer; the 割込 faders and pads keep going */
-function toggleScenePause(){
-  if(live.scenePaused){
-    const p=live.scenePaused;live.scenePaused=null;
-    live.currentSceneId=p.currentSceneId;
-    live.currentValues={...p.currentValues};
-    live.currentLoops={...(p.currentLoops||{})};
-    ensureCtx();
-    startNeededChannels(live.currentValues).then(()=>{applyMix();renderPerform();});
-    /* Q1: every SE the scene registers comes back from the top — the one-shots too,
-       so 再開 sounds the same as arriving at the scene again */
-    const sc=live.currentSceneId?sceneById(live.currentSceneId):null;
-    if(sc){
-      const m=sceneMaster(sc);
-      for(const[id,v]of Object.entries(sc.seValues||{}))
-        if((v||0)>0)playSE(id,Math.round((v||0)*m),sceneLoopOf(sc,id),true);
-    }
-    applyMix();renderPerform();
-    return;
-  }
-  if(!live.currentSceneId&&!Object.keys(live.currentValues).length)return;
-  live.scenePaused={currentSceneId:live.currentSceneId,currentValues:{...live.currentValues},currentLoops:{...live.currentLoops}};
-  live.trans=null;
-  live.currentValues={};
-  for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
-  stopSceneSE();
-  ui.xfader.set(0);
-  applyMix();renderPerform();
+
+/* §6-2: 全停止中に音を出す操作が来たら、非ブロッキングの確認UIで3択を聞く。
+   ①元の状態から始める ②全部クリアしてこの操作だけ ③元の状態＋この操作 */
+let panicAsk=null;
+function askPanic(desc,action,onCancel){
+  panicAsk={action,onCancel};
+  $('#panicAskLead').textContent=`全停止中です（${desc}）。全停止を解除してよいですか？`;
+  $('#panicAsk').style.display='';
 }
-/* MUTE ALL: silence everything now without touching any saved scene value.
-   Press again to restore the mix that was playing (toggle). */
+function closePanicAsk(){
+  const a=panicAsk;panicAsk=null;
+  const box=$('#panicAsk');if(box)box.style.display='none';
+  return a;
+}
+/* 全停止中の音出し操作をここで受け止める。true を返したら呼び出し側は何もしない */
+function guardPanic(desc,action,onCancel){
+  if(!live.allOff)return false;
+  askPanic(desc,action,onCancel);
+  return true;
+}
 function toggleMuteAll(){
-  if(!live.muted&&!seActive.size&&!bgmAudios().some(a=>effectiveValue(a.id)>0))return; // already silent
-  if(live.muted){
-    const m=live.muted;live.muted=null;
-    live.currentValues={...m.currentValues};
-    live.interrupt={...m.interrupt};
-    ensureCtx();
-    startNeededChannels(live.currentValues).then(()=>{
-      const jobs=[];
-      for(const id of Object.keys(live.interrupt))if(live.interrupt[id]>0)jobs.push(ensureChannel(id));
-      return Promise.all(jobs);
-    }).then(()=>{applyMix();renderPerform();});
-    renderPerform();
-    return;
-  }
-  live.muted={currentValues:{...live.currentValues},interrupt:{...live.interrupt}};
-  live.trans=null;
-  live.currentValues={};
-  live.interrupt={};
-  for(const a of state.audios)stopChannel(a.id);
-  stopAllSE();
-  ui.xfader.set(0);
+  ensureCtx();
+  if(live.muted){live.muted=false;setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
+  else{live.muted=true;setGainSmooth(engine.master.gain,0);}
   renderPerform();
 }
 /* ---- SE one-shot (toggle: pressing a playing pad stops it) ---- */
@@ -1257,6 +1260,8 @@ function playSE(id,vol,loop,isScene){
 function triggerSE(id,vol,loop){
   ensureCtx();
   if(seActive.get(id)&&seActive.get(id).size){stopSE(id);return;} // second press = stop
+  /* §6-2: 全停止中のポン出しは確認してから */
+  if(guardPanic('ポン出し '+((audioById(id)||{}).name||''),()=>triggerSE(id,vol,loop)))return;
   const a=audioById(id);if(!a)return;
   const buf=engine.buffers.get(id);
   if(buf){startSE(id,a,buf,vol,loop,false);return;}
@@ -1427,7 +1432,8 @@ function renderStage(){
   const next=live.nextSceneId?sceneById(live.nextSceneId):null;
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
   $('#nowName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
-  $('#nowSub').textContent=live.scenePaused?'シーン停止中（「▶ シーン再開」で戻ります）'
+  $('#nowSub').textContent=live.allOff?'全停止中（「▶ 全再生開始」で戻ります）'
+    :live.sceneStopped?'シーン停止中（「▶ シーン再開」で戻ります）'
     :cur?`OUT方法: ${wayShort(cur.outMode)}${(cur.outMode||'xfade')!=='cut'?'（'+outSec(cur)+'秒）':''}`
     :'シーンを選んで GO で再生します';
   $('#xfNowName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
@@ -1444,6 +1450,7 @@ function renderStage(){
     $('#goInfo').textContent=`${bits.join(' → ')}　計 ${Math.round(p.dur)/1000}秒で遷移`;
   }else $('#goInfo').textContent='次のシーンが未選択です';
   ui.xfader.setDisabled(!next&&!live.trans);
+  prewarmScene(live.nextSceneId);
 }
 function renderSceneActions(){
   $('#saveSceneBtn').disabled=!!live.trans;
@@ -1452,27 +1459,32 @@ function renderSceneActions(){
   $('#overwriteSceneBtn').textContent=cur?`上書き（${cur.name}）`:'上書き';
   const mb=$('#muteAllBtn');
   mb.textContent=live.muted?'MUTE 解除':'MUTE ALL';
-  mb.title='鳴っている音を一時的に消します（再生は続いたままで、もう一度押すと同じ状態に戻ります）';
+  mb.title='全体マスターの音量を0にします（再生は止まらないので、解除すると曲の続きから聞こえます）';
   mb.classList.toggle('warn',!live.muted);
   mb.classList.toggle('accent',!!live.muted);
+  /* シーン停止 と ALL STOP は同じ scene 層の操作。全停止中はどちらも使わない */
+  const paused=live.sceneStopped,off=live.allOff;
+  const sceneBtnDisabled=off||(!paused&&!sceneAlive());
   const pb=$('#scenePauseBtn');
-  pb.textContent=live.scenePaused?'▶ シーン再開':'■ シーン停止';
-  pb.classList.toggle('accent',!!live.scenePaused);
-  pb.disabled=!live.scenePaused&&!live.currentSceneId&&!Object.keys(live.currentValues).length;
+  pb.textContent=paused?'▶ シーン再開':'■ シーン停止';
+  pb.classList.toggle('accent',paused);
+  pb.disabled=sceneBtnDisabled;
+  pb.title=off?'全停止中です。「▶ 全再生開始」で戻してください':'シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）';
   const sb=$('#stopBtn');
-  sb.textContent=live.allStopped?'▶ ALL START':'■ ALL STOP';
-  sb.title='シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）。もう一度押すと元のシーンに戻ります';
-  sb.classList.toggle('danger',!live.allStopped);
+  sb.textContent=paused?'▶ ALL START':'■ ALL STOP';
+  sb.title=off?'全停止中です。「▶ 全再生開始」で戻してください'
+    :'シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）。「■ シーン停止」と同じ操作です';
+  sb.disabled=sceneBtnDisabled;
+  sb.classList.toggle('danger',!paused);
+  sb.classList.toggle('accent',paused);
   const pn=$('#panicBtn');
-  pn.textContent=live.allOff?'▶ 全復帰':'■ 全停止';
-  pn.title=live.allOff
-    ? '全停止する直前の状態（シーン・ポン出し・割込フェーダー）に戻します。SEは先頭から鳴り直します'
-    : 'シーン・ポン出し・割込フェーダーを全部止めます（MUTE ALL は再生を続けたまま音を消すだけ／こちらは再生自体を止めて「▶ 全復帰」で戻します）';
-  pn.classList.toggle('danger',!live.allOff);
-  pn.classList.toggle('accent',!!live.allOff);
-  pn.disabled=!live.allOff&&!(sePlaying.size||live.currentSceneId||Object.keys(live.interrupt).length||[...engine.channels.values()].some(c=>c.playing));
-  sb.classList.toggle('danger',!live.allStopped);
-  sb.classList.toggle('accent',!!live.allStopped);
+  pn.textContent=off?'▶ 全再生開始':'■ 全停止';
+  pn.title=off
+    ? '全停止する前の状態（シーン・ポン出し・割込フェーダー）から全再生を開始します。SEは先頭から鳴り直します'
+    : 'シーン・ポン出し・割込フェーダーを全部止めます（MUTE ALL は音量を0にするだけ／こちらは再生自体を止めて「▶ 全再生開始」で戻します）';
+  pn.classList.toggle('danger',!off);
+  pn.classList.toggle('accent',off);
+  pn.disabled=!off&&!sceneAlive()&&!intAlive()&&!padAlive()&&!live.stops.length;
   renderHelpLines();
 }
 /* one item = a key line + a description line; the Space line follows the current state */
@@ -1480,8 +1492,8 @@ function renderHelpLines(){
   const items=[
     ['<kbd>Enter</kbd> GO','NEXTシーンへ規定の時間で遷移します'],
     ['<kbd>←</kbd><kbd>→</kbd> NEXT選択','セッション内でループします'],
-    live.allStopped?['<kbd>Space</kbd> ALL START','止めたシーンの音を元に戻します']
-                   :['<kbd>Space</kbd> ALL STOP','シーンの音だけ止めます（全部止めるなら「■ 全停止」）'],
+    live.sceneStopped?['<kbd>Space</kbd> ALL START','止めたシーンの音を元に戻します（「▶ シーン再開」と同じ）']
+                     :['<kbd>Space</kbd> ALL STOP','シーンの音だけ止めます（全部止めるなら「■ 全停止」）'],
     ['手動フェーダー','動かした位置と速度に追従して遷移します'],
   ];
   $('#helpLines').innerHTML=items.map(([k,d])=>
@@ -1516,7 +1528,8 @@ ui.xfader.set=(v,silent)=>{_xfSet(v);$('#xfVal').textContent=Math.round(v/10)+'%
 /* ---- MASTER (all) / BGM MASTER / SE MASTER (independent of both sections) ---- */
 $('#allMaster').addEventListener('input',e=>{
   const v=Number(e.target.value);
-  state.settings.masterAll=v;ensureCtx();setGainSmooth(engine.master.gain,v/1000);
+  state.settings.masterAll=v;ensureCtx();
+  if(!live.muted)setGainSmooth(engine.master.gain,v/1000);   // MUTE中は0を保つ（解除でこの値へ）
   $('#allMasterVal').textContent=pctText(v);markDirty();
 });
 $('#bgmMaster').addEventListener('input',e=>{
@@ -1539,6 +1552,20 @@ $('#stopBtn').addEventListener('click',toggleAllStop);
 $('#muteAllBtn').addEventListener('click',toggleMuteAll);
 $('#scenePauseBtn').addEventListener('click',toggleScenePause);
 $('#panicBtn').addEventListener('click',togglePanic);
+/* §6-2 の3択（①元の状態 ②全部クリアしてこの操作だけ ③元の状態＋この操作） */
+$('#panicAsk1').addEventListener('click',()=>{closePanicAsk();panicStart();});
+$('#panicAsk2').addEventListener('click',()=>{
+  const a=closePanicAsk();
+  live.stops=[];                      // 復帰データを破棄してから、その操作の音だけ鳴らす
+  renderPerform();
+  if(a&&a.action)a.action();
+});
+$('#panicAsk3').addEventListener('click',()=>{
+  const a=closePanicAsk();
+  panicStart();
+  if(a&&a.action)a.action();
+});
+$('#panicAskCancel').addEventListener('click',()=>{const a=closePanicAsk();if(a&&a.onCancel)a.onCancel();});
 
 /* ===================== Section B: SE pads (banks, toggle) ===================== */
 let sePadBank=0;
@@ -1608,8 +1635,12 @@ function renderInterruptFaders(){
     d.querySelector('.cname').title=a.name;
     const f=VFader(d.querySelector('.vfader'),{
       onInput(val){
+        /* §6-2: 全停止中は先に確認する（フェーダーは0に戻して待つ） */
+        if(val>0&&guardPanic('割込フェーダー '+a.name,()=>{
+          const ff=(intFaders.get(a.id)||{}).fader;if(ff)ff.set(val);
+          applyInterrupt(a.id,val);renderPerform();
+        })){f.set(0);d.querySelector('.cval').textContent=pctText(0);return;}
         live.interrupt[a.id]=val;
-        live.muted=null;          /* MUTE ALL is global, so touching a fader lifts it */
         if(val>0){
           const resume=intStopped.get(a.id);
           intStopped.delete(a.id);
@@ -1679,10 +1710,10 @@ function renderStopBtns(a,d,f){
   }
   d.classList.remove('sceneOnly');
   const resume=(fromStart)=>{
+    if(guardPanic('割込フェーダー '+a.name,()=>resume(fromStart)))return;
     const v=st.value>0?st.value:500;
     intStopped.delete(a.id);
     live.interrupt[a.id]=v;
-    live.muted=null;
     f.set(v);
     d.querySelector('.cval').textContent=pctText(v);
     d.classList.remove('stopped','silent');
@@ -1695,6 +1726,17 @@ function renderStopBtns(a,d,f){
   const b2=document.createElement('button');b2.textContent='⏮ 最初から';
   b2.addEventListener('click',()=>resume(true));
   box.append(b1,b2);
+}
+/* 割込フェーダーの値を適用する（確認UIからの再実行でも同じ経路を通す） */
+function applyInterrupt(id,val){
+  live.interrupt[id]=val;
+  if(val>0){
+    const resume=intStopped.get(id);
+    intStopped.delete(id);
+    const off=resume?resume.offset:0;
+    if(!ensureChannelNow(id,off))ensureChannel(id,off).then(applyMix);
+  }
+  applyMix();
 }
 /* during a transition only the scene-derived readout moves; the fader itself must not */
 function updateInterruptReadouts(){
@@ -1791,7 +1833,7 @@ $('#sfOk').addEventListener('click',()=>{
   live.currentValues=sceneValuesOf(target);
   live.currentLoops={...(target.loops||{})};
   live.interrupt={};
-  live.muted=null;live.scenePaused=null;live.allStopped=null;live.allOff=null;
+  live.stops=[];closePanicAsk();
   intStopped.clear();
   state.currentSessionId=sid;
   const list=curScenes();
@@ -1846,8 +1888,7 @@ function renderChanRows(container,scene,query,countEl){
     const apply=v=>{
       if(v>0)scene.values[a.id]=v;else delete scene.values[a.id];
       if(scene.id===live.currentSceneId&&!live.trans){
-        live.currentValues[a.id]=v;
-        live.muted=null;
+        live.currentValues=sceneValuesOf(scene);      // シーンのマスター音量を掛けた値で揃える
         if(effectiveValue(a.id)>0)ensureChannel(a.id).then(applyMix);
         applyMix();updateInterruptReadouts();
       }
@@ -1859,13 +1900,35 @@ function renderChanRows(container,scene,query,countEl){
   }
 }
 /* "BGM 森のパッド 100% ループON" — one line per registered source */
-/* §3-6: one line per selected source — 「BGM/SE【曲名】 音量：n%、ループ：ON/OFF」 */
+/* §3-6: one line per selected source — 「BGM/SE【曲名】 音量：n%、ループ：ON/OFF」
+   §7: 行ごとにゴミ箱で外せるので、種別とIDも一緒に返す */
 function selectedRows(s){
-  const row=(kind,id,v)=>`${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(s,id)?'ON':'OFF'}`;
+  const row=(kind,id,v)=>({kind,id,
+    text:`${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(s,id)?'ON':'OFF'}`});
   const out=[];
   for(const[id,v]of Object.entries(s.values||{}))if(v>0)out.push(row('BGM',id,v));
   for(const[id,v]of Object.entries(s.seValues||{}))if(v>0)out.push(row('SE',id,v));
   return out;
+}
+/* §7: 選択済みリストの1行を、そのシーンの登録から外す */
+function removeFromScene(scene,kind,id){
+  const bag=kind==='BGM'?(scene.values||{}):(scene.seValues||{});
+  delete bag[id];
+  if(scene.loops)delete scene.loops[id];
+  if(kind==='SE'){                                   // 鳴っているシーンSEも止める
+    const set=seActive.get(id);
+    if(set)for(const src of [...set])if(src.__se&&src.__se.scene){
+      try{src.stop();}catch(e){}
+      sePlaying.delete(src);sceneSESrcs.delete(src);set.delete(src);
+    }
+    if(set&&!set.size){seActive.delete(id);markPad(id,false);}
+  }
+  if(kind==='BGM'&&scene.id===live.currentSceneId&&!live.trans){
+    live.currentValues=sceneValuesOf(scene);
+    for(const b of bgmAudios())if(effectiveValue(b.id)<=0)stopChannel(b.id);
+    applyMix();
+  }
+  markDirty();renderPerform();renderEditView();
 }
 
 /* ---- 試聴: preview a source at the volume typed into its row ---- */
@@ -2274,8 +2337,13 @@ function sceneCardEl(s,isInput){
   const renderSel=()=>{
     const rows=selectedRows(s);
     selAll.style.display=rows.length?'':'none';
-    selAll.innerHTML=rows.map(t=>`<div class="selRow"></div>`).join('');
-    [...selAll.children].forEach((d,i)=>{d.textContent=rows[i];});
+    selAll.innerHTML=rows.map(()=>
+      '<div class="selRow"><span class="selTxt"></span>'
+      +'<button class="selDel iconbtn danger" title="このシーンから外す">🗑</button></div>').join('');
+    [...selAll.children].forEach((d,i)=>{
+      d.querySelector('.selTxt').textContent=rows[i].text;
+      d.querySelector('.selDel').addEventListener('click',()=>removeFromScene(s,rows[i].kind,rows[i].id));
+    });
   };
   renderSel();
   const commit=()=>{
@@ -2620,6 +2688,14 @@ function openPalette(anchor,a){
   setTimeout(()=>document.addEventListener('pointerdown',onPaletteOutside,true),0);
 }
 
+/* 全部止める（インポート・全削除用。復帰スタックは作らない） */
+function stopEverything(){
+  live.trans=null;live.currentSceneId=null;live.currentValues={};live.currentLoops={};
+  live.interrupt={};intStopped.clear();
+  live.stops=[];closePanicAsk();
+  for(const a of state.audios)stopChannel(a.id);
+  stopAllSE();ui.xfader.set(0);
+}
 /* ===================== Export / Import ===================== */
 function blobToB64(blob){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.readAsDataURL(blob);});}
 function b64ToBlob(b64,type){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type});}
@@ -2635,29 +2711,46 @@ $('#importPackBtn').addEventListener('click',()=>$('#packInput').click());
 $('#packInput').addEventListener('change',async e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;
   try{
+    /* §3（指摘3）: 先に全部検証する。ここで失敗しても既存データは1件も消さない */
     const pack=JSON.parse(await f.text());
-    if(pack.app!=='session-sound-operator')throw new Error('bad file');
-    if(!confirm('現在のデータをインポート内容で置き換えますか？'))return;
-    allStop();engine.buffers.clear();
-    for(const k of await blobKeys())await blobDel(k);
-    state=migrate(pack.state);   // v1 / v2 packs are migrated on the way in
-    for(const[id,b]of Object.entries(pack.blobs||{}))await blobPut(id,b64ToBlob(b.b64,b.type));
-    live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;
-    live.allStopped=null;live.allOff=null;live.scenePaused=null;
+    if(pack.app!=='session-sound-operator')throw new Error('このアプリのファイルではありません');
+    if(!pack.state||typeof pack.state!=='object')throw new Error('state が入っていません');
+    const next=migrate(pack.state);
+    const decoded=[];
+    for(const[id,b]of Object.entries(pack.blobs||{})){
+      if(!b||typeof b.b64!=='string')throw new Error('音源データが壊れています（'+id+'）');
+      decoded.push([id,b64ToBlob(b.b64,b.type)]);        // 不正なBase64はここで例外になる
+    }
+    if(next.audios.length&&!decoded.length&&
+       !confirm('このファイルには音源データ（blobs）が入っていません。\n'
+         +'メタデータだけ（音源 '+next.audios.length+' 件・シーン '+next.scenes.length+' 件）を取り込みますか？\n'
+         +'※この端末の音源データは削除されます。'))return;
+    if(!confirm('現在のデータ（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件）を\n'
+      +'インポート内容（音源 '+next.audios.length+' 件・シーン '+next.scenes.length+' 件）で置き換えますか？'))return;
+    /* 検証が通ってから: 書き込み → 最後に不要分だけ削除 */
+    stopEverything();
+    for(const[id,blob]of decoded)await blobPut(id,blob);
+    const keep=new Set(decoded.map(([id])=>id));
+    for(const k of await blobKeys())if(!keep.has(k))await blobDel(k);
+    engine.buffers.clear();
+    state=next;
     live.nextSceneId=curScenes()[0]?.id||null;
+    if(live.muted){live.muted=false;if(engine.ctx)setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
     draft=newDraft();
     libPage.bgm=0;libPage.se=0;libTagFilter.clear();
     markDirty();applySecOpen();renderAll();
     alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件・セッション '+state.sessions.length+' 件）');
-  }catch(err){alert('インポートに失敗しました: '+err.message);}
+  }catch(err){alert('インポートに失敗しました（この端末のデータは変更していません）: '+err.message);}
 });
 $('#wipeBtn').addEventListener('click',async()=>{
   if(!confirm('この端末の全データ（音源・シーン・セッション・設定）を削除しますか？'))return;
-  allStop();engine.buffers.clear();
+  stopEverything();engine.buffers.clear();
   for(const k of await blobKeys())await blobDel(k);
   state=migrate(blankState());
   state.updatedAt=Date.now();
-  live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.muted=null;live.nextSceneId=null;
+  live.currentSceneId=null;live.currentValues={};live.currentLoops={};live.interrupt={};live.nextSceneId=null;
+  live.stops=[];closePanicAsk();
+  if(live.muted){live.muted=false;if(engine.ctx)setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
   draft=newDraft();
   libPage.bgm=0;libPage.se=0;libTagFilter.clear();
   await kvPut('state',JSON.parse(JSON.stringify(state)));
@@ -2668,15 +2761,21 @@ $('#wipeBtn').addEventListener('click',async()=>{
 /* ===================== Google Drive sync (GIS / drive.file) ===================== */
 const drive={
   token:null,folderId:null,fileIds:{},connected:false,stateTimer:null,pendingAudio:new Set(),
+  syncing:false,warn:'',seenUpdatedAt:null,   // seenUpdatedAt: 最後に自分が見た/上げた state.json の updatedAt
   log(msg){const el=$('#log');el.textContent+=`[${new Date().toLocaleTimeString()}] ${msg}\n`;el.scrollTop=el.scrollHeight;},
+  /* §4-1: 失敗と退避は必ずバッジに出す（黙って同期されない状態を作らない） */
   setBadge(){
     const b=$('#driveBadge');
-    b.classList.toggle('on',drive.connected);
-    b.textContent=drive.connected?'Drive同期中':'ローカル保存';
+    b.classList.toggle('on',drive.connected&&!drive.warn);
+    b.classList.toggle('warn',!!drive.warn);
+    b.textContent=drive.warn?'Drive 未同期':(drive.connected?'Drive同期中':'ローカル保存');
+    b.title=drive.warn||(drive.connected?'Driveと同期しています':'この端末のみに保存しています');
     $('#driveSyncBtn').disabled=!drive.connected;
     $('#driveDisconnectBtn').disabled=!drive.connected;
-    $('#driveStatus').textContent=drive.connected?'接続済み':'';
+    $('#driveStatus').textContent=drive.warn?'⚠ '+drive.warn:(drive.connected?'接続済み':'');
   },
+  fail(msg){drive.warn=msg;drive.log('⚠ '+msg);drive.setBadge();},
+  clearWarn(){if(drive.warn){drive.warn='';drive.setBadge();}},
   loadGIS(){return new Promise((res,rej)=>{
     if(window.google?.accounts?.oauth2)return res();
     const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
@@ -2700,11 +2799,11 @@ const drive={
       drive._tc=tc;
     }catch(e){drive.log('接続失敗: '+e.message);alert(e.message);}
   },
-  disconnect(){drive.token=null;drive.connected=false;drive.folderId=null;drive.fileIds={};drive.setBadge();drive.log('切断しました。以降はローカル保存のみ。');},
+  disconnect(){drive.token=null;drive.connected=false;drive.folderId=null;drive.fileIds={};drive.warn='';drive.setBadge();drive.log('切断しました。以降はローカル保存のみ。');},
   async api(path,opt={}){
     opt.headers=Object.assign({Authorization:'Bearer '+drive.token},opt.headers||{});
     const r=await fetch('https://www.googleapis.com'+path,opt);
-    if(r.status===401){drive.log('トークン期限切れ。再認証してください。');drive.connected=false;drive.setBadge();throw new Error('unauthorized');}
+    if(r.status===401){drive.connected=false;drive.fail('トークンが期限切れです（401）。「接続して同期」で再認証してください');throw new Error('unauthorized');}
     if(!r.ok)throw new Error('Drive API '+r.status+': '+await r.text());
     return r;
   },
@@ -2733,7 +2832,9 @@ const drive={
     const id=drive.fileIds[name];
     const url='https://www.googleapis.com/upload/drive/v3/files'+(id?'/'+id:'')+'?uploadType=multipart';
     const r=await fetch(url,{method:id?'PATCH':'POST',headers:{Authorization:'Bearer '+drive.token},body:fd});
-    if(!r.ok)throw new Error('upload failed '+r.status);
+    /* §4-1: アップロードも401をここで受け止める（生fetchのまま握り潰さない） */
+    if(r.status===401){drive.connected=false;drive.fail('トークンが期限切れです（401）。「接続して同期」で再認証してください');throw new Error('unauthorized');}
+    if(!r.ok){drive.fail('アップロード失敗（'+name+' / HTTP '+r.status+'）');throw new Error('upload failed '+r.status);}
     const j=await r.json();drive.fileIds[name]=j.id;
   },
   async download(name){
@@ -2742,6 +2843,9 @@ const drive={
     return await r.blob();
   },
   async sync(){
+    if(drive.syncing){drive.log('同期はすでに実行中です（重複実行を防ぎました）');return;}
+    drive.syncing=true;
+    let conflict='';
     try{
       await drive.ensureFolder();
       await drive.listFiles();
@@ -2751,12 +2855,29 @@ const drive={
         try{remote=JSON.parse(await(await drive.download('state.json')).text());}catch(e){drive.log('state.jsonの解析に失敗: '+e.message);}
       }
       if(remote&&(remote.updatedAt||0)>(state.updatedAt||0)){
+        /* §4-2: 取り込みで消えるこの端末の内容を、先にDriveへ退避する */
+        try{
+          await drive.upload('state_local_backup.json',new Blob([JSON.stringify(state)],{type:'application/json'}));
+          conflict='この端末の内容を state_local_backup.json へ退避しました（Driveの新しいデータで置き換えました）';
+          drive.log('⚠ '+conflict);
+        }catch(e){conflict='この端末の内容の退避に失敗しました: '+e.message;}
         drive.log('Driveのデータが新しいため取り込みます');
-        state=migrate(remote);await kvPut('state',JSON.parse(JSON.stringify(state)));
+        state=migrate(remote);drive.seenUpdatedAt=state.updatedAt;await kvPut('state',JSON.parse(JSON.stringify(state)));
         live.nextSceneId=live.nextSceneId&&sceneById(live.nextSceneId)?live.nextSceneId:(curScenes()[0]?.id||null);
         applySecOpen();renderAll();
       }else{
+        /* §4-2: Drive側を上書きする場合は、上書き前のDrive内容を退避する。
+           ただし「自分が前回上げたものを更新するだけ」（= 誰も割り込んでいない）なら
+           衝突ではないので、警告も退避もしない（毎回バッジが黄色になるのを防ぐ）。 */
+        if(remote&&(remote.updatedAt||0)<(state.updatedAt||0)&&remote.updatedAt!==drive.seenUpdatedAt){
+          try{
+            await drive.upload('state_remote_backup.json',new Blob([JSON.stringify(remote)],{type:'application/json'}));
+            conflict='Drive側の内容を state_remote_backup.json へ退避しました（この端末の内容で上書きしました）';
+            drive.log('⚠ '+conflict);
+          }catch(e){conflict='Drive側の内容の退避に失敗しました: '+e.message;}
+        }
         await drive.upload('state.json',new Blob([JSON.stringify(state)],{type:'application/json'}));
+        drive.seenUpdatedAt=state.updatedAt;
         drive.log('state.json をアップロードしました');
       }
       // --- audio files ---
@@ -2771,14 +2892,25 @@ const drive={
         }
       }
       drive.log(`同期完了（音源 ↑${up} ↓${down}）`);
+      if(conflict)drive.fail(conflict);else drive.clearWarn();
       renderAll();
-    }catch(e){if(e.message!=='unauthorized')drive.log('同期エラー: '+e.message);}
+    }catch(e){if(e.message!=='unauthorized')drive.fail('同期エラー: '+e.message);}
+    finally{drive.syncing=false;}
   },
   scheduleStateUpload(){
     if(!drive.connected)return;
     clearTimeout(drive.stateTimer);
     drive.stateTimer=setTimeout(async()=>{
-      try{await drive.ensureFolder();await drive.upload('state.json',new Blob([JSON.stringify(state)],{type:'application/json'}));drive.log('state.json 自動保存');}catch(e){}
+      if(drive.syncing){drive.scheduleStateUpload();return;}      // 同期中は後回し
+      try{
+        await drive.ensureFolder();
+        await drive.upload('state.json',new Blob([JSON.stringify(state)],{type:'application/json'}));
+        drive.seenUpdatedAt=state.updatedAt;
+        drive.log('state.json 自動保存');drive.clearWarn();
+      }catch(e){
+        /* §4-1: 空 catch をやめる。失敗はログとバッジに出す */
+        if(e.message!=='unauthorized')drive.fail('自動保存に失敗しました: '+e.message);
+      }
     },3000);
   },
   scheduleAudioUpload(id){
