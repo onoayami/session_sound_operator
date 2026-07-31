@@ -66,15 +66,17 @@ main{flex:1;min-height:0;position:relative}
 #resizer::after{content:"";position:absolute;left:2px;top:50%;width:3px;height:34px;transform:translateY(-50%);background:var(--border2);border-radius:2px}
 
 /* ===== master bar (independent of both sections) ===== */
-#masterBar{flex:none;display:flex;align-items:stretch;gap:22px;flex-wrap:wrap;padding:10px 18px;border-top:1px solid var(--border);background:var(--surface)}
-.mb{display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:290px;min-height:39px}
-.mb .mbLab{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:130px;flex:none}
-.mb.all{padding-right:22px;border-right:1px solid var(--border)}
+/* §8-2/§8-3: 停止系3ボタンは各バーの左端。バーは低く、横棒とつまみは小さく */
+#masterBar{flex:none;display:flex;align-items:stretch;gap:18px;flex-wrap:wrap;padding:7px 18px;border-top:1px solid var(--border);background:var(--surface)}
+.mb{display:flex;align-items:center;gap:10px;flex:1 1 320px;min-width:300px;min-height:32px}
+.mb .mbBtn{flex:none;font-size:12px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;min-width:96px;text-align:center}
+.mb .mbLab{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:118px;flex:none}
+.mb.all{padding-right:18px;border-right:1px solid var(--border)}
 .mb.all .mbLab{color:var(--blue)}
-.mb .hslider{flex:1;min-width:110px;max-width:360px;height:9px;border-radius:5px}
-.mb .hslider::-webkit-slider-thumb{width:23px;height:23px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
-.mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:25px;height:25px}
-.mb .mbVal{font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;width:64px;text-align:right;flex:none}
+.mb .hslider{flex:1;min-width:96px;max-width:340px;height:6px;border-radius:4px}
+.mb .hslider::-webkit-slider-thumb{width:17px;height:17px;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:19px;height:19px}
+.mb .mbVal{font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;width:58px;text-align:right;flex:none}
 
 /* ===== section A: scene playback ===== */
 /* §6-2: 全停止中に音を出す操作が来たときの確認バー（alert を使わない画面内UI） */
@@ -175,14 +177,10 @@ main{flex:1;min-height:0;position:relative}
 .chan{width:100px;flex:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:7px 6px}
 .chan.silent{opacity:.6}
 .chan.stopped{border-color:var(--red)}
-.chan.sceneOnly{border-color:var(--green)}
-.chan.sceneOnly .cscene{color:var(--green)}
-.chan .relNote{color:var(--green);text-align:center}
 .chan .cslot{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--blue);background:var(--blue-soft);border-radius:4px;padding:0 6px;margin-bottom:2px}
 .chan .cname{font-size:11px;font-weight:600;width:100%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
 .chan .vfader{flex:1;height:auto;min-height:96px}
 .chan .cval{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:5px}
-.chan .cscene{font-size:10px;color:var(--text3);font-variant-numeric:tabular-nums;height:14px}
 .chan .cstop{display:flex;flex-direction:column;gap:3px;width:100%;margin-top:4px}
 .chan .cstop button{font-size:10px;padding:2px 4px;border-radius:6px;width:100%}
 .emptyNote{margin:auto;text-align:center;color:var(--text3);font-size:12px;padding:22px 14px}
@@ -209,7 +207,7 @@ tr:last-child td{border-bottom:none}
 .tagChip{display:inline-block;font-size:10px;padding:2px 10px;border-radius:999px;background:var(--hover);color:var(--text2);cursor:pointer;border:1px solid transparent;margin:0 4px 4px 0}
 .tagChip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 .libPager{display:flex;gap:10px;align-items:center;justify-content:center;padding:8px 6px 2px}
-.swatch{width:26px;height:22px;padding:0;border-radius:6px;border:1px solid var(--border2)}
+.swatch{width:26px;height:26px;padding:0;border-radius:6px;border:1px solid var(--border2)}   /* §7: 正方形 */
 .swatch:hover{border-color:var(--blue)}
 .palette{position:fixed;z-index:50;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:9px;box-shadow:0 8px 24px rgba(0,0,0,.55)}
 .palTitle{margin-bottom:6px}
@@ -217,6 +215,36 @@ tr:last-child td{border-bottom:none}
 .palDot{width:22px;height:22px;padding:0;border-radius:5px;border:1px solid rgba(255,255,255,.25)}
 .palDot:hover{outline:2px solid var(--text2)}
 .palDot.on{outline:2px solid var(--blue)}
+/* §4/§5: ソートトグル（検索欄と同じ高さ）＋ 種別ごとの検索UI */
+.sortSearch{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.sortSeg{display:flex;flex:none;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.sortSegBtn{border:none;border-radius:0;background:var(--raised);color:var(--text2);font-size:12px;font-weight:700;padding:6px 11px;line-height:1.35}
+.sortSegBtn+.sortSegBtn{border-left:1px solid var(--border)}
+.sortSegBtn.on{background:var(--blue-soft);color:var(--blue)}
+.sortSearch .sortQ{flex:1 1 150px;min-width:110px;font-size:12px}
+.togSearch{display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex:1 1 100%}
+/* §2/§3: 音源選択の行（少し大きめの文字・枠内%・ピル型タグ） */
+.pickRow .volLab{flex:none;font-size:12px;color:var(--text3)}
+.pctBox{flex:none;display:inline-flex;align-items:center;gap:2px;border:1px solid var(--border);border-radius:6px;background:var(--bg);padding:2px 5px}
+.pctBox .ppct,.volPct .volNum{border:none;background:none;padding:0;width:40px;text-align:right;font-size:12px}
+.pctBox .ppct:focus,.volPct .volNum:focus{outline:none}
+.pctUnit{font-size:11px;color:var(--text3)}
+.pickRow .tagCol{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
+.pickRow .tagLab{font-size:11px;color:var(--text3);white-space:pre}
+.pickRow .gapWrap{font-size:11px;color:var(--text3);white-space:nowrap}
+.pickRow .gapIn{width:46px;text-align:right;margin:0 2px;-moz-appearance:textfield;appearance:textfield}
+.pickRow .gapIn::-webkit-inner-spin-button,.pickRow .gapIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* §6/§7: 任意ID（3桁ぴったり）・割当（2桁・矢印なし）・基準音量（バー中央に%）・色は正方形 */
+.cidIn{width:38px;text-align:center;padding:4px 3px}
+.assignIn{width:34px;text-align:center;padding:4px 3px;-moz-appearance:textfield;appearance:textfield}
+.assignIn::-webkit-inner-spin-button,.assignIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.volCell{display:flex;flex-direction:column;align-items:center;gap:2px}
+.volCell .hslider{width:100%;min-width:56px}
+.volPct{display:inline-flex;align-items:center;gap:1px}
+.volNum{-moz-appearance:textfield;appearance:textfield}
+.volNum::-webkit-inner-spin-button,.volNum::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.tagCell{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tagCell .tagAdd{width:58px;font-size:11px;padding:2px 5px}
 /* library: BGM / SE side by side */
 #libCols{display:flex;gap:16px;align-items:flex-start}
 .libCol{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px}
@@ -226,9 +254,7 @@ tr:last-child td{border-bottom:none}
 .libCol{overflow-x:auto}
 .libCol table{min-width:100%}
 .libCol td input[data-act=name]{min-width:104px}
-.libCol td input[data-act=cid]{min-width:56px}
-.libCol td input[data-act=tags]{min-width:86px}
-.libCol td input[data-act=fader]{min-width:46px}
+.libCol td .tagAdd{min-width:74px}
 .libCol td:last-child{white-space:nowrap}
 .libCol.bgm .kindTag{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue)}
 .libCol.se .kindTag{background:var(--orange-soft);color:var(--orange);border:1px solid var(--orange)}
@@ -239,20 +265,39 @@ tr:last-child td{border-bottom:none}
 .scPill{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3)}
 .sc-id{width:66px}
 .sc-name{width:150px}
-/* §3-9: IN秒 / OUT秒 — no spinner arrows, narrower */
-.sc-fade,.sc-out,.sc-in{width:52px}
+/* §3-9 + #13§1: IN秒 / OUT秒 — 矢印なし、さらに 2/3 の幅に */
+.sc-fade,.sc-out,.sc-in{width:35px;padding:4px 5px;text-align:right}
 .sc-out,.sc-in,.ppct{-moz-appearance:textfield;appearance:textfield}
 .sc-out::-webkit-inner-spin-button,.sc-in::-webkit-inner-spin-button,.ppct::-webkit-inner-spin-button,
 .sc-out::-webkit-outer-spin-button,.sc-in::-webkit-outer-spin-button,.ppct::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 /* §3-7 / §3-8: ▼ and ▲ are the same size (two steps smaller than before) and white */
 .pickCaret{font-size:12px;line-height:1;vertical-align:0;margin-left:4px;color:var(--text)}
 /* §3-2: these three buttons match the height of the 再生順 / シーン名 inputs */
-.sc-pick,.sc-temp,.sc-add{padding:4px 10px}
+.sc-pick,.sc-temp,.sc-add,.sc-edit,.sc-dup,.sc-del{padding:4px 10px}
 /* §3-6: the selected sources are always listed, in white at the size of 「クロスフェード」 */
 .scSelAll{margin-top:6px;padding:6px 9px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.7;font-size:14px;color:var(--text)}
 .scSelAll .selRow{display:flex;align-items:center;gap:8px}
 .scSelAll .selTxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.scSelAll .selDel{flex:none;padding:1px 7px;font-size:12px;line-height:1.4}
+/* #13§1: 「音源を編集」— 登録済み音源の音量バー・ループ・間隔・削除 */
+.scEdit{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+.seRow{display:flex;align-items:center;gap:8px;padding:4px 5px;border-radius:6px;font-size:13px}
+.seRow:hover{background:var(--hover)}
+.seRow .seMark{flex:none;font-size:14px}
+.seRow .seName{flex:0 0 170px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seRow .seVol{flex:1;min-width:90px;max-width:260px}
+.seRow .sePct{width:56px;text-align:right}
+.seRow .seUnit{color:var(--text3);font-size:11px}
+.seRow .seGap{font-size:11px;color:var(--text3);white-space:nowrap}
+.seRow .seGapIn{width:48px;text-align:right;margin:0 2px}
+.seRow .seDel{flex:none;padding:1px 7px;font-size:12px;line-height:1.4}
+.sePct,.seGapIn{-moz-appearance:textfield;appearance:textfield}
+.sePct::-webkit-inner-spin-button,.seGapIn::-webkit-inner-spin-button,
+.sePct::-webkit-outer-spin-button,.seGapIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* #13§2/§6/§7: タグはピル型 */
+.tagPill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:1px 9px;border-radius:999px;background:var(--hover);color:var(--text2);border:1px solid var(--border);white-space:nowrap}
+.tagPill .tagX{cursor:pointer;color:var(--text3);font-weight:700}
+.tagPill .tagX:hover{color:var(--red)}
+.tagPills{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0}
 .sc-temp.on{color:var(--wine);border-color:var(--wine);background:var(--wine-soft)}
 .xfLink{color:var(--blue)}
 /* 音源選択 panel: BGM left, SE right */
@@ -263,21 +308,21 @@ tr:last-child td{border-bottom:none}
 .pickTools{margin-bottom:6px}
 .pickTools select{font-size:11px;padding:2px 4px}
 .pickRows{max-height:260px;overflow-y:auto}
-.pickRow{display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:4px 5px;border-radius:6px;font-size:12px}
+.pickRow{display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:5px 5px;border-radius:6px;font-size:13px}
 .pickRow:hover{background:var(--hover)}
 .pickRow.on{background:var(--blue-soft)}
 .pickRow.silentRow{border-bottom:1px dashed var(--border);margin-bottom:4px;padding-bottom:6px}
 /* §3-10: rows are packed to the left; the name column keeps the volume aligned */
-.pickRow .pn{flex:0 0 150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickRow .pn{flex:0 0 160px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .pickRow .ptag{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pickRow .pgap{flex:none;width:16px}
-.pickRow .lp{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.pickRow .lp{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
 .pickRow .lp input{margin:0;vertical-align:middle}
 .pickRow .ppct{width:52px;text-align:right}
 .pickRow.silentRow .pn{flex:0 0 auto}
-.pickPrev{padding:1px 8px;font-size:11px;border-radius:6px;white-space:nowrap}
+.pickPrev{padding:4px 12px;font-size:12px;border-radius:6px;white-space:nowrap}
 .pickPrev.on{background:var(--orange-soft);border-color:var(--orange);color:var(--orange)}
-.pickAdd{padding:1px 6px;font-size:13px;line-height:1.3;border-radius:6px;background:none;border:1px solid var(--border)}
+.pickAdd{padding:2px 7px;font-size:15px;line-height:1.3;border-radius:6px;background:none;border:1px solid var(--border)}
 .pickAdd.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 .scChans{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;margin-top:8px;max-height:340px;overflow-y:auto}
 .sceneChanRow{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
@@ -286,6 +331,8 @@ tr:last-child td{border-bottom:none}
 #log{font-family:Menlo,Consolas,monospace;font-size:11px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;white-space:pre-wrap}
 kbd{font:11px Menlo,Consolas,monospace;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--raised)}
 dialog{margin:auto;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:520px;width:92%}
+/* §9: シーンカードをそのまま載せるダイアログは広く */
+dialog.wideDlg{max-width:min(1180px,96vw);max-height:92vh;overflow:auto}
 dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog h3{font-size:15px}
 .formGrid{display:grid;grid-template-columns:auto 1fr;gap:9px 10px;align-items:center;margin:14px 0}
@@ -293,10 +340,11 @@ dialog h3{font-size:15px}
 @media (max-width:1200px){#libCols{flex-direction:column}.libCol{width:100%}}
 /* narrow: the three masters stack full width and keep the same height */
 @media (max-width:900px){
-  #masterBar{gap:8px;padding:10px 12px}
-  .mb{flex:1 1 100%;min-width:0;min-height:34px}
-  .mb.all{padding-right:0;border-right:none;border-bottom:1px solid var(--border);padding-bottom:8px}
-  .mb .mbLab{width:112px;font-size:11px}
+  #masterBar{gap:6px;padding:7px 12px}
+  .mb{flex:1 1 100%;min-width:0;min-height:30px}
+  .mb.all{padding-right:0;border-right:none;border-bottom:1px solid var(--border);padding-bottom:6px}
+  .mb .mbLab{width:104px;font-size:11px}
+  .mb .mbBtn{min-width:88px;font-size:11px}
   .mb .hslider{max-width:none}
 }
 @media (max-width:1000px){#playSplit{flex-direction:column}#listPane{border-right:none;border-bottom:1px solid var(--border)}}
@@ -380,11 +428,8 @@ dialog h3{font-size:15px}
             </div>
           </div>
           <div id="sceneToolbar">
-            <button id="saveSceneBtn" class="accent">◉ 今の音をシーンに入れる</button>
+            <button id="saveSceneBtn" class="accent">◉ 現在の再生状態を新シーンとして追加</button>
             <button id="overwriteSceneBtn">上書き</button>
-            <button id="scenePauseBtn">■ シーン停止</button>
-            <button id="muteAllBtn" class="warn">MUTE ALL</button>
-            <button id="panicBtn" class="danger">■ 全停止</button>
           </div>
         </div>
       </div>
@@ -410,16 +455,19 @@ dialog h3{font-size:15px}
     <!-- ---- master bar: belongs to neither section ---- -->
     <div id="masterBar">
       <div class="mb all">
+        <button class="mbBtn warn" id="muteAllBtn">ミュート</button>
         <span class="mbLab">MASTER（全体）</span>
         <input type="range" class="hslider" id="allMaster" min="0" max="1000" step="5">
         <span class="mbVal" id="allMasterVal"></span>
       </div>
       <div class="mb">
+        <button class="mbBtn" id="scenePauseBtn">■ シーン停止</button>
         <span class="mbLab">BGM MASTER</span>
         <input type="range" class="hslider" id="bgmMaster" min="0" max="1000" step="5">
         <span class="mbVal" id="bgmMasterVal"></span>
       </div>
       <div class="mb">
+        <button class="mbBtn danger" id="panicBtn">■ 全停止</button>
         <span class="mbLab">SE MASTER</span>
         <input type="range" class="hslider" id="seMaster" min="0" max="1000" step="5">
         <span class="mbVal" id="seMasterVal"></span>
@@ -459,27 +507,23 @@ dialog h3{font-size:15px}
 
       <div class="card">
         <h3>音源を検索</h3>
-        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。検索とタグ絞り込みは両方の列に効きます。列ヘッダのクリックで昇順⇄降順（日本語はあいうえお順）。</div>
-        <div class="rowflex" style="margin-bottom:10px">
-          <input id="librarySearch" placeholder="検索（名前・任意ID・タグ）" style="width:280px">
-          <button id="tagClearBtn" class="iconbtn" style="display:none">タグ絞り込みを解除</button>
-          <span class="tiny" id="libCount"></span>
-        </div>
-        <div id="tagChips"></div>
+        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。左のトグルでソート種別を切り替えると、検索欄も名前／タグ／任意IDに合わせて変わります（タグ・任意IDはトグルで複数選択できます）。検索は下の2つの列どちらにも効きます。</div>
+        <div id="libSearchBox"></div>
+        <div class="tiny" id="libCount" style="margin-top:8px"></div>
         <datalist id="tagList"></datalist>
       </div>
       <input type="file" id="fileInput" accept="audio/*" multiple style="display:none">
       <div id="libCols">
         <div class="libCol bgm" id="libColBgm">
-          <h3><span class="kindTag">BGM</span><span>シーンのチャンネル／割り込みフェーダー</span><span class="spacer"></span><button class="iconbtn accent" id="importBgmBtn">＋ BGMを取り込む</button></h3>
+          <h3><span class="kindTag">BGM</span><span>音源一覧管理・割込フェーダー登録</span><span class="spacer"></span><button class="iconbtn accent" id="importBgmBtn">＋ BGMを取り込む</button></h3>
           <table>
             <thead><tr>
               <th style="width:26px"></th>
+              <th data-sort="customId" data-col="bgm" style="width:40px">任意ID</th>
               <th data-sort="name" data-col="bgm">名前</th>
-              <th data-sort="customId" data-col="bgm" style="width:56px">任意ID</th>
-              <th style="width:96px">タグ</th>
-              <th data-sort="faderNo" data-col="bgm" style="width:74px">フェーダー割当</th>
-              <th style="width:70px">基準音量</th>
+              <th style="width:150px">タグ</th>
+              <th data-sort="faderNo" data-col="bgm" style="width:52px">フェーダー割当</th>
+              <th style="width:78px">基準音量</th>
               <th style="width:36px">ループ</th>
               <th data-sort="duration" data-col="bgm" style="width:46px">長さ</th>
               <th style="width:102px"></th>
@@ -490,16 +534,16 @@ dialog h3{font-size:15px}
           <div class="libPager" id="libPagerBgm"></div>
         </div>
         <div class="libCol se" id="libColSe">
-          <h3><span class="kindTag">SE</span><span>パッドから単発再生</span><span class="spacer"></span><button class="iconbtn accent" id="importSeBtn">＋ SEを取り込む</button></h3>
+          <h3><span class="kindTag">SE</span><span>SEパッド音源登録</span><span class="spacer"></span><button class="iconbtn accent" id="importSeBtn">＋ SEを取り込む</button></h3>
           <table>
             <thead><tr>
               <th style="width:26px"></th>
+              <th data-sort="customId" data-col="se" style="width:40px">任意ID</th>
               <th data-sort="name" data-col="se">名前</th>
-              <th data-sort="customId" data-col="se" style="width:56px">任意ID</th>
-              <th style="width:96px">タグ</th>
-              <th data-sort="padNo" data-col="se" style="width:66px">ボタン割当</th>
-              <th style="width:44px">色</th>
-              <th style="width:70px">基準音量</th>
+              <th style="width:150px">タグ</th>
+              <th data-sort="padNo" data-col="se" style="width:52px">ボタン割当</th>
+              <th style="width:38px">色</th>
+              <th style="width:78px">基準音量</th>
               <th data-sort="duration" data-col="se" style="width:46px">長さ</th>
               <th style="width:110px"></th>
             </tr></thead>
@@ -569,53 +613,25 @@ dialog h3{font-size:15px}
 </div>
 <audio id="previewAudio" style="display:none"></audio>
 
-<!-- unified save/overwrite form -->
-<dialog id="sceneForm">
-  <h3 id="sfTitle">シーンを保存</h3>
+<!-- §9: 新シーン追加／上書き（詳細編集のカードと同じUI） -->
+<dialog id="sceneForm" class="wideDlg">
+  <h3 id="sfTitle">◉ 現在の再生状態を新シーンとして追加</h3>
   <div class="small" id="sfLead"></div>
-  <div class="formGrid">
-    <label>セッション</label><select id="sfSession"></select>
-    <label>再生順</label><input id="sfOrder" type="number" step="0.1" placeholder="1.5 のような小数も可">
-    <label>Scene Name</label><input id="sfName">
-    <label>IN方法（このシーンに入るとき）</label><select id="sfInWay"></select>
-    <label id="sfInLab">IN秒</label><input id="sfIn" type="number" min="0.1" step="0.1">
-    <label>OUT方法（このシーンから出るとき）</label><select id="sfOutWay"></select>
-    <label id="sfOutLab">OUT秒</label><input id="sfOut" type="number" min="0.1" step="0.1">
-    <label>シーンのマスター音量</label>
-    <span class="rowflex"><input id="sfMaster" type="range" class="hslider" min="0" max="1000" step="5" style="flex:1"><span class="tiny" id="sfMasterVal"></span></span>
+  <div class="rowflex" style="margin:10px 0 8px">
+    <span class="scPill">セッション：</span><select id="sfSession" style="min-width:200px"></select>
   </div>
-  <div class="tiny" id="sfPreview" style="margin-bottom:14px"></div>
-  <div class="rowflex" style="justify-content:flex-end">
+  <div id="sfCard"></div>
+  <div class="tiny" id="sfPreview" style="margin-top:10px"></div>
+  <div class="rowflex" style="justify-content:flex-end;margin-top:12px">
     <button id="sfCancel">キャンセル</button>
-    <button id="sfOk" class="accent">保存</button>
   </div>
 </dialog>
 
-<!-- per-scene 🎚️ config -->
-<dialog id="sceneCfg">
-  <h3 id="scfTitle">シーンの設定</h3>
-  <div class="scHead" style="margin:10px 0 4px">
-    <span class="scPill">IN方法</span><select class="sc-way" id="scfInWay"></select>
-    <span class="fadeIn"><span class="scPill">IN秒</span> <input class="sc-in" id="scfIn" type="number" min="0.1" step="0.1"></span>
-    <span class="scPill">OUT方法</span><select class="sc-way" id="scfOutWay"></select>
-    <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" id="scfOut" type="number" min="0.1" step="0.1"></span>
-  </div>
-  <div class="scHead" style="margin:8px 0 4px">
-    <span class="scPill">シーンのマスター音量</span>
-    <input id="scfMaster" type="range" class="hslider" min="0" max="1000" step="5" style="flex:1;min-width:120px">
-    <span class="tiny" id="scfMasterVal"></span>
-  </div>
-  <div class="small" style="margin:12px 0 4px">音量の設定（%）</div>
-  <div class="rowflex" style="margin-bottom:6px">
-    <input id="scfFilter" placeholder="チャンネルを絞り込み（名前・任意ID）" style="flex:1;min-width:180px">
-    <span class="tiny" id="scfCount"></span>
-  </div>
-  <div class="scChans" id="scfChans"></div>
-  <div class="small" style="margin:14px 0 4px">音源の差し替え（使用中のチャンネル）</div>
-  <div id="scfSwap" class="tiny"></div>
-  <div class="rowflex" style="justify-content:flex-end;margin-top:16px">
-    <button id="scfDel" class="danger">このシーンを削除</button>
-    <span class="spacer"></span>
+<!-- §9: ✏️ シーン編集（詳細編集のカードと同じUI） -->
+<dialog id="sceneCfg" class="wideDlg">
+  <h3 id="scfTitle">✏️ シーンを編集</h3>
+  <div id="scfCard" style="margin-top:10px"></div>
+  <div class="rowflex" style="justify-content:flex-end;margin-top:14px">
     <button id="scfClose" class="accent">閉じる</button>
   </div>
 </dialog>
@@ -724,8 +740,8 @@ const blobPut=(k,v)=>idb('blobs','readwrite',st=>st.put(v,k));
 const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
 const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
 
-/* ===================== State (version 3) ===================== */
-const STATE_VERSION=5;
+/* ===================== State (version 6) ===================== */
+const STATE_VERSION=6;
 function blankState(){
   return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
           settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55}};
@@ -759,6 +775,7 @@ function migrate(raw){
     if(!s.values||typeof s.values!=='object')s.values={};
     if(!s.seValues||typeof s.seValues!=='object')s.seValues={};   // v3: SEs registered in the scene
     if(!s.loops||typeof s.loops!=='object')s.loops={};             // v4: loop flag per scene registration
+    if(!s.loopGaps||typeof s.loopGaps!=='object')s.loopGaps={};    // v6: SEのループ間隔（秒）
     if(typeof s.fadeSec!=='number')s.fadeSec=3;
     // optional per-direction fade times. Drop anything unusable so fadeSec takes over.
     for(const k of ['fadeOutSec','fadeInSec'])
@@ -779,6 +796,11 @@ function migrate(raw){
     }
     for(const id of Object.keys(s.loops))
       if(!(id in s.values)&&!(id in s.seValues))delete s.loops[id];
+    /* v6: ループ間隔は「登録されているSE」のぶんだけ、正の数だけ残す */
+    for(const id of Object.keys(s.loopGaps)){
+      const g=Number(s.loopGaps[id]);
+      if(!(id in s.seValues)||!isFinite(g)||g<=0)delete s.loopGaps[id];else s.loopGaps[id]=g;
+    }
     // v3: per-scene master volume (a ceiling over every channel of this scene)
     if(typeof s.master!=='number'||!isFinite(s.master))s.master=1000;
     s.master=clamp(s.master,0,1000);
@@ -794,8 +816,21 @@ function migrate(raw){
     if(a.padNo!==null)a.padNo=Number(a.padNo);
     if(a.padNo!==null&&!isFinite(a.padNo))a.padNo=null;
     if(typeof a.padColor!=='string'||!/^#[0-9a-fA-F]{6}$/.test(a.padColor))a.padColor=PAD_DEFAULT_COLOR;  // v5
-    if(!Array.isArray(a.tags))a.tags=[];
+    /* #13§6/§7: タグは複数登録。古い単一タグ（a.tag）は配列へ引き継ぐ */
+    if(!Array.isArray(a.tags))a.tags=(typeof a.tag==='string'&&a.tag.trim())?[a.tag.trim()]:[];
+    delete a.tag;
+    a.tags=[...new Set(a.tags.map(t=>String(t).trim()).filter(Boolean))];
   });
+  /* v6（§6・§7）: 任意IDは取り込み順の整数。未設定のものだけ、使われていない番号を若い順に埋める */
+  (function numberCustomIds(){
+    const used=new Set(st.audios.map(a=>String(a.customId||'').trim()).filter(Boolean));
+    let n=1;
+    for(const a of st.audios){
+      if(String(a.customId||'').trim())continue;
+      while(used.has(String(n)))n++;
+      a.customId=String(n);used.add(String(n));n++;
+    }
+  })();
   if(!st.currentSessionId||!st.sessions.some(x=>x.id===st.currentSessionId))st.currentSessionId=st.sessions[0].id;
   linkXfadeIn(st);                 // Q2: stored IN follows the previous scene's crossfade OUT
   st.version=STATE_VERSION;
@@ -862,6 +897,20 @@ const padAudios=()=>{
 const sceneMaster=s=>(typeof s.master==='number'?clamp(s.master,0,1000):1000)/1000;
 /* whether this scene wants the given source to loop (independent of the library flag) */
 const sceneLoopOf=(s,id)=>!!(s&&s.loops&&s.loops[id]);
+/* §3: ループSEの再生間隔（秒）。0 なら従来どおり連続ループ */
+const sceneLoopGap=(s,id)=>{const g=Number(s&&s.loopGaps&&s.loopGaps[id]);return isFinite(g)&&g>0?g:0;};
+function setSceneLoopGap(s,id,v){
+  const n=Math.max(0,Number(v)||0);
+  if(!s.loopGaps)s.loopGaps={};
+  if(n>0)s.loopGaps[id]=n;else delete s.loopGaps[id];
+}
+/* シーン別ループのON/OFFを、いま鳴っているBGMチャンネルにも反映する */
+function applySceneLoopChange(scene,id,checked){
+  if(scene.id!==live.currentSceneId||live.trans)return;
+  live.currentLoops[id]=checked;
+  const ch=engine.channels.get(id);
+  if(ch&&ch.playing){ch.loop=checked;try{ch.src.loop=checked;}catch(e){}}
+}
 function sceneValuesOf(s){
   const m=sceneMaster(s),out={};
   for(const[id,v]of Object.entries(s.values||{})){const x=Math.round((v||0)*m);if(x>0)out[id]=x;}
@@ -1058,7 +1107,7 @@ function fireSceneSE(s){
   const m=sceneMaster(s);
   for(const[id,v]of Object.entries(s.seValues||{})){
     const a=audioById(id);
-    if(a&&a.kind==='se'&&(v||0)>0)playSE(id,Math.round((v||0)*m),sceneLoopOf(s,id),true);
+    if(a&&a.kind==='se'&&(v||0)>0)playSE(id,Math.round((v||0)*m),sceneLoopOf(s,id),true,sceneLoopGap(s,id));
   }
 }
 function cancelTransition(){
@@ -1120,7 +1169,7 @@ function restoreSceneLayer(s){
      （シーンに入り直したときと同じ）。シーンが消えている場合だけ記録から復元する。 */
   const sc=s.id?sceneById(s.id):null;
   if(sc)fireSceneSE(sc);
-  else for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,true);
+  else for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,true,m.gap);
 }
 function restoreIntLayer(s){
   live.interrupt={...s.values};
@@ -1129,7 +1178,7 @@ function restoreIntLayer(s){
   Promise.all(Object.keys(live.interrupt).filter(id=>effectiveValue(id)>0).map(id=>ensureChannel(id)))
     .then(()=>{applyMix();renderPerform();});
 }
-function restorePadLayer(s){for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,false);}
+function restorePadLayer(s){for(const m of (s.se||[]))playSE(m.id,m.vol,m.loop,false,m.gap);}
 
 /* ■ シーン停止 / ▶ シーン再開 ＝ ■ ALL STOP / ▶ ALL START（同じ scene 層） */
 function stopScene(){
@@ -1207,41 +1256,52 @@ function toggleMuteAll(){
   ensureCtx();
   if(live.muted){live.muted=false;setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
   else{live.muted=true;setGainSmooth(engine.master.gain,0);}
-  renderPerform();
+  syncBusFaders();renderPerform();
 }
 /* ---- SE one-shot (toggle: pressing a playing pad stops it) ---- */
 const sePlaying=new Set();
 const seActive=new Map();     // audioId -> Set<AudioBufferSourceNode>
 const sceneSESrcs=new Set();  // sources started because the playing scene registered them
+const seGapTimers=new Map();  // §3: ループ間隔の待ち時間タイマー timer -> {id,scene}
+function clearGapTimers(pred){
+  for(const[t,info]of [...seGapTimers])if(!pred||pred(info)){clearTimeout(t);seGapTimers.delete(t);}
+}
 function markPad(id,on){
   const pad=$(`.sePad[data-id="${id}"]`);
   if(pad)pad.classList.toggle('on',!!on);
 }
 function stopSE(id){
+  clearGapTimers(i=>i.id===id);
   const set=seActive.get(id);
-  if(set){for(const s of set){try{s.stop();}catch(e){}sePlaying.delete(s);sceneSESrcs.delete(s);}}
+  if(set){for(const s of set){s.__seStopped=true;try{s.stop();}catch(e){}sePlaying.delete(s);sceneSESrcs.delete(s);}}
   seActive.delete(id);
   markPad(id,false);
 }
 /* stop only what the playing scene started (pads keep going) */
 function stopSceneSE(){
+  clearGapTimers(i=>i.scene);
   for(const src of [...sceneSESrcs]){
-    try{src.stop();}catch(e){}
+    src.__seStopped=true;try{src.stop();}catch(e){}
     sePlaying.delete(src);sceneSESrcs.delete(src);
     const m=src.__se;
     if(m){const set=seActive.get(m.id);if(set){set.delete(src);if(!set.size){seActive.delete(m.id);markPad(m.id,false);}}}
   }
 }
 function stopAllSE(){
+  clearGapTimers();
   for(const id of [...seActive.keys()])stopSE(id);
-  for(const p of sePlaying){try{p.stop();}catch(e){}}
+  for(const p of sePlaying){p.__seStopped=true;try{p.stop();}catch(e){}}
   sePlaying.clear();sceneSESrcs.clear();
 }
-function startSE(id,a,buf,vol,loop,isScene){
+function startSE(id,a,buf,vol,loop,isScene,gap){
   const lvl=(vol==null?1000:clamp(vol,0,1000))/1000;
+  const gp=Math.max(0,Number(gap)||0);
   const g=engine.ctx.createGain();g.gain.value=lvl*((a.baseVolume??1000)/1000);g.connect(engine.seBus);
-  const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=!!loop;src.connect(g);
-  src.__se={id,vol:(vol==null?1000:clamp(vol,0,1000)),loop:!!loop,scene:!!isScene};
+  const src=engine.ctx.createBufferSource();src.buffer=buf;
+  /* §3: ループ間隔つきのときは連続ループにせず、鳴り終わってから間隔をおいて鳴らし直す */
+  src.loop=!!loop&&!gp;
+  src.connect(g);
+  src.__se={id,vol:(vol==null?1000:clamp(vol,0,1000)),loop:!!loop,scene:!!isScene,gap:gp};
   let set=seActive.get(id);if(!set){set=new Set();seActive.set(id,set);}
   set.add(src);sePlaying.add(src);
   if(isScene)sceneSESrcs.add(src);
@@ -1249,6 +1309,10 @@ function startSE(id,a,buf,vol,loop,isScene){
     sePlaying.delete(src);set.delete(src);sceneSESrcs.delete(src);
     try{g.disconnect();}catch(e){}
     if(!set.size){seActive.delete(id);markPad(id,false);}
+    if(loop&&gp&&!src.__seStopped){
+      const t=setTimeout(()=>{seGapTimers.delete(t);playSE(id,vol,loop,isScene,gp);},gp*1000);
+      seGapTimers.set(t,{id,scene:!!isScene});
+    }
   };
   src.start();                       // no ramp: the sound is there on this very frame
   markPad(id,true);
@@ -1256,12 +1320,12 @@ function startSE(id,a,buf,vol,loop,isScene){
   if(pad){pad.classList.add('flash');setTimeout(()=>pad.classList.remove('flash'),180);}
 }
 /* play without toggling — used by scenes and by ALL START */
-function playSE(id,vol,loop,isScene){
+function playSE(id,vol,loop,isScene,gap){
   ensureCtx();
   const a=audioById(id);if(!a)return;
   const buf=engine.buffers.get(id);
-  if(buf){startSE(id,a,buf,vol,loop,isScene);return;}
-  getBuffer(id).then(b=>startSE(id,a,b,vol,loop,isScene)).catch(()=>{});
+  if(buf){startSE(id,a,buf,vol,loop,isScene,gap);return;}
+  getBuffer(id).then(b=>startSE(id,a,b,vol,loop,isScene,gap)).catch(()=>{});
 }
 /* pad press: toggles. Synchronous when the buffer is already decoded (prewarm keeps it that way) */
 function triggerSE(id,vol,loop){
@@ -1421,7 +1485,7 @@ function renderSceneList(){
     const d=document.createElement('div');d.className='sceneItem';
     if(s.id===live.currentSceneId)d.classList.add('current');
     if(s.id===live.nextSceneId)d.classList.add('next');
-    d.innerHTML=`<div class="sname"><span class="sid"></span><span class="stxt"></span></div><div class="smeta"></div><button class="scGear" title="このシーンの設定">🎚️</button>`;
+    d.innerHTML=`<div class="sname"><span class="sid"></span><span class="stxt"></span></div><div class="smeta"></div><button class="scGear" title="このシーンを編集">✏️</button>`;
     d.querySelector('.sid').textContent=String(s.orderId);
     d.querySelector('.stxt').textContent=s.name;
     d.querySelector('.stxt').title=s.name;
@@ -1443,8 +1507,8 @@ function renderStage(){
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
   $('#nowName').textContent=cur?`${cur.orderId} ${cur.name}`:'（無音）';
   /* §2: シーンだけ先に戻したときに「全停止中」とだけ出ると矛盾するので出し分ける */
-  $('#nowSub').textContent=(live.allOff&&live.sceneStopped)?'全停止中（「▶ シーン再開」でシーンだけ／「▶ 全再生開始」で全部戻ります）'
-    :live.allOff?'割込・ポン出しが停止中（「▶ 全再生開始」で戻ります）'
+  $('#nowSub').textContent=(live.allOff&&live.sceneStopped)?'全停止中（「▶ シーン再開」でシーンだけ／「▶ 全再開」で全部戻ります）'
+    :live.allOff?'割込・ポン出しが停止中（「▶ 全再開」で戻ります）'
     :live.sceneStopped?'シーン停止中（「▶ シーン再開」で戻ります）'
     :cur?`OUT方法: ${wayShort(cur.outMode)}${(cur.outMode||'xfade')!=='cut'?'（'+outSec(cur)+'秒）':''}`
     :'シーンを選んで GO で再生します';
@@ -1470,8 +1534,8 @@ function renderSceneActions(){
   const cur=live.currentSceneId?sceneById(live.currentSceneId):null;
   $('#overwriteSceneBtn').textContent=cur?`上書き（${cur.name}）`:'上書き';
   const mb=$('#muteAllBtn');
-  mb.textContent=live.muted?'MUTE 解除':'MUTE ALL';
-  mb.title='全体マスターの音量を0にします（再生は止まらないので、解除すると曲の続きから聞こえます）';
+  mb.textContent=live.muted?'ミュート解除':'ミュート';
+  mb.title='MASTER（全体）のゲージを0にします。シーン・ポン出し・割込フェーダーがすべて音量0%になります（再生は止まらないので、解除すると曲の続きから聞こえます）';
   mb.classList.toggle('warn',!live.muted);
   mb.classList.toggle('accent',!!live.muted);
   /* #12 §1: 停止系は「■ シーン停止」と「■ 全停止」の2つ。
@@ -1482,14 +1546,14 @@ function renderSceneActions(){
   pb.classList.toggle('accent',paused);
   pb.disabled=!paused&&!sceneAlive();
   pb.title=paused
-    ?(off?'シーンの音だけ先に戻します（割込・ポン出しは「▶ 全再生開始」で戻ります）':'止めたシーンの音を戻します')
-    :'シーンの音だけを止めます（ポン出し・割込フェーダーは鳴り続けます）';
+    ?(off?'シーンの音だけ先に戻します（割込・ポン出しは「▶ 全再開」で戻ります）':'止めたシーンで鳴っていた音を全部戻します')
+    :'シーンで鳴っている音を全部止めます（ポン出し・割込フェーダーは鳴り続けます）';
   const pn=$('#panicBtn');
-  pn.textContent=off?'▶ 全再生開始':'■ 全停止';
+  pn.textContent=off?'▶ 全再開':'■ 全停止';
   pn.title=off
-    ? '全停止する前の状態（シーン・ポン出し・割込フェーダー）から全再生を開始します。SEは先頭から鳴り直します'
+    ? '全停止する前の状態（シーン・ポン出し・割込フェーダー）から全部鳴らし直します。SEは先頭から鳴り直します'
       +(live.sceneStopped?'':'（シーンはすでに再開済みなので、残りの割込・ポン出しが戻ります）')
-    : 'シーン・ポン出し・割込フェーダーを全部止めます（MUTE ALL は音量を0にするだけ／こちらは再生自体を止めて「▶ 全再生開始」で戻します）';
+    : 'シーン・ポン出し・割込フェーダーを全部止めます（ミュートは音量を0にするだけ／こちらは再生自体を止めて「▶ 全再開」で戻します）';
   pn.classList.toggle('danger',!off);
   pn.classList.toggle('accent',off);
   pn.disabled=!off&&!sceneAlive()&&!intAlive()&&!padAlive()&&!live.stops.length;
@@ -1501,7 +1565,7 @@ function renderHelpLines(){
     ['<kbd>Enter</kbd> GO','NEXTシーンへ規定の時間で遷移します'],
     ['<kbd>←</kbd><kbd>→</kbd> NEXT選択','セッション内でループします'],
     live.sceneStopped?['<kbd>Space</kbd> シーン再開','止めたシーンの音を戻します（「▶ シーン再開」と同じ）']
-                     :['<kbd>Space</kbd> シーン停止','シーンの音だけ止めます（全部止めるなら「■ 全停止」）'],
+                     :['<kbd>Space</kbd> シーン停止','シーンで鳴っている音を全部止めます（ポン出し・割込も止めるなら「■ 全停止」）'],
     ['手動フェーダー','動かした位置と速度に追従して遷移します'],
   ];
   $('#helpLines').innerHTML=items.map(([k,d])=>
@@ -1537,7 +1601,9 @@ ui.xfader.set=(v,silent)=>{_xfSet(v);$('#xfVal').textContent=Math.round(v/10)+'%
 $('#allMaster').addEventListener('input',e=>{
   const v=Number(e.target.value);
   state.settings.masterAll=v;ensureCtx();
-  if(!live.muted)setGainSmooth(engine.master.gain,v/1000);   // MUTE中は0を保つ（解除でこの値へ）
+  /* §8-1: ゲージが0になる仕様なので、ここを動かしたらミュートは解除する */
+  if(live.muted){live.muted=false;renderSceneActions();}
+  setGainSmooth(engine.master.gain,v/1000);
   $('#allMasterVal').textContent=pctText(v);markDirty();
 });
 $('#bgmMaster').addEventListener('input',e=>{
@@ -1551,7 +1617,9 @@ $('#seMaster').addEventListener('input',e=>{
   $('#seMasterVal').textContent=pctText(v);markDirty();
 });
 function syncBusFaders(){
-  $('#allMaster').value=state.settings.masterAll;$('#allMasterVal').textContent=pctText(state.settings.masterAll);
+  /* §8-1: ミュート中は MASTER（全体）のゲージを 0 で見せる（保存値は保持） */
+  const all=live.muted?0:state.settings.masterAll;
+  $('#allMaster').value=all;$('#allMasterVal').textContent=pctText(all);
   $('#bgmMaster').value=state.settings.master;$('#bgmMasterVal').textContent=pctText(state.settings.master);
   $('#seMaster').value=state.settings.seVol;$('#seMasterVal').textContent=pctText(state.settings.seVol);
 }
@@ -1628,15 +1696,15 @@ function renderInterruptFaders(){
   const strip=$('#interruptStrip');strip.innerHTML='';intFaders.clear();
   const list=faderAudios();
   if(!list.length){
-    strip.innerHTML='<div class="emptyNote">割込フェーダーは空です。「詳細編集 → 音源を検索」のBGM列で<b>フェーダー割当</b>（1〜12目安）を入れると、ここに番号順で並びます。<br>シーンの保存値には一切影響しません。</div>';
+    strip.innerHTML='<div class="emptyNote">割込フェーダーは空です。「詳細編集 → 音源一覧管理・割込フェーダー登録」で<b>フェーダー割当</b>（1〜12目安）を入れると、ここに番号順で並びます。<br>この系統はシーン再生から完全に独立していて、シーンの保存値にも表示にも影響しません。</div>';
     return;
   }
   for(const a of list){
+    /* §8-4: シーン側の値は一切見ない（表示・状態はこのフェーダーの値だけで決まる） */
     const iv=Math.round(live.interrupt[a.id]||0);
-    const sv=Math.round(sceneValue(a.id));
     const st=intStopped.get(a.id);
-    const d=document.createElement('div');d.className='chan'+(Math.max(iv,sv)<=0?' silent':'')+(st?' stopped':'');
-    d.innerHTML=`<div class="cslot"></div><div class="cname"></div><div class="vfader"></div><div class="cval"></div><div class="cscene"></div><div class="cstop"></div>`;
+    const d=document.createElement('div');d.className='chan'+(iv<=0?' silent':'')+(st?' stopped':'');
+    d.innerHTML=`<div class="cslot"></div><div class="cname"></div><div class="vfader"></div><div class="cval"></div><div class="cstop"></div>`;
     d.querySelector('.cslot').textContent='No.'+a.faderNo;
     d.querySelector('.cname').textContent=a.name;
     d.querySelector('.cname').title=a.name;
@@ -1657,24 +1725,22 @@ function renderInterruptFaders(){
         }
         applyMix();
         d.querySelector('.cval').textContent=pctText(val);
-        d.classList.toggle('silent',Math.max(val,Math.round(sceneValue(a.id)))<=0);
+        d.classList.toggle('silent',val<=0);
         d.classList.remove('stopped');
         renderStopBtns(a,d,f);
         renderSceneActions();
       }
     });
     f.set(iv);
-    f.setGhost(sv>0?sv:null);
     d.querySelector('.cval').textContent=pctText(iv);
-    d.querySelector('.cscene').textContent=sv>0?('シーン '+pctText(sv)):'';
     renderStopBtns(a,d,f);
     intFaders.set(a.id,{fader:f,el:d});
     strip.appendChild(d);
   }
 }
-/* Stop button. It only ever releases the interrupt overlay:
-   - the scene still wants this channel -> keep the source running, drop back to the scene value
-   - the scene does not want it -> really stop the source and offer resume from position / from start */
+/* Stop button. §8-4: 表示も挙動もシーン側を見ない（このフェーダーの値だけで決まる）。
+   ただし同じ音源をシーンも鳴らしている場合、音の実体は1チャンネル共有なので
+   シーンの音を切らないためにソースは止めずに残す（表示は常に同じ）。 */
 function renderStopBtns(a,d,f){
   const box=d.querySelector('.cstop');box.innerHTML='';
   const st=intStopped.get(a.id);
@@ -1682,40 +1748,24 @@ function renderStopBtns(a,d,f){
     const iv=Math.round(live.interrupt[a.id]||0);
     const b=document.createElement('button');
     b.textContent='■ 停止';b.className='danger';b.disabled=iv<=0;
-    const sceneOnly=iv<=0&&Math.round(sceneValue(a.id))>0;
-    d.classList.toggle('sceneOnly',sceneOnly);
-    b.title=sceneOnly?'割り込みは解除済みです（シーンの音は再生中）'
-      :iv<=0?'割り込みが0%なので停止するものがありません':'割り込みの上乗せ分を解除します';
+    b.title=iv<=0?'このフェーダーが0%なので停止するものがありません':'このフェーダーの音を止めます';
     b.addEventListener('click',()=>{
       const value=live.interrupt[a.id]||0;
       if(value<=0)return;
-      const sv=Math.round(sceneValue(a.id));
+      const offset=channelPosition(a.id);
       live.interrupt[a.id]=0;
-      if(sv>0){
-        // scene keeps this channel: no source stop, so the audio never breaks up
-        applyMix();
-        d.classList.remove('stopped');
-      }else{
-        const offset=channelPosition(a.id);
-        intStopped.set(a.id,{value,offset});
-        stopChannel(a.id);
-        applyMix();
-        d.classList.add('stopped');
-      }
+      intStopped.set(a.id,{value,offset});
+      if(Math.round(sceneValue(a.id))<=0)stopChannel(a.id);   // シーンが鳴らしている音は切らない
+      applyMix();
       f.set(0);
       d.querySelector('.cval').textContent=pctText(0);
-      d.classList.toggle('silent',sv<=0);
+      d.classList.add('stopped');d.classList.add('silent');
       renderStopBtns(a,d,f);
       renderSceneActions();
     });
     box.appendChild(b);
-    if(sceneOnly){
-      const note=document.createElement('div');note.className='tiny relNote';note.textContent='割り込み解除';
-      box.appendChild(note);
-    }
     return;
   }
-  d.classList.remove('sceneOnly');
   const resume=(fromStart)=>{
     if(guardPanic('割込フェーダー '+a.name,()=>resume(fromStart)))return;
     const v=st.value>0?st.value:500;
@@ -1745,20 +1795,12 @@ function applyInterrupt(id,val){
   }
   applyMix();
 }
-/* during a transition only the scene-derived readout moves; the fader itself must not */
-function updateInterruptReadouts(){
-  for(const[id,{fader,el}]of intFaders){
-    const sv=Math.round(sceneValue(id));
-    const iv=Math.round(live.interrupt[id]||0);
-    fader.setGhost(sv>0?sv:null);
-    el.querySelector('.cscene').textContent=sv>0?('シーン '+pctText(sv)):'';
-    el.classList.toggle('silent',Math.max(sv,iv)<=0);
-  }
-}
+/* §8-4: 割込フェーダーはシーンの動きに一切反応しない（遷移中も表示は変わらない） */
+function updateInterruptReadouts(){}
 
 /* ===================== Unified save / overwrite form ===================== */
 const dlg=$('#sceneForm');
-let sfKind='new',sfSceneId=null,sfValues=null;
+let sfKind='new',sfSceneId=null,sfValues=null,sfDraft=null;
 /* commit style: the saved value is the effective mix (scene value or interrupt, whichever is higher) */
 function snapshotValues(){
   const v={};
@@ -1784,54 +1826,48 @@ function fillWayOptions(sel,v){
   }
   sel.value=v||'xfade';
 }
+/* §9: 「現在の再生状態を新シーンとして追加」も、詳細編集のカードと同じUIで出す */
 function openSceneForm(kind,sceneId){
   sfKind=kind;sfSceneId=sceneId||null;
   const sc=sceneId?sceneById(sceneId):null;
   const sid=sc?sc.sessionId:state.currentSessionId;
   sfValues=snapshotValues();
-  $('#sfTitle').textContent=kind==='new'?'今の音を新しいシーンとして保存':'再生中シーンを今の音で上書き';
-  $('#sfLead').textContent='いま鳴っている音量（割り込みフェーダーの上乗せ分を含む実効値）をシーンに焼き込みます。保存後、割り込みフェーダーは0%に戻りますが聞こえる音は変わりません。';
+  $('#sfTitle').textContent=kind==='new'?'◉ 現在の再生状態を新シーンとして追加':'再生中シーンを今の音で上書き';
+  $('#sfLead').textContent='いま鳴っている音量（ポン出し・割り込みフェーダーの上乗せ分を含む実効値）をシーンに焼き込みます。保存後、割り込みフェーダーは0%に戻りますが聞こえる音は変わりません。';
   fillSessionOptions($('#sfSession'),sid);
-  fillWayOptions($('#sfOutWay'),sc?sc.outMode:'xfade');
-  fillWayOptions($('#sfInWay'),sc?sc.inMode:'xfade');
-  $('#sfOrder').value=sc?sc.orderId:nextOrderId(sid);
-  $('#sfName').value=sc?sc.name:('Scene '+(scenesOf(sid).length+1));
-  $('#sfOut').value=sc?outSec(sc):3;
-  $('#sfIn').value=sc?inSec(sc):3;
-  $('#sfMaster').value=sc?(sc.master??1000):1000;
-  $('#sfMasterVal').textContent=pctText($('#sfMaster').value);
-  syncSfFade();
+  sfDraft=sc?JSON.parse(JSON.stringify(sc)):newDraft();
+  sfDraft.values={...sfValues};
+  if(!sc){
+    sfDraft.orderId=nextOrderId(sid);
+    sfDraft.name='Scene '+(scenesOf(sid).length+1);
+    sfDraft.seValues={};sfDraft.loops={};sfDraft.loopGaps={};
+  }
+  const wrap=$('#sfCard');wrap.innerHTML='';
+  wrap.appendChild(sceneCardEl(sfDraft,true,{
+    addLabel:kind==='new'?'＋ このシーンを追加':'上書き保存',
+    noTemp:true,
+    onAdd:d=>commitSceneForm(d),
+  }));
   const n=Object.keys(sfValues).length;
   $('#sfPreview').textContent=n
-    ?`保存される音量: ${Object.entries(sfValues).map(([id,v])=>`${(audioById(id)||{}).name||'?'} ${pctText(v)}`).join(' / ')}`
-    :'保存される音量: （すべて0% — 無音のシーンになります）';
+    ?`焼き込まれる音量: ${Object.entries(sfValues).map(([id,v])=>`${(audioById(id)||{}).name||'?'} ${pctText(v)}`).join(' / ')}`
+    :'焼き込まれる音量: （すべて0% — 無音のシーンになります）';
   dlg.showModal();
 }
-function syncSfFade(){
-  const out=$('#sfOutWay').value,inn=$('#sfInWay').value;
-  for(const id of ['#sfOutLab','#sfOut'])$(id).style.display=out==='cut'?'none':'';
-  for(const id of ['#sfInLab','#sfIn'])$(id).style.display=inn==='cut'?'none':'';
-}
-$('#sfOutWay').addEventListener('change',syncSfFade);
-$('#sfInWay').addEventListener('change',syncSfFade);
-$('#sfMaster').addEventListener('input',e=>{$('#sfMasterVal').textContent=pctText(e.target.value);});
-$('#sfCancel').addEventListener('click',()=>dlg.close());
-$('#sfOk').addEventListener('click',()=>{
+function commitSceneForm(d){
   const sid=$('#sfSession').value;
-  const orderId=Number($('#sfOrder').value);
-  const name=($('#sfName').value||'').trim();
-  const outMode=$('#sfOutWay').value,inMode=$('#sfInWay').value;
-  if(!isFinite(orderId)){alert('再生順には数値を入れてください（1.5 のような小数も可）');return;}
-  const fade=transFadeFields(outMode,inMode,$('#sfOut').value,$('#sfIn').value);
-  const master=clamp(Number($('#sfMaster').value)||0,0,1000);
-  const base={sessionId:sid,orderId,outMode,inMode,master,
-              mode:(outMode==='cut'&&inMode==='cut')?'cut':'fade',values:{...sfValues}};
+  const orderId=(d.orderId==null||!isFinite(Number(d.orderId)))?nextOrderId(sid):Number(d.orderId);
+  const fade=transFadeFields(d.outMode,d.inMode,d.fadeOutSec??d.fadeSec,d.fadeInSec??d.fadeSec);
+  const base={sessionId:sid,orderId,outMode:d.outMode||'xfade',inMode:d.inMode||'xfade',
+    master:typeof d.master==='number'?d.master:1000,
+    mode:((d.outMode==='cut'&&d.inMode==='cut')?'cut':'fade'),
+    values:{...d.values},seValues:{...(d.seValues||{})},loops:{...(d.loops||{})},loopGaps:{...(d.loopGaps||{})}};
   let target;
   if(sfKind==='overwrite'){
     target=sceneById(sfSceneId);if(!target){dlg.close();return;}
-    Object.assign(target,base,{name:name||target.name},fade);
+    Object.assign(target,base,{name:(d.name||'').trim()||target.name},fade);
   }else{
-    target=Object.assign({id:uid(),name:name||('Scene '+(scenesOf(sid).length+1)),seValues:{},loops:{}},base,fade);
+    target=Object.assign({id:uid(),name:(d.name||'').trim()||('Scene '+(scenesOf(sid).length+1))},base,fade);
     state.scenes.push(target);
   }
   /* commit: the interrupt values are now baked into the scene, so zero the faders.
@@ -1848,7 +1884,9 @@ $('#sfOk').addEventListener('click',()=>{
   applyMix();
   dlg.close();markDirty();renderPerform();
   if($('#view-edit').classList.contains('active'))renderEditView();
-});
+}
+$('#sfCancel').addEventListener('click',()=>dlg.close());
+
 $('#saveSceneBtn').addEventListener('click',()=>{if(!live.trans)openSceneForm('new');});
 $('#overwriteSceneBtn').addEventListener('click',()=>{if(!live.trans&&live.currentSceneId)openSceneForm('overwrite',live.currentSceneId);});
 
@@ -1876,42 +1914,10 @@ document.addEventListener('keydown',e=>{
 });
 </script>
 <script>
-/* ===================== shared: per-scene channel editors ===================== */
-/* renders "name  [slider] [ % ]" rows for every BGM channel of one scene */
-function renderChanRows(container,scene,query,countEl){
-  container.innerHTML='';
-  const q=(query||'').toLowerCase();
-  const all=bgmAudios();
-  const list=all.filter(a=>!q||a.name.toLowerCase().includes(q)||(a.customId||'').toLowerCase().includes(q));
-  if(countEl)countEl.textContent=`BGM ${list.length} / ${all.length} 件`;
-  if(!all.length){container.innerHTML='<div class="small">BGM音源がありません。先に音源ライブラリのBGM列で取り込んでください。</div>';return;}
-  for(const a of list){
-    const row=document.createElement('div');row.className='sceneChanRow';
-    row.innerHTML=`<span class="n"></span><input type="range" class="hslider" min="0" max="1000" step="5" style="flex:2"><input class="pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>`;
-    row.querySelector('.n').textContent=a.name;row.querySelector('.n').title=a.name;
-    const sl=row.querySelector('input[type=range]'),num=row.querySelector('.pctIn');
-    const cur=scene.values[a.id]||0;
-    sl.value=cur;num.value=fmtPct(cur);
-    const apply=v=>{
-      if(v>0)scene.values[a.id]=v;else delete scene.values[a.id];
-      if(scene.id===live.currentSceneId&&!live.trans){
-        live.currentValues=sceneValuesOf(scene);      // シーンのマスター音量を掛けた値で揃える
-        if(effectiveValue(a.id)>0)ensureChannel(a.id).then(applyMix);
-        applyMix();updateInterruptReadouts();
-      }
-      markDirty();
-    };
-    sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v);});
-    num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v);});
-    container.appendChild(row);
-  }
-}
-/* "BGM 森のパッド 100% ループON" — one line per registered source */
-/* §3-6: one line per selected source — 「BGM/SE【曲名】 音量：n%、ループ：ON/OFF」
-   §7: 行ごとにゴミ箱で外せるので、種別とIDも一緒に返す */
 function selectedRows(s){
   const row=(kind,id,v)=>({kind,id,
-    text:`${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(s,id)?'ON':'OFF'}`});
+    text:`${kind==='BGM'?'🎶':'🎺'} ${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(s,id)?'ON':'OFF'}`
+      +((kind==='SE'&&sceneLoopOf(s,id)&&sceneLoopGap(s,id))?`（間隔 ${sceneLoopGap(s,id)}秒）`:'')});
   const out=[];
   for(const[id,v]of Object.entries(s.values||{}))if(v>0)out.push(row('BGM',id,v));
   for(const[id,v]of Object.entries(s.seValues||{}))if(v>0)out.push(row('SE',id,v));
@@ -1922,6 +1928,7 @@ function removeFromScene(scene,kind,id){
   const bag=kind==='BGM'?(scene.values||{}):(scene.seValues||{});
   delete bag[id];
   if(scene.loops)delete scene.loops[id];
+  if(scene.loopGaps)delete scene.loopGaps[id];
   if(kind==='SE'){                                   // 鳴っているシーンSEも止める
     const set=seActive.get(id);
     if(set)for(const src of [...set])if(src.__se&&src.__se.scene){
@@ -1967,40 +1974,108 @@ function togglePreviewAt(id,vol){
 }
 
 /* ===================== 音源選択 (left BGM / right SE) ===================== */
+/* ===================== 音源選択（左: BGM一覧 / 右: SE一覧） ===================== */
 const pickSort={bgm:'name',se:'name'};   // 'name' | 'customId' | 'tag'
 const pickQuery={bgm:'',se:''};
+/* §4: タグ／任意IDのトグル検索（複数選択・選んだもののどれかに当たれば表示） */
+const pickSel={bgm:new Set(),se:new Set()};
+const SORT_MODES=[{v:'name',lab:'名前'},{v:'tag',lab:'タグ'},{v:'customId',lab:'任意ID'}];
+const allTagsOf=kind=>[...new Set(state.audios.filter(a=>!kind||a.kind===kind).flatMap(a=>a.tags))].sort(JA);
+const allIdsOf=kind=>[...new Set(state.audios.filter(a=>!kind||a.kind===kind).map(a=>String(a.customId||'').trim()).filter(Boolean))].sort(JAe);
+/* ソートトグル（検索欄と同じ高さの3分割ボタン）＋ ソート種別ごとの検索UI */
+function buildSortSearch(opts){
+  /* opts: {mode,query,selected,tags,ids,onMode,onQuery,onToggle} */
+  const box=document.createElement('div');box.className='sortSearch';
+  const seg=document.createElement('div');seg.className='sortSeg';
+  for(const m of SORT_MODES){
+    const b=document.createElement('button');
+    b.className='sortSegBtn'+(opts.mode===m.v?' on':'');
+    b.textContent=m.lab;b.title=m.lab+'でソート';
+    b.addEventListener('click',()=>opts.onMode(m.v));
+    seg.appendChild(b);
+  }
+  box.appendChild(seg);
+  const q=document.createElement('input');q.className='sortQ';
+  q.placeholder=opts.mode==='name'?'名前を検索':(opts.mode==='tag'?'タグを入力して検索':'IDを入力して検索');
+  q.value=opts.query||'';
+  q.addEventListener('input',()=>opts.onQuery(q.value));
+  box.appendChild(q);
+  if(opts.mode!=='name'){
+    const wrap=document.createElement('div');wrap.className='togSearch';
+    const lab=document.createElement('span');lab.className='tiny';lab.textContent='トグルで検索：';
+    wrap.appendChild(lab);
+    const list=opts.mode==='tag'?opts.tags:opts.ids;
+    if(!list.length){
+      const e=document.createElement('span');e.className='tiny';
+      e.textContent=opts.mode==='tag'?'（登録されたタグがありません）':'（登録された任意IDがありません）';
+      wrap.appendChild(e);
+    }
+    for(const v of list){
+      const b=document.createElement('button');
+      b.className='tagChip'+(opts.selected.has(v)?' on':'');
+      b.textContent=v;
+      b.addEventListener('click',()=>opts.onToggle(v));
+      wrap.appendChild(b);
+    }
+    box.appendChild(wrap);
+  }
+  return box;
+}
+/* タグをピル型で並べる（読み取り専用・onRemove を渡すと ✕ 付き） */
+function tagPills(tags,onRemove){
+  const wrap=document.createElement('span');wrap.className='tagPills';
+  for(const t of tags){
+    const pill=document.createElement('span');pill.className='tagPill';
+    const tx=document.createElement('span');tx.textContent=t;pill.appendChild(tx);
+    if(onRemove){
+      const x=document.createElement('span');x.className='tagX';x.textContent='✕';x.title='このタグを外す';
+      x.addEventListener('click',e=>{e.stopPropagation();onRemove(t);});
+      pill.appendChild(x);
+    }
+    wrap.appendChild(pill);
+  }
+  return wrap;
+}
 function pickList(kind){
   const q=(pickQuery[kind]||'').toLowerCase();
-  const list=state.audios.filter(a=>a.kind===kind&&(!q||a.name.toLowerCase().includes(q)
-    ||(a.customId||'').toLowerCase().includes(q)||a.tags.some(t=>t.toLowerCase().includes(q))));
-  const k=pickSort[kind];
+  const mode=pickSort[kind],sel=pickSel[kind];
+  const list=state.audios.filter(a=>{
+    if(a.kind!==kind)return false;
+    if(mode==='name'){if(q&&!a.name.toLowerCase().includes(q))return false;}
+    else if(mode==='tag'){
+      if(q&&!a.tags.some(t=>t.toLowerCase().includes(q)))return false;
+      if(sel.size&&!a.tags.some(t=>sel.has(t)))return false;
+    }else{
+      const cid=String(a.customId||'').toLowerCase();
+      if(q&&!cid.includes(q))return false;
+      if(sel.size&&!sel.has(String(a.customId||'').trim()))return false;
+    }
+    return true;
+  });
   return list.sort((a,b)=>{
-    if(k==='customId')return JAe(a.customId,b.customId)||JA(a.name,b.name);
-    if(k==='tag')return JAe((a.tags[0]||''),(b.tags[0]||''))||JA(a.name,b.name);
+    if(mode==='customId')return JAe(a.customId,b.customId)||JA(a.name,b.name);
+    if(mode==='tag')return JAe((a.tags[0]||''),(b.tags[0]||''))||JA(a.name,b.name);
     return JA(a.name,b.name);
   });
 }
 /* 🔼 toggles membership; the % box sets the level it is registered at */
 function renderPicker(root,scene,onChange){
   root.innerHTML=`<div class="pickCols">
-    <div class="pickCol bgm"><div class="pickHead"><span class="kindTag">BGM</span><span>シーンのチャンネル</span></div>
-      <div class="rowflex pickTools">
-        <input class="pickQ" placeholder="名前で検索" style="flex:1;min-width:110px">
-        <select class="pickS"><option value="name">名前でソート</option><option value="customId">任意IDでソート</option><option value="tag">タグでソート</option></select>
-      </div><div class="pickRows"></div></div>
-    <div class="pickCol se"><div class="pickHead"><span class="kindTag">SE</span><span>シーン開始時に1回鳴る</span></div>
-      <div class="rowflex pickTools">
-        <input class="pickQ" placeholder="名前で検索" style="flex:1;min-width:110px">
-        <select class="pickS"><option value="name">名前でソート</option><option value="customId">任意IDでソート</option><option value="tag">タグでソート</option></select>
-      </div><div class="pickRows"></div></div>
+    <div class="pickCol bgm"><div class="pickHead"><span class="kindTag">BGM</span><span>BGM一覧</span></div>
+      <div class="pickTools"></div><div class="pickRows"></div></div>
+    <div class="pickCol se"><div class="pickHead"><span class="kindTag">SE</span><span>SE一覧</span></div>
+      <div class="pickTools"></div><div class="pickRows"></div></div>
   </div>`;
   const cols={bgm:root.querySelector('.pickCol.bgm'),se:root.querySelector('.pickCol.se')};
-  for(const kind of ['bgm','se']){
-    const col=cols[kind];
-    const q=col.querySelector('.pickQ'),sel=col.querySelector('.pickS');
-    q.value=pickQuery[kind];sel.value=pickSort[kind];
-    q.addEventListener('input',()=>{pickQuery[kind]=q.value;fill(kind);});
-    sel.addEventListener('change',()=>{pickSort[kind]=sel.value;fill(kind);});
+  function tools(kind){
+    const box=cols[kind].querySelector('.pickTools');box.innerHTML='';
+    box.appendChild(buildSortSearch({
+      mode:pickSort[kind],query:pickQuery[kind],selected:pickSel[kind],
+      tags:allTagsOf(kind),ids:allIdsOf(kind),
+      onMode:v=>{pickSort[kind]=v;pickSel[kind].clear();pickQuery[kind]='';tools(kind);fill(kind);},
+      onQuery:v=>{pickQuery[kind]=v;fill(kind);},
+      onToggle:v=>{const s=pickSel[kind];s.has(v)?s.delete(v):s.add(v);tools(kind);fill(kind);},
+    }));
   }
   function bag(kind){return kind==='bgm'?(scene.values||(scene.values={})):(scene.seValues||(scene.seValues={}));}
   function fill(kind){
@@ -2011,7 +2086,7 @@ function renderPicker(root,scene,onChange){
       const none=!Object.values(scene.values||{}).some(v=>v>0)&&!Object.values(scene.seValues||{}).some(v=>v>0);
       r.innerHTML=`<button class="pickAdd${none?' on':''}" title="このシーンを無音にする">🔼</button><span class="pn">音無しシーン</span><span class="tiny">選ぶと全チャンネル0%になります</span>`;
       r.querySelector('.pickAdd').addEventListener('click',()=>{
-        scene.values={};scene.seValues={};scene.loops={};
+        scene.values={};scene.seValues={};scene.loops={};scene.loopGaps={};
         if(scene.id===live.currentSceneId&&!live.trans){
           live.currentValues={};
           for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
@@ -2024,40 +2099,40 @@ function renderPicker(root,scene,onChange){
     const list=pickList(kind);
     if(!list.length){
       const e=document.createElement('div');e.className='tiny';e.style.padding='8px 2px';
-      e.textContent=kind==='bgm'?'BGM音源がありません。':'SE音源がありません。';
+      e.textContent=kind==='bgm'?'該当するBGM音源がありません。':'該当するSE音源がありません。';
       rows.appendChild(e);return;
     }
     for(const a of list){
       const on=(bag(kind)[a.id]||0)>0;
       const r=document.createElement('div');r.className='pickRow'+(on?' on':'');
-      /* §3-10: 🔼 曲名 （空白） 音量 試聴 ループ — left aligned */
+      /* §2/§3: 🔼 曲名 （空白） 音量[ n % ] 試聴 ループ☑　　タグ： ピル */
       r.innerHTML=`<button class="pickAdd${on?' on':''}" title="${on?'このシーンから外す':'このシーンに入れる'}">🔼</button>
         <span class="pn"></span><span class="pgap"></span>
-        <input class="ppct pctIn" type="number" min="0" max="100" step="0.1"><span class="tiny">%</span>
+        <span class="volLab">音量</span><span class="pctBox"><input class="ppct pctIn" type="number" min="0" max="100" step="0.1"><span class="pctUnit">%</span></span>
         <button class="pickPrev" title="この音量で試聴">試聴</button>
         <label class="lp" title="このシーンでループ再生する"><span class="lpTxt">ループ</span><input type="checkbox" class="ploop"></label>
-        <span class="ptag tiny"></span>`;
+        <span class="gapWrap" style="display:none">ループ間隔の指定：<input class="gapIn pctIn" type="number" min="0" step="0.1">秒</span>
+        <span class="tagCol"><span class="tagLab">　　タグ：</span></span>`;
       const nm=r.querySelector('.pn');
       nm.textContent=a.name;nm.title=a.name;
-      /* タグだけ常時表示。任意IDは行に出さない（ソート条件としてだけ残す）。
-         ループのチェックの右に全角スペース1つ＋「タグ：」を付ける */
-      const tg=r.querySelector('.ptag');
-      tg.textContent=a.tags.length?'\u3000タグ：'+a.tags.join(', '):'';
-      tg.title=a.tags.join(', ');
+      r.querySelector('.tagCol').appendChild(tagPills(a.tags));
+      if(!a.tags.length)r.querySelector('.tagLab').textContent='　　タグ：—';
       const pct=r.querySelector('.ppct');
       pct.value=fmtPct(bag(kind)[a.id]||1000);        // 追加時の初期音量は100%
       const lp=r.querySelector('.ploop');
-      /* loop is per scene registration; the library's own flag is only the seed */
       lp.checked=(scene.loops&&typeof scene.loops[a.id]==='boolean')?scene.loops[a.id]:!!a.loop;
+      /* §3: SEのループにチェックが入ったら「ループ間隔の指定」を出す */
+      const gapWrap=r.querySelector('.gapWrap'),gapIn=r.querySelector('.gapIn');
+      gapIn.value=sceneLoopGap(scene,a.id)||'';
+      const syncGap=()=>{gapWrap.style.display=(kind==='se'&&lp.checked)?'':'none';};
+      syncGap();
+      gapIn.addEventListener('change',()=>{setSceneLoopGap(scene,a.id,gapIn.value);markDirty();onChange&&onChange();});
       lp.addEventListener('change',()=>{
         if(!scene.loops)scene.loops={};
         scene.loops[a.id]=lp.checked;
-        if(scene.id===live.currentSceneId&&!live.trans){
-          live.currentLoops[a.id]=lp.checked;
-          const ch=engine.channels.get(a.id);
-          if(ch&&ch.playing){ch.loop=lp.checked;try{ch.src.loop=lp.checked;}catch(e){}}
-        }
-        markDirty();onChange&&onChange();
+        if(!lp.checked&&scene.loopGaps)delete scene.loopGaps[a.id];
+        applySceneLoopChange(scene,a.id,lp.checked);
+        syncGap();markDirty();onChange&&onChange();
       });
       r.__pid=a.id;
       r.querySelector('.pickPrev').addEventListener('click',()=>togglePreviewAt(a.id,pctToVal(pct.value)));
@@ -2069,6 +2144,7 @@ function renderPicker(root,scene,onChange){
         }else{
           delete bag(kind)[a.id];
           if(scene.loops)delete scene.loops[a.id];
+          if(scene.loopGaps)delete scene.loopGaps[a.id];
         }
         if(kind==='bgm'&&scene.id===live.currentSceneId&&!live.trans){
           live.currentValues=sceneValuesOf(scene);
@@ -2080,114 +2156,38 @@ function renderPicker(root,scene,onChange){
       };
       r.querySelector('.pickAdd').addEventListener('click',()=>{
         apply(on?0:pctToVal(pct.value||100));
-        fill(kind);if(kind==='bgm')fill('bgm');
+        fill(kind);
       });
       pct.addEventListener('input',()=>{if((bag(kind)[a.id]||0)>0)apply(pctToVal(pct.value));});
       rows.appendChild(r);
     }
   }
+  tools('bgm');tools('se');
   fill('bgm');fill('se');
 }
 
 /* ===================== 🎚️ per-scene config dialog ===================== */
+/* ===================== ✏️ シーン編集ダイアログ（詳細編集のカードと同じUI） ===================== */
 const cfgDlg=$('#sceneCfg');
 let cfgSceneId=null;
-/* is this scene's IN inherited from the previous scene's crossfade OUT? */
-function cfgLinkedIn(s){
-  const list=scenesOf(s.sessionId);const i=list.findIndex(x=>x.id===s.id);
-  return i>0&&(list[i-1].outMode||'xfade')==='xfade';
+function renderCfgCard(){
+  const s=sceneById(cfgSceneId);const wrap=$('#scfCard');wrap.innerHTML='';
+  if(!s){cfgDlg.close();return;}
+  $('#scfTitle').textContent=`✏️ ${s.orderId} ${s.name}`;
+  wrap.appendChild(sceneCardEl(s,false,{
+    onRerender:renderCfgCard,
+    afterDup:()=>renderCfgCard(),
+    afterDelete:()=>cfgDlg.close(),
+  }));
 }
 function openSceneCfg(id){
   const s=sceneById(id);if(!s)return;
   cfgSceneId=id;
-  $('#scfTitle').textContent=`🎚️ ${s.orderId} ${s.name}`;
-  fillWayOptions($('#scfOutWay'),s.outMode);
-  fillWayOptions($('#scfInWay'),s.inMode);
-  $('#scfOut').value=outSec(s);
-  $('#scfIn').value=inSec(s);
-  $('#scfMaster').value=s.master??1000;
-  $('#scfMasterVal').textContent=pctText(s.master??1000);
-  syncFadeFields(cfgDlg,s.outMode,s.inMode);
-  const lk=cfgLinkedIn(s);      // Q2: inherited IN is not editable here either
-  $('#scfInWay').disabled=lk;$('#scfIn').disabled=lk;
-  const lkTitle=lk?'前シーンのOUT（クロスフェード）に連動しています':'';
-  $('#scfInWay').title=lkTitle;$('#scfIn').title=lkTitle;
-  $('#scfFilter').value='';
-  renderChanRows($('#scfChans'),s,'',$('#scfCount'));
-  renderCfgSwap();
+  renderCfgCard();
   cfgDlg.showModal();
 }
-function renderCfgSwap(){
-  const s=sceneById(cfgSceneId);const wrap=$('#scfSwap');wrap.innerHTML='';
-  if(!s)return;
-  const used=Object.entries(s.values).filter(([,v])=>v>0);
-  if(!used.length){wrap.textContent='このシーンで使用中のチャンネルはありません。';return;}
-  for(const[id,v]of used){
-    const row=document.createElement('div');row.className='rowflex';row.style.marginBottom='6px';
-    const sel=document.createElement('select');sel.style.flex='1';
-    for(const a of bgmAudios()){
-      const o=document.createElement('option');o.value=a.id;o.textContent=a.name;sel.appendChild(o);
-    }
-    sel.value=id;
-    const val=document.createElement('span');val.className='tiny';val.textContent=pctText(v);
-    sel.addEventListener('change',()=>{
-      const to=sel.value;if(to===id)return;
-      const keep=s.values[id];
-      const other=s.values[to]||0;
-      delete s.values[id];
-      s.values[to]=keep;
-      if(other>0)s.values[id]=other;          // swap if the target was already in use
-      if(s.id===live.currentSceneId&&!live.trans){
-        live.currentValues=sceneValuesOf(s);
-        startNeededChannels(live.currentValues).then(applyMix);
-        for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
-        applyMix();
-      }
-      markDirty();
-      renderChanRows($('#scfChans'),s,$('#scfFilter').value,$('#scfCount'));
-      renderCfgSwap();renderPerform();
-    });
-    row.append(sel,val);
-    wrap.appendChild(row);
-  }
-}
-$('#scfFilter').addEventListener('input',()=>{
-  const s=sceneById(cfgSceneId);if(s)renderChanRows($('#scfChans'),s,$('#scfFilter').value,$('#scfCount'));
-});
-/* IN/OUT方法・秒数・シーンのマスター音量 can be edited straight from the 🎚️ dialog */
-function commitCfgTrans(){
-  const s=sceneById(cfgSceneId);if(!s)return;
-  s.outMode=$('#scfOutWay').value;s.inMode=$('#scfInWay').value;
-  s.mode=(s.outMode==='cut'&&s.inMode==='cut')?'cut':'fade';
-  Object.assign(s,transFadeFields(s.outMode,s.inMode,$('#scfOut').value,$('#scfIn').value));
-  markDirty();                      // may rewrite an inherited IN — mirror it back
-  $('#scfInWay').value=s.inMode;$('#scfIn').value=inSec(s);
-  const lk=cfgLinkedIn(s);$('#scfInWay').disabled=lk;$('#scfIn').disabled=lk;
-  renderPerform();
-}
-for(const id of ['#scfOutWay','#scfInWay'])$(id).addEventListener('change',()=>{
-  syncFadeFields(cfgDlg,$('#scfOutWay').value,$('#scfInWay').value);
-  commitCfgTrans();
-});
-for(const id of ['#scfOut','#scfIn'])$(id).addEventListener('change',commitCfgTrans);
-$('#scfMaster').addEventListener('input',e=>{
-  const s=sceneById(cfgSceneId);if(!s)return;
-  s.master=clamp(Number(e.target.value)||0,0,1000);
-  $('#scfMasterVal').textContent=pctText(s.master);
-  if(s.id===live.currentSceneId&&!live.trans){
-    live.currentValues=sceneValuesOf(s);
-    startNeededChannels(live.currentValues).then(applyMix);
-    applyMix();updateInterruptReadouts();
-  }
-  markDirty();renderSceneList();
-});
 $('#scfClose').addEventListener('click',()=>{cfgDlg.close();renderPerform();renderEditView();});
-$('#scfDel').addEventListener('click',()=>{
-  const s=sceneById(cfgSceneId);if(!s)return;
-  if(!confirm('シーン「'+s.name+'」を削除しますか？'))return;
-  deleteScene(s.id);
-  cfgDlg.close();
-});
+
 function deleteScene(id){
   const s=sceneById(id);if(!s)return;
   state.scenes=state.scenes.filter(x=>x.id!==id);
@@ -2267,7 +2267,7 @@ $('#delSessionBtn').addEventListener('click',()=>{
 });
 
 /* ===================== Edit view: scene cards (wine input card on top) ===================== */
-const newDraft=()=>({orderId:null,name:'',outMode:'xfade',inMode:'xfade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{},seValues:{},loops:{}});
+const newDraft=()=>({orderId:null,name:'',outMode:'xfade',inMode:'xfade',fadeSec:3,fadeOutSec:3,fadeInSec:3,master:1000,values:{},seValues:{},loops:{},loopGaps:{}});
 /* 一時保存: snapshots of the not-yet-registered input card, kept per session and
    only for this page load (no persistence — a work bench, not saved data). */
 const draftTemp=new Map();      // sessionId -> deep copy of the draft
@@ -2278,20 +2278,28 @@ const hasTemp=()=>draftTemp.has(tempKey());
 const tempArmed=new Set();
 const tempIsArmed=()=>tempArmed.has(tempKey());
 let draft=newDraft();
-let inputPickOpen=false;  // §3-4: the input card's 音源選択 toggle survives a re-render
-function sceneCardEl(s,isInput){
+/* §3-4/#13§1: 「音源選択」「音源を編集」の開閉は再描画（一時保存データに戻す・追加登録など）をまたいで保つ */
+const cardOpen={pick:new Set(),edit:new Set()};
+/* シーンカード。詳細編集の一覧・✏️ダイアログ・新シーン追加ダイアログで共通に使う。
+   opts: {sessionId(), onAdd(draft), addLabel, afterDelete(), noTemp} */
+function sceneCardEl(s,isInput,opts){
+  opts=opts||{};
   const card=document.createElement('div');
   card.className='sceneCard'+(isInput?' input':'');
   if(!isInput)card.dataset.id=s.id;
   card.innerHTML=`
     <div class="scHead">
-      <span class="scPill">再生順</span><input class="sc-id" type="number" step="0.1">
+      <span class="scPill">再生番号</span><input class="sc-id" type="number" step="0.1">
       <span class="scPill">シーン名（任意）</span><input class="sc-name">
       <button class="sc-pick">音源選択 <span class="pickCaret">▼</span></button>
+      <button class="sc-edit">音源を編集 <span class="pickCaret">▼</span></button>
+      <span class="scPill">マスター音量</span>
+      <input class="sc-master hslider" type="range" min="0" max="1000" step="5" style="width:96px">
+      <span class="tiny sc-mval"></span>
       <button class="sc-temp">一時保存</button>
-      ${isInput?'<button class="sc-add accent">＋ 追加登録</button>':''}
+      ${isInput?'<button class="sc-add accent"></button>':''}
       <span class="spacer"></span>
-      ${isInput?'':'<button class="sc-del danger">削除</button>'}
+      ${isInput?'':'<button class="sc-dup">複製</button><button class="sc-del danger">削除</button>'}
     </div>
     <div class="scSelAll" style="display:none"></div>
     <div class="scHead" style="margin-top:7px">
@@ -2300,16 +2308,16 @@ function sceneCardEl(s,isInput){
       <span class="scPill xfLink" style="display:none">前シーンのOUT（クロスフェード）に連動</span>
       <span class="scPill">OUT方法</span><select class="sc-way sc-outway"></select>
       <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" type="number" min="0.1" step="0.1"></span>
-      <span class="scPill">マスター音量</span>
-      <input class="sc-master hslider" type="range" min="0" max="1000" step="5" style="width:110px">
-      <span class="tiny sc-mval"></span>
     </div>
+    <div class="scEdit" style="display:none"></div>
     <div class="scPick" style="display:none"></div>`;
   const idIn=card.querySelector('.sc-id'),nameIn=card.querySelector('.sc-name'),
         outWay=card.querySelector('.sc-outway'),inWay=card.querySelector('.sc-inway'),
         outIn=card.querySelector('.sc-out'),inIn=card.querySelector('.sc-in'),
         mIn=card.querySelector('.sc-master'),mVal=card.querySelector('.sc-mval'),
-        pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick');
+        pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick'),
+        editWrap=card.querySelector('.scEdit'),editBtn=card.querySelector('.sc-edit');
+  if(isInput)card.querySelector('.sc-add').textContent=opts.addLabel||'＋ 追加登録';
   fillWayOptions(outWay,s.outMode);
   fillWayOptions(inWay,s.inMode);
   idIn.value=s.orderId==null?'':s.orderId;
@@ -2323,7 +2331,7 @@ function sceneCardEl(s,isInput){
   /* #7: a scene whose predecessor crossfades out inherits that IN (same method and time) */
   const prevScene=(()=>{
     if(isInput)return null;
-    const list=curScenes();const i=list.findIndex(x=>x.id===s.id);
+    const list=scenesOf(s.sessionId||state.currentSessionId);const i=list.findIndex(x=>x.id===s.id);
     return i>0?list[i-1]:null;
   })();
   const linked=!!(prevScene&&(prevScene.outMode||'xfade')==='xfade');
@@ -2339,33 +2347,30 @@ function sceneCardEl(s,isInput){
     }
   };
   syncFade();
-  /* §3-6: the selected sources are listed as soon as anything is selected —
-     no click target, no separate 使っている曲リスト */
+  /* §1: 選択済みリストは常時表示。BGMは🎶・SEは🎺のマークを先頭に付ける */
   const renderSel=()=>{
     const rows=selectedRows(s);
     selAll.style.display=rows.length?'':'none';
-    selAll.innerHTML=rows.map(()=>
-      '<div class="selRow"><span class="selTxt"></span>'
-      +'<button class="selDel iconbtn danger" title="このシーンから外す">🗑</button></div>').join('');
-    [...selAll.children].forEach((d,i)=>{
-      d.querySelector('.selTxt').textContent=rows[i].text;
-      d.querySelector('.selDel').addEventListener('click',()=>removeFromScene(s,rows[i].kind,rows[i].id));
-    });
+    selAll.innerHTML=rows.map(()=>'<div class="selRow"><span class="selTxt"></span></div>').join('');
+    [...selAll.children].forEach((d,i)=>{d.querySelector('.selTxt').textContent=rows[i].text;});
   };
   renderSel();
+  /* §1: 「音源を編集」— 登録済み音源の音量バー・ループ・削除をリスト内で編集する */
+  const renderEdit=()=>{
+    if(editWrap.style.display==='none')return;
+    renderSceneEditRows(editWrap,s,()=>{renderSel();renderEdit();});
+  };
   const commit=()=>{
-    /* Q2: an inherited IN is written through — the fields already hold the previous
-       scene's crossfade, and linkXfadeIn keeps them in step from then on */
     const inWayVal=inWay.value,inSecVal=inIn.value;
     const fade=transFadeFields(outWay.value,inWayVal,outIn.value,inSecVal);
     const base={outMode:outWay.value,inMode:inWayVal,
                 mode:(outWay.value==='cut'&&inWayVal==='cut')?'cut':'fade',
                 master:clamp(Number(mIn.value)||0,0,1000)};
     if(isInput){
-      draft.orderId=idIn.value===''?null:Number(idIn.value);
-      draft.name=nameIn.value;
-      Object.assign(draft,base,fade);
-      draft.loops={...(draft.loops||{})};
+      s.orderId=idIn.value===''?null:Number(idIn.value);
+      s.name=nameIn.value;
+      Object.assign(s,base,fade);
+      s.loops={...(s.loops||{})};
     }else{
       const v=Number(idIn.value);
       if(isFinite(v))s.orderId=v;else idIn.value=s.orderId;
@@ -2376,89 +2381,172 @@ function sceneCardEl(s,isInput){
         startNeededChannels(live.currentValues).then(applyMix);
         applyMix();
       }
+      /* §1: 登録済みシーンでも編集が入ったら「一時保存」が使えるようにする */
+      tempBtn.style.display='';
       markDirty();renderPerform();
     }
   };
-  idIn.addEventListener('change',()=>{commit();if(!isInput)renderSceneCards();});
-  nameIn.addEventListener('change',()=>{commit();if(!isInput)renderSceneCards();});
+  idIn.addEventListener('change',()=>{commit();if(!isInput&&!opts.onAdd)renderSceneCards();});
+  nameIn.addEventListener('change',()=>{commit();if(!isInput&&!opts.onAdd)renderSceneCards();});
   for(const el of [outWay,inWay])el.addEventListener('change',()=>{
     syncFade();commit();
-    /* the next scene's IN may now be inherited (or released) — redraw the list */
-    if(!isInput)renderSceneCards();
+    if(!isInput&&!opts.onAdd)renderSceneCards();
   });
   for(const el of [outIn,inIn])el.addEventListener('change',()=>{
     commit();
-    /* an inherited IN shows the previous scene's OUT seconds — keep it in step */
-    if(!isInput)renderSceneCards();
+    if(!isInput&&!opts.onAdd)renderSceneCards();
   });
   mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit();});
-  /* 音源選択: BGM on the left, SE on the right; 🔼 puts the source into this scene */
+  /* 音源選択: BGM一覧（左）／SE一覧（右）。🔼 でそのシーンに入れる・外す */
+  const openKey=isInput?(opts.onAdd?null:'input'):('scene:'+s.id);
   const setPickOpen=open=>{
     pick.style.display=open?'':'none';
     pickBtn.innerHTML='音源選択 <span class="pickCaret">'+(open?'▲':'▼')+'</span>';
-    if(isInput)inputPickOpen=open;
+    if(openKey){open?cardOpen.pick.add(openKey):cardOpen.pick.delete(openKey);}
   };
   pickBtn.addEventListener('click',()=>{
     const open=pick.style.display==='none';
     setPickOpen(open);
-    if(open)renderPicker(pick,s,()=>renderSel());
+    if(open)renderPicker(pick,s,()=>{renderSel();renderEdit();});
     if(!open)stopPreviewSrc();
   });
-  /* §3-4: an input card re-rendered by 一時保存データに戻す keeps the toggle open */
-  if(isInput&&inputPickOpen){
+  /* §1: 「音源を編集」のトグルは「音源選択」と同じ見た目・挙動 */
+  const setEditOpen=open=>{
+    editWrap.style.display=open?'':'none';
+    editBtn.innerHTML='音源を編集 <span class="pickCaret">'+(open?'▲':'▼')+'</span>';
+    if(openKey){open?cardOpen.edit.add(openKey):cardOpen.edit.delete(openKey);}
+    if(open)renderEdit();
+  };
+  editBtn.addEventListener('click',()=>setEditOpen(editWrap.style.display==='none'));
+  /* §3-4: 一時保存データに戻したあとも「音源選択」「音源を編集」の開閉状態を保つ（登録済みカードも同じ） */
+  if(openKey&&cardOpen.pick.has(openKey)){
     setPickOpen(true);
-    renderPicker(pick,s,()=>renderSel());
+    renderPicker(pick,s,()=>{renderSel();renderEdit();});
   }
-  if(isInput){
-    /* §6 一時保存 / 一時保存データに戻す */
-    const syncTemp=()=>{
-      const has=tempIsArmed();
-      tempBtn.textContent=has?'一時保存データに戻す':'一時保存';
-      tempBtn.classList.toggle('on',has);
-      tempBtn.title=has?'一時保存した時点の入力内容に戻します':'いまの入力内容を一時保存します（追加登録前の退避）';
-    };
-    syncTemp();
-    tempBtn.addEventListener('click',()=>{
-      commit();
-      if(tempIsArmed()){
-        /* restore, and keep the snapshot so it can be restored again later.
-           The button label goes back to 「一時保存」. */
-        draft=JSON.parse(JSON.stringify(draftTemp.get(tempKey())));
-        tempArmed.delete(tempKey());
-        renderEditView();
-      }else{
-        /* overwrite the snapshot with whatever is in the card right now */
-        draftTemp.set(tempKey(),JSON.parse(JSON.stringify(draft)));
-        tempArmed.add(tempKey());
-        syncTemp();
+  if(openKey&&cardOpen.edit.has(openKey))setEditOpen(true);
+  /* ---- 一時保存（入力カードはセッション単位、登録済みシーンはシーン単位） ---- */
+  const tKey=isInput?tempKey():('scene:'+s.id);
+  const armed=()=>tempArmed.has(tKey);
+  const syncTemp=()=>{
+    tempBtn.textContent=armed()?'一時保存データに戻す':'一時保存';
+    tempBtn.classList.toggle('on',armed());
+    tempBtn.title=armed()?'一時保存した時点の内容に戻します':'いまの内容を一時保存します';
+  };
+  syncTemp();
+  if(!isInput&&!armed()&&!draftTemp.has(tKey))tempBtn.style.display='none';   // 編集が入ったら出る
+  if(opts.noTemp)tempBtn.style.display='none';
+  tempBtn.addEventListener('click',()=>{
+    commit();
+    if(armed()){
+      const snap=JSON.parse(JSON.stringify(draftTemp.get(tKey)));
+      tempArmed.delete(tKey);
+      if(isInput){draft=snap;renderEditView();}
+      else{
+        /* 登録済みシーン: idとsessionIdは保ったまま中身を戻す */
+        Object.assign(s,snap,{id:s.id,sessionId:s.sessionId});
+        if(s.id===live.currentSceneId&&!live.trans){live.currentValues=sceneValuesOf(s);startNeededChannels(live.currentValues).then(applyMix);}
+        markDirty();renderPerform();
+        if(opts.onRerender)opts.onRerender();else renderEditView();
       }
-    });
-    /* #7: nothing is listed until 音源選択 is pressed */
+    }else{
+      draftTemp.set(tKey,JSON.parse(JSON.stringify(s)));
+      tempArmed.add(tKey);
+      syncTemp();
+    }
+  });
+  if(isInput){
     card.querySelector('.sc-add').addEventListener('click',()=>{
       commit();
+      if(opts.onAdd){opts.onAdd(s);return;}
       const sid=state.currentSessionId;
-      const orderId=draft.orderId==null||!isFinite(draft.orderId)?nextOrderId(sid):draft.orderId;
+      const orderId=s.orderId==null||!isFinite(s.orderId)?nextOrderId(sid):s.orderId;
       const sc=Object.assign({id:uid(),sessionId:sid,orderId,
-        name:(draft.name||'').trim()||('Scene '+(scenesOf(sid).length+1)),
-        outMode:draft.outMode||'xfade',inMode:draft.inMode||'xfade',
-        mode:((draft.outMode==='cut'&&draft.inMode==='cut')?'cut':'fade'),
-        master:typeof draft.master==='number'?draft.master:1000,
-        values:{...draft.values},seValues:{...(draft.seValues||{})},loops:{...(draft.loops||{})}},
-        transFadeFields(draft.outMode,draft.inMode,draft.fadeOutSec??draft.fadeSec,draft.fadeInSec??draft.fadeSec));
+        name:(s.name||'').trim()||('Scene '+(scenesOf(sid).length+1)),
+        outMode:s.outMode||'xfade',inMode:s.inMode||'xfade',
+        mode:((s.outMode==='cut'&&s.inMode==='cut')?'cut':'fade'),
+        master:typeof s.master==='number'?s.master:1000,
+        values:{...s.values},seValues:{...(s.seValues||{})},loops:{...(s.loops||{})},loopGaps:{...(s.loopGaps||{})}},
+        transFadeFields(s.outMode,s.inMode,s.fadeOutSec??s.fadeSec,s.fadeInSec??s.fadeSec));
       state.scenes.push(sc);
       draft=newDraft();
-      draftTemp.delete(tempKey());        // registered -> the snapshot is done with
+      draftTemp.delete(tempKey());
       tempArmed.delete(tempKey());
       markDirty();renderPerform();renderEditView();
     });
   }else{
-    tempBtn.style.display='none';         // 一時保存 is only for the input card
+    /* §1: 削除の左隣に複製 */
+    card.querySelector('.sc-dup').addEventListener('click',()=>{
+      const sid=s.sessionId||state.currentSessionId;
+      const copy=JSON.parse(JSON.stringify(s));
+      copy.id=uid();copy.sessionId=sid;
+      copy.orderId=nextOrderId(sid);
+      copy.name=(s.name||'Scene')+'（複製）';
+      copy.values={...s.values};copy.seValues={...(s.seValues||{})};
+      copy.loops={...(s.loops||{})};copy.loopGaps={...(s.loopGaps||{})};
+      state.scenes.push(copy);
+      markDirty();renderPerform();
+      if(opts.afterDup)opts.afterDup(copy);else renderEditView();
+    });
     card.querySelector('.sc-del').addEventListener('click',()=>{
       if(!confirm('シーン「'+s.name+'」を削除しますか？'))return;
       deleteScene(s.id);
+      if(opts.afterDelete)opts.afterDelete();
     });
   }
   return card;
+}
+/* §1: 「音源を編集」のリスト — 登録済み音源の音量バー・%・ループ・ループ間隔・削除 */
+function renderSceneEditRows(container,scene,onChange){
+  container.innerHTML='';
+  const rows=selectedRows(scene);
+  if(!rows.length){
+    container.innerHTML='<div class="tiny" style="padding:6px 2px">まだ音源が入っていません。「音源選択」から追加してください。</div>';
+    return;
+  }
+  for(const r of rows){
+    const a=audioById(r.id)||{name:'?'};
+    const bag=r.kind==='BGM'?scene.values:scene.seValues;
+    const row=document.createElement('div');row.className='seRow';
+    row.innerHTML=`<span class="seMark"></span><span class="seName"></span>
+      <input type="range" class="hslider seVol" min="0" max="1000" step="5">
+      <input class="sePct pctIn" type="number" min="0" max="100" step="0.1"><span class="seUnit">%</span>
+      <label class="lp"><span class="lpTxt">ループ</span><input type="checkbox" class="seLoop"></label>
+      <span class="seGap" style="display:none">ループ間隔の指定：<input class="seGapIn pctIn" type="number" min="0" step="0.1">秒</span>
+      <button class="seDel iconbtn danger" title="このシーンから外す">🗑</button>`;
+    row.querySelector('.seMark').textContent=r.kind==='BGM'?'🎶':'🎺';
+    row.querySelector('.seName').textContent=a.name;row.querySelector('.seName').title=a.name;
+    const sl=row.querySelector('.seVol'),num=row.querySelector('.sePct');
+    sl.value=bag[r.id]||0;num.value=fmtPct(bag[r.id]||0);
+    const apply=v=>{
+      if(v>0)bag[r.id]=v;else delete bag[r.id];
+      if(scene.id===live.currentSceneId&&!live.trans){
+        live.currentValues=sceneValuesOf(scene);
+        startNeededChannels(live.currentValues).then(applyMix);
+        for(const b of bgmAudios())if(effectiveValue(b.id)<=0)stopChannel(b.id);
+        applyMix();
+      }
+      markDirty();onChange&&onChange();
+    };
+    sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v);});
+    num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v);});
+    const lp=row.querySelector('.seLoop'),gap=row.querySelector('.seGap'),gapIn=row.querySelector('.seGapIn');
+    lp.checked=sceneLoopOf(scene,r.id);
+    const syncGap=()=>{gap.style.display=(r.kind==='SE'&&lp.checked)?'':'none';};
+    gapIn.value=sceneLoopGap(scene,r.id);
+    syncGap();
+    lp.addEventListener('change',()=>{
+      if(!scene.loops)scene.loops={};
+      scene.loops[r.id]=lp.checked;
+      applySceneLoopChange(scene,r.id,lp.checked);
+      syncGap();markDirty();onChange&&onChange();
+    });
+    gapIn.addEventListener('change',()=>{
+      setSceneLoopGap(scene,r.id,gapIn.value);
+      markDirty();onChange&&onChange();
+    });
+    row.querySelector('.seDel').addEventListener('click',()=>removeFromScene(scene,r.kind,r.id));
+    container.appendChild(row);
+  }
 }
 function renderSceneCards(){
   const wrap=$('#sceneCards');wrap.innerHTML='';
@@ -2486,7 +2574,7 @@ async function importFiles(files){
     let dur=0;
     try{const ab=await f.arrayBuffer();const buf=await engine.ctx.decodeAudioData(ab.slice(0));dur=buf.duration;engine.buffers.set(id,buf);}catch(e){alert('読み込めませんでした: '+f.name);continue;}
     await blobPut(id,f);
-    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId:'',faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
+    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId:nextCustomId(),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
     drive.scheduleAudioUpload(id);
   }
   markDirty();renderAll();prewarmBuffers();
@@ -2494,7 +2582,6 @@ async function importFiles(files){
 $('#importBgmBtn').addEventListener('click',()=>pickFiles('bgm'));
 $('#importSeBtn').addEventListener('click',()=>pickFiles('se'));
 $('#fileInput').addEventListener('change',e=>{importFiles([...e.target.files]);e.target.value='';});
-$('#librarySearch').addEventListener('input',()=>{libPage.bgm=0;libPage.se=0;renderLibrary();});
 
 let previewingId=null;
 async function togglePreview(id){
@@ -2511,17 +2598,41 @@ function fmtDur(s){if(!s)return'–';const m=Math.floor(s/60),ss=Math.round(s%60
 const libSort={bgm:{key:'name',dir:1},se:{key:'name',dir:1}};
 const libPage={bgm:0,se:0};
 const LIB_PAGE=50;
-const libTagFilter=new Set();
+/* §5: 「音源を検索」もソートトグル＋種別ごとの検索UI（タグ・任意IDはトグル複数選択） */
+const libSearch={mode:'name',query:'',sel:new Set()};
 const JA=(a,b)=>String(a||'').localeCompare(String(b||''),'ja',{numeric:true,sensitivity:'base'});
 /* same, but empty values sort to the end */
 const JAe=(a,b)=>{const x=String(a||''),y=String(b||'');
   if(!x&&!y)return 0;if(!x)return 1;if(!y)return -1;return JA(x,y);};
+function renderLibSearch(){
+  const box=$('#libSearchBox');if(!box)return;
+  box.innerHTML='';
+  box.appendChild(buildSortSearch({
+    mode:libSearch.mode,query:libSearch.query,selected:libSearch.sel,
+    tags:allTagsOf(null),ids:allIdsOf(null),
+    onMode:v=>{
+      libSearch.mode=v;libSearch.sel.clear();libSearch.query='';
+      const key=v==='tag'?'name':v;
+      libSort.bgm={key,dir:1};libSort.se={key,dir:1};
+      libPage.bgm=0;libPage.se=0;renderLibrary();
+    },
+    onQuery:v=>{libSearch.query=v;libPage.bgm=0;libPage.se=0;renderLibrary();},
+    onToggle:v=>{const s=libSearch.sel;s.has(v)?s.delete(v):s.add(v);libPage.bgm=0;libPage.se=0;renderLibrary();},
+  }));
+}
 function libFiltered(kind){
-  const q=($('#librarySearch').value||'').toLowerCase();
+  const q=(libSearch.query||'').toLowerCase(),mode=libSearch.mode,sel=libSearch.sel;
   return state.audios.filter(a=>{
     if(a.kind!==kind)return false;
-    if(q&&!(a.name.toLowerCase().includes(q)||(a.customId||'').toLowerCase().includes(q)||a.tags.some(t=>t.toLowerCase().includes(q))))return false;
-    for(const t of libTagFilter)if(!a.tags.includes(t))return false; // AND across selected chips
+    if(mode==='name'){if(q&&!a.name.toLowerCase().includes(q))return false;}
+    else if(mode==='tag'){
+      if(q&&!a.tags.some(t=>t.toLowerCase().includes(q)))return false;
+      if(sel.size&&!a.tags.some(t=>sel.has(t)))return false;
+    }else{
+      const cid=String(a.customId||'').toLowerCase();
+      if(q&&!cid.includes(q))return false;
+      if(sel.size&&!sel.has(String(a.customId||'').trim()))return false;
+    }
     return true;
   });
 }
@@ -2544,28 +2655,13 @@ $$('#libCols th[data-sort]').forEach(th=>th.addEventListener('click',()=>{
   libPage[kind]=0;renderLibrary();
 }));
 function allTags(){return [...new Set(state.audios.flatMap(a=>a.tags))].sort(JA);}
-function renderTagChips(){
-  const wrap=$('#tagChips');wrap.innerHTML='';
-  const all=allTags();
-  /* existing tags become选択肢 for the free-text tag inputs */
-  $('#tagList').innerHTML=all.map(t=>`<option value="${t.replace(/"/g,'&quot;')}"></option>`).join('');
-  $('#tagClearBtn').style.display=libTagFilter.size?'':'none';
-  if(!all.length)return;
-  for(const t of all){
-    const on=libTagFilter.has(t);
-    const c=document.createElement('span');c.className='tagChip'+(on?' on':'');
-    c.textContent=t+(on?' ✕':'');
-    c.title=on?'クリックでこのタグの絞り込みを解除':'クリックでこのタグで絞り込み';
-    c.addEventListener('click',()=>{
-      on?libTagFilter.delete(t):libTagFilter.add(t);
-      libPage.bgm=0;libPage.se=0;renderLibrary();
-    });
-    wrap.appendChild(c);
-  }
+/* 任意IDは取り込み順の整数。空いている最小の番号を返す */
+function nextCustomId(){
+  const used=new Set(state.audios.map(a=>String(a.customId||'').trim()).filter(Boolean));
+  let n=1;while(used.has(String(n)))n++;
+  return String(n);
 }
-$('#tagClearBtn').addEventListener('click',()=>{
-  libTagFilter.clear();libPage.bgm=0;libPage.se=0;renderLibrary();
-});
+/* §6/§7: 1行 = 試聴 / 任意ID / 名前 / タグ（複数・ピル） / 割当 / (色) / 基準音量 / (ループ) / 長さ / 操作 */
 function renderLibColumn(kind){
   const body=$(kind==='bgm'?'#libBodyBgm':'#libBodySe');
   const pager=$(kind==='bgm'?'#libPagerBgm':'#libPagerSe');
@@ -2580,20 +2676,36 @@ function renderLibColumn(kind){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td><button class="iconbtn" data-act="prev">${previewingId===a.id?'■':'▶'}</button></td>
+      <td><input data-act="cid" class="cidIn" placeholder="—"></td>
       <td><input data-act="name" style="width:100%"></td>
-      <td><input data-act="cid" style="width:100%" placeholder="任意"></td>
-      <td><input data-act="tags" list="tagList" style="width:100%" placeholder="例: 戦闘,森"></td>
-      ${kind==='bgm'?'<td><input data-act="fader" type="number" min="1" step="1" style="width:100%" placeholder="—"></td>'
-                    :'<td><input data-act="pad" type="number" min="1" step="1" style="width:100%" placeholder="—"></td><td><button class="swatch" data-act="color" title="パッドの色を選ぶ"></button></td>'}
-      <td><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10" style="width:44px"> <span class="tiny"></span></td>
+      <td><div class="tagCell"><span class="tagPills"></span><input data-act="tagAdd" class="tagAdd" list="tagList" placeholder="＋タグ"></div></td>
+      ${kind==='bgm'?'<td><input data-act="fader" class="assignIn" placeholder="—"></td>'
+                    :'<td><input data-act="pad" class="assignIn" placeholder="—"></td><td><button class="swatch" data-act="color" title="パッドの色を選ぶ"></button></td>'}
+      <td><div class="volCell"><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10"><span class="volPct"><input data-act="volnum" class="volNum pctIn" type="number" min="0" max="100" step="0.1"><span class="pctUnit">%</span></span></div></td>
       ${kind==='bgm'?'<td style="text-align:center"><input type="checkbox" data-act="loop"></td>':''}
       <td class="small">${fmtDur(a.duration)}</td>
       <td><button class="iconbtn" data-act="move">${kind==='bgm'?'→SE':'→BGM'}</button> <button class="iconbtn danger" data-act="del">削除</button></td>`;
     tr.querySelector('[data-act=name]').value=a.name;
     tr.querySelector('[data-act=cid]').value=a.customId||'';
-    tr.querySelector('[data-act=tags]').value=a.tags.join(', ');
-    tr.querySelector('[data-act=vol]').value=a.baseVolume??1000;
-    tr.querySelector('[data-act=vol]').nextElementSibling.textContent=pctText(a.baseVolume??1000);
+    /* §6/§7: タグは複数。ピルの ✕ で外し、右の入力で足す */
+    const pills=tr.querySelector('.tagPills');
+    pills.replaceWith(tagPills(a.tags,t=>{
+      a.tags=a.tags.filter(x=>x!==t);markDirty();renderLibrary();renderPerform();
+    }));
+    const tagAdd=tr.querySelector('[data-act=tagAdd]');
+    const addTag=()=>{
+      const raw=(tagAdd.value||'').split(',').map(t=>t.trim()).filter(Boolean);
+      if(!raw.length){tagAdd.value='';return;}
+      for(const t of raw)if(!a.tags.includes(t))a.tags.push(t);
+      tagAdd.value='';markDirty();renderLibrary();renderPerform();
+    };
+    tagAdd.addEventListener('change',addTag);
+    tagAdd.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTag();}});
+    const vol=tr.querySelector('[data-act=vol]'),volNum=tr.querySelector('[data-act=volnum]');
+    vol.value=a.baseVolume??1000;volNum.value=fmtPct(a.baseVolume??1000);
+    const applyVol=v=>{a.baseVolume=clamp(Math.round(v),0,1000);applyMix();markDirty();};
+    vol.addEventListener('input',()=>{volNum.value=fmtPct(Number(vol.value));applyVol(Number(vol.value));});
+    volNum.addEventListener('input',()=>{const v=pctToVal(volNum.value);vol.value=v;applyVol(v);});
     if(kind==='bgm'){
       tr.querySelector('[data-act=fader]').value=a.faderNo==null?'':a.faderNo;
       tr.querySelector('[data-act=loop]').checked=!!a.loop;
@@ -2620,8 +2732,6 @@ function renderLibColumn(kind){
     tr.querySelector('[data-act=prev]').addEventListener('click',()=>togglePreview(a.id));
     tr.querySelector('[data-act=name]').addEventListener('change',e=>{a.name=e.target.value||a.name;markDirty();renderPerform();renderLibrary();});
     tr.querySelector('[data-act=cid]').addEventListener('change',e=>{a.customId=e.target.value.trim();markDirty();renderLibrary();});
-    tr.querySelector('[data-act=tags]').addEventListener('change',e=>{a.tags=e.target.value.split(',').map(t=>t.trim()).filter(Boolean);markDirty();renderLibrary();});
-    tr.querySelector('[data-act=vol]').addEventListener('input',e=>{a.baseVolume=Number(e.target.value);e.target.nextElementSibling.textContent=pctText(a.baseVolume);applyMix();markDirty();});
     tr.querySelector('[data-act=move]').addEventListener('click',()=>{
       a.kind=kind==='bgm'?'se':'bgm';
       stopChannel(a.id);stopSE(a.id);
@@ -2634,7 +2744,8 @@ function renderLibColumn(kind){
       if(!confirm('音源「'+a.name+'」を削除しますか？'))return;
       stopChannel(a.id);stopSE(a.id);engine.buffers.delete(a.id);await blobDel(a.id);
       state.audios=state.audios.filter(x=>x.id!==a.id);
-      for(const s of state.scenes)delete s.values[a.id];
+      for(const s of state.scenes){delete s.values[a.id];delete s.seValues[a.id];
+        if(s.loops)delete s.loops[a.id];if(s.loopGaps)delete s.loopGaps[a.id];}
       delete live.currentValues[a.id];delete live.interrupt[a.id];intStopped.delete(a.id);
       markDirty();renderPerform();renderEditView();
     });
@@ -2652,7 +2763,9 @@ function renderLibColumn(kind){
   return sorted.length;
 }
 function renderLibrary(){
-  renderTagChips();
+  renderLibSearch();
+  $('#tagList').textContent='';
+  for(const t of allTags()){const o=document.createElement('option');o.value=t;$('#tagList').appendChild(o);}
   $$('#libCols th[data-sort]').forEach(th=>{
     const base=th.dataset.label||(th.dataset.label=th.textContent);
     th.innerHTML='';th.append(base);
@@ -2744,7 +2857,7 @@ $('#packInput').addEventListener('change',async e=>{
     live.nextSceneId=curScenes()[0]?.id||null;
     if(live.muted){live.muted=false;if(engine.ctx)setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
     draft=newDraft();
-    libPage.bgm=0;libPage.se=0;libTagFilter.clear();
+    libPage.bgm=0;libPage.se=0;libSearch.sel.clear();libSearch.query='';libSearch.mode='name';
     markDirty();applySecOpen();renderAll();
     alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件・セッション '+state.sessions.length+' 件）');
   }catch(err){alert('インポートに失敗しました（この端末のデータは変更していません）: '+err.message);}
@@ -2759,7 +2872,7 @@ $('#wipeBtn').addEventListener('click',async()=>{
   live.stops=[];closePanicAsk();
   if(live.muted){live.muted=false;if(engine.ctx)setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
   draft=newDraft();
-  libPage.bgm=0;libPage.se=0;libTagFilter.clear();
+  libPage.bgm=0;libPage.se=0;libSearch.sel.clear();libSearch.query='';libSearch.mode='name';
   await kvPut('state',JSON.parse(JSON.stringify(state)));
   applySecOpen();renderAll();
 });
@@ -3037,7 +3150,7 @@ $('#demoBtn').addEventListener('click',async()=>{
       const blob=await render(dur,demoBuilders[key]);
       const id=uid();ids[key]=id;
       await blobPut(id,blob);
-      state.audios.push({id,name,kind,customId:'DEMO'+String(n++).padStart(2,'0'),faderNo,padNo:null,
+      state.audios.push({id,name,kind,customId:nextCustomId(),faderNo,padNo:null,
         padColor:PAD_PALETTE[(n*5)%PAD_PALETTE.length],tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
       drive.scheduleAudioUpload(id);
     }
@@ -3069,7 +3182,7 @@ $('#dummyBtn').addEventListener('click',async()=>{
       const n=start+i;
       const isSe=(i%3===2);
       state.audios.push({id,name:'ダミー'+String(n).padStart(3,'0'),kind:isSe?'se':'bgm',
-        customId:'D'+String(n).padStart(4,'0'),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,
+        customId:nextCustomId(),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,
         tags:['ダミー',isSe?'SE':'BGM','群'+(1+Math.floor(i/50))],
         baseVolume:1000,loop:!isSe,duration:0.05,size:blob.size,type:'audio/wav'});
     }
