@@ -22,6 +22,7 @@ button:hover{background:var(--hover)}
 button:disabled{opacity:.4;cursor:default}
 input,select,textarea{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;user-select:text;-webkit-user-select:text}
 input:focus,select:focus{outline:1px solid var(--blue)}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px} /* #18§3-2 */
 .small{font-size:12px;color:var(--text2)}
 .tiny{font-size:11px;color:var(--text3)}
 .spacer{margin-left:auto}
@@ -56,6 +57,8 @@ main{flex:1;min-height:0;position:relative}
 .secHead .caret{display:inline-block;width:13px;color:var(--text3);font-size:11px}
 .secHead .hint{margin-left:auto;font-size:11px;font-weight:500;letter-spacing:0;color:var(--text3)}
 .secBody{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto}
+/* #18§3-2: リストの増減で横幅が微細に動かないよう scrollbar-gutter を指定 */
+.secBody,.pickRows,#sceneList{scrollbar-gutter:stable}
 .section.collapsed{flex:0 0 40px}
 .section.collapsed .secBody{display:none}
 .section.collapsed .secHead{writing-mode:vertical-rl;height:100%;justify-content:flex-start;padding:12px 9px;border-bottom:none;gap:14px}
@@ -80,6 +83,8 @@ main{flex:1;min-height:0;position:relative}
 .mb .hslider{flex:1;min-width:60px;max-width:340px;height:6px;border-radius:4px}
 .mb .hslider::-webkit-slider-thumb{width:17px;height:17px;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:19px;height:19px}
+.mb .hslider::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--blue);cursor:pointer;border:none;box-shadow:0 1px 3px rgba(0,0,0,.5)} /* #18§3-2 */
+.mb.all .hslider::-moz-range-thumb{width:19px;height:19px}
 .mb .mbVal{font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;width:58px;text-align:right;flex:none}
 
 /* ===== section A: scene playback ===== */
@@ -115,7 +120,7 @@ main{flex:1;min-height:0;position:relative}
 .scGear{position:absolute;right:5px;bottom:3px;padding:1px 6px;font-size:12px;line-height:1.3;border-radius:6px;background:none;border:1px solid transparent}
 .scGear:hover{background:var(--raised);border-color:var(--border)}
 /* transition group: crossfader + GO belong together */
-#transGroup{flex:none;margin:6px 14px 8px;border:1px solid var(--border2);border-radius:12px;background:var(--raised);padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center}
+#transGroup{flex:none;margin:4px 14px 4px;border:1px solid var(--border2);border-radius:12px;background:var(--raised);padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center}
 /* #17§4: 見出しはボックス内の左上（左端寄せ）。中身の中央揃えは崩さない */
 #transGroupTitle{align-self:flex-start;padding:0 0 8px;margin:0}
 #goInfo,#manualNote,#transGroup .grpDiv{width:100%}
@@ -136,15 +141,15 @@ main{flex:1;min-height:0;position:relative}
 #xfNowName{color:var(--green)}
 #nextName{color:var(--blue)}
 #xfVal{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:8px}
-#goBtn{width:100px;height:45px;margin:10px auto 0;font-size:19px;font-weight:800;letter-spacing:.18em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:10px}
+#goBtn{width:100px;height:45px;margin:8px auto 0;font-size:19px;font-weight:800;letter-spacing:.18em;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:10px}
 #goBtn:hover:not(:disabled){background:rgba(114,188,143,.25)}
 #goInfo{text-align:center;font-size:12px;color:var(--text2);min-height:18px;margin-top:5px}
 /* a quiet hint, not a warning box: no border, a yellow-leaning pale orange fill
    that reads clearly apart from the green 再生中 blocks above */
 #manualNote{font-size:11px;color:var(--orange);background:rgba(226,176,72,.16);border:none;border-radius:8px;padding:6px 9px;margin-top:8px;line-height:1.55;text-align:center}
 /* help text: one item = a key line + a description line */
-#helpLines{flex:none;padding:2px 14px 14px;font-size:12px;color:var(--text2)}
-#helpLines .hItem{margin-bottom:7px}
+#helpLines{flex:none;padding:2px 14px 8px;font-size:12px;color:var(--text2)}
+#helpLines .hItem{margin-bottom:4px}
 #helpLines .hKey{font-weight:700;color:var(--text)}
 #helpLines .hDesc{color:var(--text3);padding-left:2px}
 #helpLines kbd{margin-right:3px}
@@ -155,7 +160,7 @@ main{flex:1;min-height:0;position:relative}
 
 /* ===== vertical fader ===== */
 .vfader{position:relative;--inset:6px;width:44px;height:150px;cursor:ns-resize;touch-action:none}
-.vfader.big{--inset:18px;width:74px;height:176px}
+.vfader.big{--inset:18px;width:74px;height:150px}
 .vfader .track{position:absolute;left:50%;top:var(--inset);bottom:var(--inset);width:6px;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:3px}
 .vfader.big .track{width:12px;border-radius:6px}
 .vfader .fill{position:absolute;left:50%;bottom:var(--inset);width:6px;transform:translateX(-50%);background:var(--blue);border-radius:3px}
@@ -219,6 +224,7 @@ tr:last-child td{border-bottom:none}
 .accent{color:var(--blue);border-color:var(--blue);background:var(--blue-soft)}
 .hslider{-webkit-appearance:none;appearance:none;height:4px;background:var(--hover);border-radius:2px;outline:none;border:none;padding:0}
 .hslider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer}
+.hslider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;border:none} /* #18§3-2 */
 .tagChip{display:inline-block;font-size:10px;padding:2px 10px;border-radius:999px;background:var(--hover);color:var(--text2);cursor:pointer;border:1px solid transparent;margin:0 4px 4px 0}
 .tagChip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 .libPager{display:flex;gap:10px;align-items:center;justify-content:center;padding:8px 6px 2px}
@@ -363,7 +369,7 @@ tr:last-child td{border-bottom:none}
 .sceneChanRow{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
 .sceneChanRow .n{flex:1;min-width:60px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sceneChanRow .pctIn{width:58px;text-align:right;font-variant-numeric:tabular-nums}
-#log{font-family:Menlo,Consolas,monospace;font-size:11px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;white-space:pre-wrap}
+#log{font-family:Menlo,Consolas,monospace;font-size:11px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;white-space:pre-wrap;user-select:text;-webkit-user-select:text} /* #18§4: Driveログをコピーできるよう */
 kbd{font:11px Menlo,Consolas,monospace;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--raised)}
 dialog{margin:auto;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:520px;width:92%}
 /* §9: シーンカードをそのまま載せるダイアログは広く */
@@ -383,7 +389,13 @@ dialog h3{font-size:15px}
   #mbStopButtons .mbBtn{min-width:88px;font-size:11px}
   .mb .hslider{max-width:none}
 }
-@media (max-width:1000px){#playSplit{flex-direction:column}#listPane{border-right:none;border-bottom:1px solid var(--border)}}
+/* #18§3-1: 1000px以下で#scenePauseRowが#transPaneの下へはみ出す問題を修正。
+   #playSplitをスクロール可能にし、#transPaneをautoにして内容分だけ伸ばす */
+@media (max-width:1000px){
+  #playSplit{flex-direction:column;overflow-y:auto}
+  #listPane{flex:0 0 44%;min-height:220px;border-right:none;border-bottom:1px solid var(--border)}
+  #transPane{flex:0 0 auto;overflow:visible}
+}
 @media (max-width:820px){
   /* stacked panels scroll inside the row so they never paint over the master bar */
   #splitRow{flex-direction:column;overflow-y:auto}
@@ -562,7 +574,7 @@ dialog h3{font-size:15px}
 
       <div class="card">
         <h3 id="libSearchHead">音源検索＋割込フェーダー/ポン出し設定管理</h3>
-        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。左のトグルでソート種別を切り替えると、検索欄も名前／タグ／任意IDに合わせて変わります（タグ・任意IDはトグルで複数選択、任意IDは範囲・単一・カンマ区切りの併用も可）。検索は下の2つの列どちらにも効きます。</div>
+        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。左のトグルでソート種別を切り替えると、検索欄も名前／タグ／任意IDに合わせて変わります（タグ・任意IDはトグルで複数選択、任意IDは範囲・単一・カンマ区切りの併用も可）。ここでの検索は上の割当ミニ一覧だけに適用されます。下のBGM・SE一覧管理とは独立しています。</div>
         <div id="libSearchBox"></div>
         <div class="tiny" id="libCount" style="margin-top:8px"></div>
         <datalist id="tagList"></datalist>
@@ -798,6 +810,7 @@ function openDB(){return new Promise((res,rej)=>{
   rq.onupgradeneeded=()=>{const d=rq.result;
     if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');
     if(!d.objectStoreNames.contains('blobs'))d.createObjectStore('blobs');};
+  rq.onblocked=()=>alert('他のタブでこのアプリが開かれています。ほかのタブを閉じてから再読み込みしてください。'); // #18§4
   rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);});}
 function idb(store,mode,fn){return new Promise((res,rej)=>{
   const tx=db.transaction(store,mode); const st=tx.objectStore(store);
@@ -1011,8 +1024,12 @@ function ensureCtx(){
     engine.master.gain.value=state.settings.masterAll/1000;     // MASTER: everything (BGM + SE)
     engine.sceneBus.gain.value=state.settings.master/1000;      // BGM MASTER (scene + interrupt)
     engine.seBus.gain.value=state.settings.seVol/1000;          // SE MASTER
+    ctx.addEventListener('statechange',()=>{ // #18§2-2
+      document.body.classList.toggle('audio-interrupted',
+        ctx.state==='suspended'||ctx.state==='interrupted');
+    });
   }
-  if(engine.ctx.state==='suspended')engine.ctx.resume();
+  void resumeAudioContext(); // #18§2-2: suspended と interrupted の両方で復帰を試みる
   return engine.ctx;
 }
 async function getBuffer(id){
@@ -1028,6 +1045,13 @@ async function getBuffer(id){
   engine.decoding.set(id,p);return p;
 }
 function setGainSmooth(param,v){const t=engine.ctx.currentTime;param.setTargetAtTime(v,t,0.015);}
+/* #18§2-2: suspended / interrupted 両方から安全に復帰する。状態変化イベント内で無限再試行しない */
+async function resumeAudioContext(){
+  const ctx=engine.ctx;if(!ctx)return;
+  if(ctx.state==='suspended'||ctx.state==='interrupted'){
+    try{await ctx.resume();}catch(e){}
+  }
+}
 function startChannel(id,a,buf,offset,loopFlag){
   const lp=(loopFlag===undefined)?!!a.loop:!!loopFlag;
   const gain=engine.ctx.createGain();gain.gain.value=0;gain.connect(engine.sceneBus);
@@ -1036,7 +1060,7 @@ function startChannel(id,a,buf,offset,loopFlag){
   const off=buf.duration?(Number(offset)||0)%buf.duration:0;
   src.start(0,off);
   const ch={gain,src,playing:true,startedAt:engine.ctx.currentTime,offset:off,dur:buf.duration,loop:lp};
-  src.onended=()=>{if(!ch.loop&&engine.channels.get(id)===ch){ch.playing=false;}};
+  src.onended=()=>{if(!ch.loop&&engine.channels.get(id)===ch){ch.playing=false;try{gain.disconnect();}catch(e){}engine.channels.delete(id);}}; // #18§2-4: 自然終了後にGainNodeを切断してMapから削除
   engine.channels.set(id,ch);
   return ch;
 }
@@ -1087,10 +1111,23 @@ function prewarmScene(id){
   for(const k of [...Object.keys(s.values||{}),...Object.keys(s.seValues||{})])
     if(!engine.buffers.has(k))getBuffer(k).catch(()=>{});
 }
-function stopChannel(id){
+function stopChannel(id,fade=0.03){ // #18§2-1: 約30msのフェードでクリックノイズを抑える
   const ch=engine.channels.get(id);
-  if(ch&&ch.playing){try{ch.src.stop();}catch(e){}try{ch.gain.disconnect();}catch(e){}ch.playing=false;}
+  if(!ch){engine.channels.delete(id);return;}
   engine.channels.delete(id);
+  ch.playing=false;
+  if(engine.ctx){
+    const t=engine.ctx.currentTime;
+    try{
+      ch.gain.gain.cancelScheduledValues(t);
+      ch.gain.gain.setValueAtTime(ch.gain.gain.value,t);
+      ch.gain.gain.linearRampToValueAtTime(0,t+fade);
+    }catch(e){}
+  }
+  setTimeout(()=>{
+    try{ch.src.stop();}catch(e){}
+    try{ch.gain.disconnect();}catch(e){}
+  },fade*1000+20);
 }
 /* where in the buffer a channel currently is (for "resume from where it stopped") */
 function channelPosition(id){
@@ -1348,8 +1385,12 @@ const seGapTimers=new Map();  // §3: ループ間隔の待ち時間タイマー
 function clearGapTimers(pred){
   for(const[t,info]of [...seGapTimers])if(!pred||pred(info)){clearTimeout(t);seGapTimers.delete(t);}
 }
+/* #18§1-4: IDをCSSセレクタへ直接埋め込まない（引用符・角括弧を含むIDで例外にならないよう） */
+function padById(id){
+  return [...document.querySelectorAll('#sePads .sePad')].find(p=>p.dataset.id===String(id))||null;
+}
 function markPad(id,on){
-  const pad=$(`.sePad[data-id="${id}"]`);
+  const pad=padById(id);
   if(pad)pad.classList.toggle('on',!!on);
 }
 function stopSE(id){
@@ -1375,6 +1416,21 @@ function stopAllSE(){
   for(const p of sePlaying){p.__seStopped=true;try{p.stop();}catch(e){}}
   sePlaying.clear();sceneSESrcs.clear();
 }
+/* #18§1-2: パッド由来ソースだけを返す — __se.scene===trueのもの（シーン由来）は除外 */
+function padSources(id){
+  return [...(seActive.get(id)||[])].filter(src=>!(src.__se&&src.__se.scene));
+}
+function hasPadSE(id){return padSources(id).length>0;}
+function stopPadSE(id){
+  const set=seActive.get(id);if(!set)return;
+  for(const src of padSources(id)){
+    src.__seStopped=true;
+    set.delete(src);sePlaying.delete(src);
+    try{src.stop();}catch(e){}
+  }
+  if(!set.size)seActive.delete(id);
+  markPad(id,false);
+}
 function startSE(id,a,buf,vol,loop,isScene,gap){
   const lvl=(vol==null?1000:clamp(vol,0,1000))/1000;
   const gp=Math.max(0,Number(gap)||0);
@@ -1390,7 +1446,8 @@ function startSE(id,a,buf,vol,loop,isScene,gap){
   src.onended=()=>{
     sePlaying.delete(src);set.delete(src);sceneSESrcs.delete(src);
     try{g.disconnect();}catch(e){}
-    if(!set.size){seActive.delete(id);markPad(id,false);}
+    if(!set.size)seActive.delete(id);
+    markPad(id,hasPadSE(id)); // #18§1-2: パッド由来が残っていれば点灯を維持
     if(loop&&gp&&!src.__seStopped){
       const t=setTimeout(()=>{seGapTimers.delete(t);playSE(id,vol,loop,isScene,gp);},gp*1000);
       seGapTimers.set(t,{id,scene:!!isScene});
@@ -1398,7 +1455,7 @@ function startSE(id,a,buf,vol,loop,isScene,gap){
   };
   src.start();                       // no ramp: the sound is there on this very frame
   markPad(id,true);
-  const pad=$(`.sePad[data-id="${id}"]`);
+  const pad=padById(id); // #18§1-4: CSSセレクタに埋め込まずdataset完全一致で探す
   if(pad){pad.classList.add('flash');setTimeout(()=>pad.classList.remove('flash'),180);}
 }
 /* play without toggling — used by scenes and by ALL START */
@@ -1412,7 +1469,7 @@ function playSE(id,vol,loop,isScene,gap){
 /* pad press: toggles. Synchronous when the buffer is already decoded (prewarm keeps it that way) */
 function triggerSE(id,vol,loop){
   ensureCtx();
-  if(seActive.get(id)&&seActive.get(id).size){stopSE(id);return;} // second press = stop
+  if(hasPadSE(id)){stopPadSE(id);return;} // #18§1-2: パッド由来の音だけを停止（シーン由来は維持）
   /* §6-2: 全停止中のポン出しは確認してから。
      ③（元の状態＋この操作）で復帰側が同じパッドを鳴らし直している場合は、
      トグルで消してしまわないよう「鳴っていなければ鳴らす」にする。 */
@@ -1460,7 +1517,9 @@ function VFader(el,{onInput,onChange,max=1000,inset=6}={}){
   let dragging=false;
   el.addEventListener('pointerdown',e=>{if(disabled)return;dragging=true;el.setPointerCapture(e.pointerId);value=fromEvent(e);render();onInput&&onInput(value);});
   el.addEventListener('pointermove',e=>{if(!dragging)return;value=fromEvent(e);render();onInput&&onInput(value);});
-  el.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;onChange&&onChange(value);});
+  // #18§1-3: pointercancel と lostpointercapture でもドラッグ終了処理を行う（多重実行はdraggingガードで防ぐ）
+  const finishDrag=()=>{if(!dragging)return;dragging=false;onChange&&onChange(value);};
+  for(const type of['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,finishDrag);
   new ResizeObserver(render).observe(el);
   return{
     set(v,silent){value=clamp(v,0,max);render();},
@@ -2040,11 +2099,12 @@ function removeFromScene(scene,kind,id){
 }
 
 /* ---- 試聴: preview a source at the volume typed into its row ---- */
-let previewSrc=null,previewSrcId=null;
+let previewSrc=null,previewSrcId=null,previewEndCb=null; // #18§2-3: previewEndCb は試聴終了時の共通フック
 function stopPreviewSrc(){
   if(previewSrc){try{previewSrc.stop();}catch(e){}previewSrc=null;}
   previewSrcId=null;
   $$('.pickPrev.on').forEach(b=>b.classList.remove('on'));
+  const cb=previewEndCb;previewEndCb=null;if(cb)cb(); // #18§2-3
 }
 function togglePreviewAt(id,vol){
   ensureCtx();
@@ -2055,7 +2115,7 @@ function togglePreviewAt(id,vol){
     if(previewSrcId&&previewSrcId!==id)return;
     const g=engine.ctx.createGain();
     g.gain.value=(clamp(Number(vol)||0,0,1000)/1000)*((a.baseVolume??1000)/1000);
-    g.connect(engine.seBus);
+    g.connect(a.kind==='bgm'?engine.sceneBus:engine.seBus); // #18§2-3: BGMはsceneBus、SEはseBusへ
     const src=engine.ctx.createBufferSource();src.buffer=buf;src.loop=false;src.connect(g);
     src.onended=()=>{try{g.disconnect();}catch(e){}if(previewSrc===src)stopPreviewSrc();};
     src.start();previewSrc=src;previewSrcId=id;
@@ -2286,11 +2346,24 @@ function openSceneCfg(id){
 }
 $('#scfClose').addEventListener('click',()=>{cfgDlg.close();renderPerform();renderEditView();});
 
-function deleteScene(id){
+function deleteScene(id){ // #18§1-1
   const s=sceneById(id);if(!s)return;
+  if(live.trans&&live.trans.toSceneId===id)cancelTransition();
+  const wasCurrent=live.currentSceneId===id;
   state.scenes=state.scenes.filter(x=>x.id!==id);
-  if(live.currentSceneId===id)live.currentSceneId=null;
-  if(live.nextSceneId===id){const l=curScenes();live.nextSceneId=l[0]?l[0].id:null;}
+  if(wasCurrent){
+    stopSceneSE();
+    live.currentSceneId=null;
+    live.currentValues={};
+    live.currentLoops={};
+    for(const a of bgmAudios())if(effectiveValue(a.id)<=0)stopChannel(a.id);
+    applyMix();
+  }
+  if(live.nextSceneId===id){
+    const list=curScenes();
+    live.nextSceneId=list[0]?.id||null;
+    prewarmScene(live.nextSceneId);
+  }
   markDirty();renderPerform();renderEditView();
 }
 
@@ -2615,8 +2688,10 @@ function sceneCardEl(s,isInput,opts){
       markDirty();renderPerform();
       if(opts.afterDup)opts.afterDup(copy);else renderEditView();
     });
-    card.querySelector('.sc-del').addEventListener('click',()=>{
-      if(!confirm('シーン「'+s.name+'」を削除しますか？'))return;
+    card.querySelector('.sc-del').addEventListener('click',()=>{ // #18§1-1: 再生中なら音も止まることを明示
+      const playing=live.currentSceneId===s.id;
+      const lead=playing?'（現在再生中の音も停止します）':'';
+      if(!confirm(`シーン「${s.name}」を削除しますか？${lead}`))return;
       deleteScene(s.id);
       if(opts.afterDelete)opts.afterDelete();
     });
@@ -2718,12 +2793,12 @@ $('#importSeBtn').addEventListener('click',()=>pickFiles('se'));
 $('#fileInput').addEventListener('change',e=>{importFiles([...e.target.files]);e.target.value='';});
 
 let previewingId=null;
-async function togglePreview(id){
-  const el=$('#previewAudio');
-  if(previewingId===id){el.pause();el.src='';previewingId=null;renderLibrary();return;}
-  const blob=await blobGet(id);if(!blob)return;
-  el.src=URL.createObjectURL(blob);el.play();previewingId=id;
-  el.onended=()=>{previewingId=null;renderLibrary();};
+function togglePreview(id){ // #18§2-3: Web Audio経路（BGM→sceneBus、SE→seBus）に統一。<audio>要素は廃止
+  if(previewingId===id){stopPreviewSrc();previewingId=null;renderLibrary();return;}
+  previewingId=id;
+  previewEndCb=()=>{previewingId=null;renderLibrary();};
+  togglePreviewAt(id,1000);
+  previewingId=previewSrcId; // togglePreviewAt内でpreviewSrcId=idに設定済み
   renderLibrary();
 }
 function fmtDur(s){if(!s)return'–';const m=Math.floor(s/60),ss=Math.round(s%60);return m+':'+String(ss).padStart(2,'0');}
