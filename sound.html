@@ -69,7 +69,8 @@ main{flex:1;min-height:0;position:relative}
 /* §8-2/§8-3: 停止系3ボタンは各バーの左端。バーは低く、横棒とつまみは小さく */
 #masterBar{flex:none;display:flex;align-items:stretch;gap:18px;flex-wrap:wrap;padding:7px 18px;border-top:1px solid var(--border);background:var(--surface)}
 .mb{display:flex;align-items:center;gap:10px;flex:1 1 320px;min-width:300px;min-height:32px}
-.mb .mbBtn{flex:none;font-size:12px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;min-width:96px;text-align:center}
+/* #15§1: unscoped so 「■ シーン停止」 keeps the exact same look after moving out of #masterBar */
+.mbBtn{flex:none;font-size:12px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;min-width:96px;text-align:center}
 .mb .mbLab{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:118px;flex:none}
 .mb.all{padding-right:18px;border-right:1px solid var(--border)}
 .mb.all .mbLab{color:var(--blue)}
@@ -142,6 +143,8 @@ main{flex:1;min-height:0;position:relative}
 #helpLines .hKey{font-weight:700;color:var(--text)}
 #helpLines .hDesc{color:var(--text3);padding-left:2px}
 #helpLines kbd{margin-right:3px}
+/* #15§1: 「■ シーン停止」はこの行の右端（GO説明のすぐ下、manualNote帯の直後） */
+#helpLines .goRow{display:flex;align-items:center;justify-content:space-between;gap:14px}
 #padHelp{flex:none;padding:2px 14px 10px;font-size:12px;color:var(--text3)}
 #padHelp kbd{margin-right:3px}
 
@@ -162,6 +165,10 @@ main{flex:1;min-height:0;position:relative}
 
 /* ===== section B: SE pads + interrupt faders ===== */
 #sePads{display:grid;grid-template-columns:repeat(auto-fill,88px);gap:8px;padding:0 14px 8px;flex:none}
+/* #15§5-9: パッドごとの🎨（色変更）ボタンは、再生ボタンと重ならない別要素として乗せる */
+.sePadWrap{position:relative}
+.padColorBtn{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;font-size:11px;line-height:1;border-radius:5px;background:var(--raised);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;z-index:1}
+.padColorBtn:hover{background:var(--hover)}
 .sePad{width:88px;height:88px;border-radius:10px;border:1px solid var(--border);background:var(--raised);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;transition:background .1s,border-color .1s;padding:4px}
 .sePad:hover{background:var(--hover)}
 .sePad .pname{font-size:11px;font-weight:600;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -225,7 +232,8 @@ tr:last-child td{border-bottom:none}
 .togSearch{display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex:1 1 100%}
 /* §2/§3: 音源選択の行（少し大きめの文字・枠内%・ピル型タグ） */
 .pickRow .volLab{flex:none;font-size:12px;color:var(--text3)}
-.pctBox{flex:none;display:inline-flex;align-items:center;gap:2px;border:1px solid var(--border);border-radius:6px;background:var(--bg);padding:2px 5px}
+/* #15§5-8: 音量[%]欄と試聴ボタンは、高さ・横幅ともに大きい方（約77×28px）へ統一する */
+.pctBox{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:2px;height:28px;min-width:77px;border:1px solid var(--border);border-radius:6px;background:var(--bg);padding:2px 5px}
 .pctBox .ppct,.volPct .volNum{border:none;background:none;padding:0;width:40px;text-align:right;font-size:12px}
 .pctBox .ppct:focus,.volPct .volNum:focus{outline:none}
 .pctUnit{font-size:11px;color:var(--text3)}
@@ -238,9 +246,11 @@ tr:last-child td{border-bottom:none}
 .cidIn{width:38px;text-align:center;padding:4px 3px}
 .assignIn{width:34px;text-align:center;padding:4px 3px;-moz-appearance:textfield;appearance:textfield}
 .assignIn::-webkit-inner-spin-button,.assignIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.volCell{display:flex;flex-direction:column;align-items:center;gap:2px}
-.volCell .hslider{width:100%;min-width:56px}
-.volPct{display:inline-flex;align-items:center;gap:1px}
+/* #15§5-5: バーを少し長くし、%数値はバーに中央揃えで重ねて表示する */
+.volCell{position:relative;display:flex;align-items:center}
+.volCell .hslider{width:100%;min-width:96px}
+.volPct{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:1px;background:var(--raised);border:1px solid var(--border2);border-radius:999px;padding:0 5px;pointer-events:none}
+.volPct .volNum{pointer-events:auto}
 .volNum{-moz-appearance:textfield;appearance:textfield}
 .volNum::-webkit-inner-spin-button,.volNum::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .tagCell{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
@@ -253,9 +263,19 @@ tr:last-child td{border-bottom:none}
 /* auto table layout, but force the text fields to stay usable; the column scrolls if it must */
 .libCol{overflow-x:auto}
 .libCol table{min-width:100%}
-.libCol td input[data-act=name]{min-width:104px}
+.libCol td input[data-act=name]{min-width:180px}
 .libCol td .tagAdd{min-width:74px}
 .libCol td:last-child{white-space:nowrap}
+/* #15§5-3: 割込フェーダー／ポン出しの割当・色をまとめて設定するミニ一覧 */
+#libAssignCols{display:flex;gap:16px;align-items:flex-start}
+.libAssignCol{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;max-height:260px;overflow-y:auto}
+.assignRow{display:flex;align-items:center;gap:8px;padding:4px 2px;border-radius:6px;font-size:12px}
+.assignRow:hover{background:var(--hover)}
+.assignRow .aCid{flex:none;width:30px;color:var(--text3);font-variant-numeric:tabular-nums}
+.assignRow .aName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assignRow .assignIn2{width:34px;text-align:center;padding:4px 3px;-moz-appearance:textfield;appearance:textfield}
+.assignRow .assignIn2::-webkit-inner-spin-button,.assignRow .assignIn2::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+@media (max-width:1200px){#libAssignCols{flex-direction:column}.libAssignCol{max-height:180px}}
 .libCol.bgm .kindTag{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue)}
 .libCol.se .kindTag{background:var(--orange-soft);color:var(--orange);border:1px solid var(--orange)}
 /* scene cards */
@@ -280,16 +300,18 @@ tr:last-child td{border-bottom:none}
 .scSelAll .selTxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* #13§1: 「音源を編集」— 登録済み音源の音量バー・ループ・間隔・削除 */
 .scEdit{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
-.seRow{display:flex;align-items:center;gap:8px;padding:4px 5px;border-radius:6px;font-size:13px}
+/* #15§3: 行を大きく・音量スライダーを長く・要素を垂直中央揃え */
+.seRow{display:flex;align-items:center;gap:10px;padding:7px 7px;border-radius:6px;font-size:14px}
 .seRow:hover{background:var(--hover)}
-.seRow .seMark{flex:none;font-size:14px}
+.seRow .seMark{flex:none;font-size:16px}
 .seRow .seName{flex:0 0 170px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.seRow .seVol{flex:1;min-width:90px;max-width:260px}
-.seRow .sePct{width:56px;text-align:right}
+.seRow .seVol{flex:2 1 220px;min-width:180px;max-width:480px}
+.seRow .sePct{width:60px;text-align:right}
 .seRow .seUnit{color:var(--text3);font-size:11px}
+.seRow .lp{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;font-size:14px;color:var(--text2)}
 .seRow .seGap{font-size:11px;color:var(--text3);white-space:nowrap}
 .seRow .seGapIn{width:48px;text-align:right;margin:0 2px}
-.seRow .seDel{flex:none;padding:1px 7px;font-size:12px;line-height:1.4}
+.seRow .seDel{flex:none;padding:4px 10px}
 .sePct,.seGapIn{-moz-appearance:textfield;appearance:textfield}
 .sePct::-webkit-inner-spin-button,.seGapIn::-webkit-inner-spin-button,
 .sePct::-webkit-outer-spin-button,.seGapIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
@@ -320,7 +342,7 @@ tr:last-child td{border-bottom:none}
 .pickRow .lp input{margin:0;vertical-align:middle}
 .pickRow .ppct{width:52px;text-align:right}
 .pickRow.silentRow .pn{flex:0 0 auto}
-.pickPrev{padding:4px 12px;font-size:12px;border-radius:6px;white-space:nowrap}
+.pickPrev{display:inline-flex;align-items:center;justify-content:center;height:28px;min-width:77px;padding:4px 12px;font-size:12px;border-radius:6px;white-space:nowrap}
 .pickPrev.on{background:var(--orange-soft);border-color:var(--orange);color:var(--orange)}
 .pickAdd{padding:2px 7px;font-size:15px;line-height:1.3;border-radius:6px;background:none;border:1px solid var(--border)}
 .pickAdd.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
@@ -414,7 +436,16 @@ dialog h3{font-size:15px}
                 <div id="goInfo"></div>
                 <div id="manualNote">手動フェーダーはフェード時間設定より優先されます</div>
               </div>
-              <div id="helpLines"></div>
+              <!-- #15§1: 「シーン停止」はここ（GO行の右端）へ移動。文言・大きさ・色は不変 -->
+              <div id="helpLines">
+                <div class="hItem goRow">
+                  <div class="hText"><div class="hKey"><kbd>Enter</kbd> GO</div><div class="hDesc">NEXTシーンへ規定の時間で遷移します</div></div>
+                  <button class="mbBtn" id="scenePauseBtn">■ シーン停止</button>
+                </div>
+                <div class="hItem"><div class="hKey"><kbd>←</kbd><kbd>→</kbd> NEXT選択</div><div class="hDesc">セッション内でループします</div></div>
+                <div class="hItem"><div class="hKey" id="spaceKey"><kbd>Space</kbd> シーン停止</div><div class="hDesc" id="spaceDesc">シーンで鳴っている音を全部止めます（ポン出し・割込も止めるなら「■ 全停止」）</div></div>
+                <div class="hItem"><div class="hKey">手動フェーダー</div><div class="hDesc">動かした位置と速度に追従して遷移します</div></div>
+              </div>
             </div>
           </div>
           <div id="panicAsk" style="display:none">
@@ -453,21 +484,21 @@ dialog h3{font-size:15px}
     </div>
 
     <!-- ---- master bar: belongs to neither section ---- -->
+    <!-- #15§1: 全停止・ミュートはMASTER（全体）の左端に横並び。シーン停止はシーン遷移カード側へ移動 -->
     <div id="masterBar">
       <div class="mb all">
+        <button class="mbBtn danger" id="panicBtn">■ 全停止</button>
         <button class="mbBtn warn" id="muteAllBtn">ミュート</button>
         <span class="mbLab">MASTER（全体）</span>
         <input type="range" class="hslider" id="allMaster" min="0" max="1000" step="5">
         <span class="mbVal" id="allMasterVal"></span>
       </div>
       <div class="mb">
-        <button class="mbBtn" id="scenePauseBtn">■ シーン停止</button>
         <span class="mbLab">BGM MASTER</span>
         <input type="range" class="hslider" id="bgmMaster" min="0" max="1000" step="5">
         <span class="mbVal" id="bgmMasterVal"></span>
       </div>
       <div class="mb">
-        <button class="mbBtn danger" id="panicBtn">■ 全停止</button>
         <span class="mbLab">SE MASTER</span>
         <input type="range" class="hslider" id="seMaster" min="0" max="1000" step="5">
         <span class="mbVal" id="seMasterVal"></span>
@@ -506,24 +537,35 @@ dialog h3{font-size:15px}
       </div>
 
       <div class="card">
-        <h3>音源を検索</h3>
-        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。左のトグルでソート種別を切り替えると、検索欄も名前／タグ／任意IDに合わせて変わります（タグ・任意IDはトグルで複数選択できます）。検索は下の2つの列どちらにも効きます。</div>
+        <h3>音源検索＋割込フェーダー/ポン出し設定管理</h3>
+        <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。左のトグルでソート種別を切り替えると、検索欄も名前／タグ／任意IDに合わせて変わります（タグ・任意IDはトグルで複数選択、任意IDは範囲・単一・カンマ区切りの併用も可）。検索は下の2つの列どちらにも効きます。</div>
         <div id="libSearchBox"></div>
         <div class="tiny" id="libCount" style="margin-top:8px"></div>
+        <label class="rowflex tiny" style="margin-top:8px"><input type="checkbox" id="autoIdChk"> 任意：IDを自動連番付与する（ONのとき、新規取込音源の未設定IDにだけ連番を振ります）</label>
         <datalist id="tagList"></datalist>
+        <!-- #15§5-3: 割込フェーダー／ポン出しの割当・色は、検索結果のこのミニ一覧で設定する（数字は直接入力） -->
+        <div id="libAssignCols" style="margin-top:12px">
+          <div class="libAssignCol bgm">
+            <div class="rowflex" style="margin-bottom:6px"><span class="tiny" style="font-weight:700">割込フェーダー割当（BGM）</span><span class="spacer"></span><button class="iconbtn danger" id="clearAllFaderBtn">全割当解除</button></div>
+            <div id="libAssignBgm"></div>
+          </div>
+          <div class="libAssignCol se">
+            <div class="rowflex" style="margin-bottom:6px"><span class="tiny" style="font-weight:700">ポン出しボタン割当・色（SE）</span></div>
+            <div id="libAssignSe"></div>
+          </div>
+        </div>
       </div>
       <input type="file" id="fileInput" accept="audio/*" multiple style="display:none">
       <div id="libCols">
         <div class="libCol bgm" id="libColBgm">
-          <h3><span class="kindTag">BGM</span><span>音源一覧管理・割込フェーダー登録</span><span class="spacer"></span><button class="iconbtn accent" id="importBgmBtn">＋ BGMを取り込む</button></h3>
+          <h3><span class="kindTag">BGM</span><span>音源一覧管理</span><span class="spacer"></span><button class="iconbtn accent" id="importBgmBtn">＋ BGMを取り込む</button></h3>
           <table>
             <thead><tr>
               <th style="width:26px"></th>
               <th data-sort="customId" data-col="bgm" style="width:40px">任意ID</th>
               <th data-sort="name" data-col="bgm">名前</th>
-              <th style="width:150px">タグ</th>
-              <th data-sort="faderNo" data-col="bgm" style="width:52px">フェーダー割当</th>
-              <th style="width:78px">基準音量</th>
+              <th style="width:170px">タグ</th>
+              <th style="width:130px">基準音量</th>
               <th style="width:36px">ループ</th>
               <th data-sort="duration" data-col="bgm" style="width:46px">長さ</th>
               <th style="width:102px"></th>
@@ -534,16 +576,14 @@ dialog h3{font-size:15px}
           <div class="libPager" id="libPagerBgm"></div>
         </div>
         <div class="libCol se" id="libColSe">
-          <h3><span class="kindTag">SE</span><span>SEパッド音源登録</span><span class="spacer"></span><button class="iconbtn accent" id="importSeBtn">＋ SEを取り込む</button></h3>
+          <h3><span class="kindTag">SE</span><span>SE一覧管理</span><span class="spacer"></span><button class="iconbtn accent" id="importSeBtn">＋ SEを取り込む</button></h3>
           <table>
             <thead><tr>
               <th style="width:26px"></th>
               <th data-sort="customId" data-col="se" style="width:40px">任意ID</th>
               <th data-sort="name" data-col="se">名前</th>
-              <th style="width:150px">タグ</th>
-              <th data-sort="padNo" data-col="se" style="width:52px">ボタン割当</th>
-              <th style="width:38px">色</th>
-              <th style="width:78px">基準音量</th>
+              <th style="width:170px">タグ</th>
+              <th style="width:130px">基準音量</th>
               <th data-sort="duration" data-col="se" style="width:46px">長さ</th>
               <th style="width:110px"></th>
             </tr></thead>
@@ -740,11 +780,12 @@ const blobPut=(k,v)=>idb('blobs','readwrite',st=>st.put(v,k));
 const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
 const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
 
-/* ===================== State (version 6) ===================== */
-const STATE_VERSION=6;
+/* ===================== State (version 7) ===================== */
+const STATE_VERSION=7;
 function blankState(){
   return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
-          settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55}};
+          settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55,
+            autoCustomId:false,autoIdCounter:0}};   // v7: §6 任意IDの自動連番付与（チェックボックス）
 }
 let state=blankState();
 let saveTimer=null;
@@ -760,10 +801,13 @@ const TRANS_TO_WAYS={
 /* migration: v1/v2 -> v3. Idempotent. */
 function migrate(raw){
   const st=Object.assign(blankState(),raw||{});
-  st.settings=Object.assign({masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55},st.settings||{});
+  st.settings=Object.assign({masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55,
+    autoCustomId:false,autoIdCounter:0},st.settings||{});
   if(!st.settings.secOpen||typeof st.settings.secOpen!=='object')st.settings.secOpen={a:true,b:true};
   st.settings.masterAll=typeof st.settings.masterAll==='number'&&isFinite(st.settings.masterAll)?clamp(st.settings.masterAll,0,1000):1000;
   st.settings.splitPct=typeof st.settings.splitPct==='number'&&isFinite(st.settings.splitPct)?clamp(st.settings.splitPct,20,80):55;
+  st.settings.autoCustomId=!!st.settings.autoCustomId;
+  st.settings.autoIdCounter=Number.isInteger(st.settings.autoIdCounter)&&st.settings.autoIdCounter>=0?st.settings.autoIdCounter:0;
   if(!Array.isArray(st.sessions))st.sessions=[];
   if(!Array.isArray(st.audios))st.audios=[];
   if(!Array.isArray(st.scenes))st.scenes=[];
@@ -821,16 +865,14 @@ function migrate(raw){
     delete a.tag;
     a.tags=[...new Set(a.tags.map(t=>String(t).trim()).filter(Boolean))];
   });
-  /* v6（§6・§7）: 任意IDは取り込み順の整数。未設定のものだけ、使われていない番号を若い順に埋める */
-  (function numberCustomIds(){
-    const used=new Set(st.audios.map(a=>String(a.customId||'').trim()).filter(Boolean));
-    let n=1;
-    for(const a of st.audios){
-      if(String(a.customId||'').trim())continue;
-      while(used.has(String(n)))n++;
-      a.customId=String(n);used.add(String(n));n++;
-    }
-  })();
+  /* v7（§15-6）: 起動時／インポート時の無条件自動採番は廃止。
+     採番は「任意：IDを自動連番付与する」チェックボックスがONのときだけ、新規取込音源に行う（importFiles）。
+     ここでは、既存の数値IDより低い番号を将来発行しないよう高水位だけ引き上げる。 */
+  {
+    let max=st.settings.autoIdCounter||0;
+    for(const a of st.audios){const n=Number(a.customId);if(Number.isInteger(n)&&n>max)max=n;}
+    st.settings.autoIdCounter=max;
+  }
   if(!st.currentSessionId||!st.sessions.some(x=>x.id===st.currentSessionId))st.currentSessionId=st.sessions[0].id;
   linkXfadeIn(st);                 // Q2: stored IN follows the previous scene's crossfade OUT
   st.version=STATE_VERSION;
@@ -871,6 +913,14 @@ function markDirty(){
     drive.scheduleStateUpload();
   },400);
 }
+/* #15§7 指摘19: 400ms待たずに閉じられても最後の編集を残すため、閉じる直前に即時保存する */
+function flushSaveNow(){
+  if(!saveTimer)return;
+  clearTimeout(saveTimer);saveTimer=null;
+  try{kvPut('state',JSON.parse(JSON.stringify(state)));}catch(e){}
+}
+addEventListener('pagehide',flushSaveNow);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSaveNow();});
 const audioById=id=>state.audios.find(a=>a.id===id);
 const sceneById=id=>state.scenes.find(s=>s.id===id);
 const sessionById=id=>state.sessions.find(s=>s.id===id);
@@ -1500,7 +1550,7 @@ function renderSceneList(){
     d.querySelector('.scGear').addEventListener('click',ev=>{ev.stopPropagation();openSceneCfg(s.id);});
     list.appendChild(d);
   }
-  if(!scenes.length)list.innerHTML='<div class="small" style="padding:12px">このセッションにはシーンがありません。フェーダーで音を作って「◉ 今の音をシーンに入れる」でどうぞ。</div>';
+  if(!scenes.length)list.innerHTML='<div class="small" style="padding:12px">このセッションにはシーンがありません。フェーダーで音を作って「◉ 現在の再生状態を新シーンとして追加」でどうぞ。</div>';
 }
 function renderStage(){
   const next=live.nextSceneId?sceneById(live.nextSceneId):null;
@@ -1559,17 +1609,15 @@ function renderSceneActions(){
   pn.disabled=!off&&!sceneAlive()&&!intAlive()&&!padAlive()&&!live.stops.length;
   renderHelpLines();
 }
-/* one item = a key line + a description line; the Space line follows the current state */
+/* #15§1/§4: #helpLines is now static markup (scenePauseBtn lives inside it) —
+   only the Space row's text depends on live state, so patch it in place instead
+   of rebuilding the whole innerHTML (which would tear down scenePauseBtn and its listener). */
 function renderHelpLines(){
-  const items=[
-    ['<kbd>Enter</kbd> GO','NEXTシーンへ規定の時間で遷移します'],
-    ['<kbd>←</kbd><kbd>→</kbd> NEXT選択','セッション内でループします'],
-    live.sceneStopped?['<kbd>Space</kbd> シーン再開','止めたシーンの音を戻します（「▶ シーン再開」と同じ）']
-                     :['<kbd>Space</kbd> シーン停止','シーンで鳴っている音を全部止めます（ポン出し・割込も止めるなら「■ 全停止」）'],
-    ['手動フェーダー','動かした位置と速度に追従して遷移します'],
-  ];
-  $('#helpLines').innerHTML=items.map(([k,d])=>
-    `<div class="hItem"><div class="hKey">${k}</div><div class="hDesc">${d}</div></div>`).join('');
+  const stopped=live.sceneStopped;
+  $('#spaceKey').innerHTML=stopped?'<kbd>Space</kbd> シーン再開':'<kbd>Space</kbd> シーン停止';
+  $('#spaceDesc').textContent=stopped
+    ?'止めたシーンの音を戻します（「▶ シーン再開」と同じ）'
+    :'シーンで鳴っている音を全部止めます（ポン出し・割込も止めるなら「■ 全停止」）';
 }
 function renderPerform(){
   renderSessionSelect();renderSceneList();renderStage();
@@ -1585,7 +1633,10 @@ ui.xfader=VFader($('#xfader'),{
       if(!live.nextSceneId||v<=0){ui.xfader.set(0);return;}
       ensureCtx();
       const ok=await beginTransition('manual');
-      if(!ok){ui.xfader.set(0);return;}
+      /* #15§7 指摘8: await中に別の操作が入っていたら、ここで必ず状態を再確認する
+         （0%に戻された・GOで自動遷移に差し替わった・cancelされて live.trans が null、のいずれも拾う） */
+      if(!ok||!live.trans||live.trans.mode!=='manual'){ui.xfader.set(0);return;}
+      if(ui.xfader.get()<=0){cancelTransition();return;}
     }
     live.trans.x=v/1000;
     $('#xfVal').textContent=Math.round(v/10)+'%';
@@ -1667,6 +1718,8 @@ function renderSEPads(){
     return;
   }
   list.forEach((a,i)=>{
+    /* #15§5-9: 🎨ボタンでメイン画面からも色を変更できる（再生／停止の誤発火を防ぐため別要素・stopPropagation） */
+    const cell=document.createElement('div');cell.className='sePadWrap';
     const b=document.createElement('button');b.className='sePad'+((seActive.get(a.id)||{size:0}).size?' on':'');
     b.dataset.id=a.id;
     applyPadColor(b,a.padColor||PAD_DEFAULT_COLOR);
@@ -1674,7 +1727,11 @@ function renderSEPads(){
     b.querySelector('.pname').textContent=a.name;
     b.title=a.name+(a.padNo!=null?'（ボタン割当 '+a.padNo+'）':'')+' — もう一度押すと停止';
     b.addEventListener('click',()=>triggerSE(a.id));
-    wrap.appendChild(b);
+    const cb=document.createElement('button');cb.className='padColorBtn';cb.textContent='🎨';cb.title='パッドの色を変更';
+    cb.addEventListener('pointerdown',e=>e.stopPropagation());
+    cb.addEventListener('click',e=>{e.stopPropagation();openPalette(cb,a);});
+    cell.append(b,cb);
+    wrap.appendChild(cell);
   });
 }
 
@@ -1981,7 +2038,7 @@ const pickQuery={bgm:'',se:''};
 const pickSel={bgm:new Set(),se:new Set()};
 const SORT_MODES=[{v:'name',lab:'名前'},{v:'tag',lab:'タグ'},{v:'customId',lab:'任意ID'}];
 const allTagsOf=kind=>[...new Set(state.audios.filter(a=>!kind||a.kind===kind).flatMap(a=>a.tags))].sort(JA);
-const allIdsOf=kind=>[...new Set(state.audios.filter(a=>!kind||a.kind===kind).map(a=>String(a.customId||'').trim()).filter(Boolean))].sort(JAe);
+const allIdsOf=kind=>[...new Set(state.audios.filter(a=>!kind||a.kind===kind).map(a=>String(a.customId||'').trim()).filter(v=>!isNoId(v)))].sort(JAe);
 /* ソートトグル（検索欄と同じ高さの3分割ボタン）＋ ソート種別ごとの検索UI */
 function buildSortSearch(opts){
   /* opts: {mode,query,selected,tags,ids,onMode,onQuery,onToggle} */
@@ -2053,7 +2110,7 @@ function pickList(kind){
     return true;
   });
   return list.sort((a,b)=>{
-    if(mode==='customId')return JAe(a.customId,b.customId)||JA(a.name,b.name);
+    if(mode==='customId')return JAe(isNoId(a.customId)?'':a.customId,isNoId(b.customId)?'':b.customId)||JA(a.name,b.name);
     if(mode==='tag')return JAe((a.tags[0]||''),(b.tags[0]||''))||JA(a.name,b.name);
     return JA(a.name,b.name);
   });
@@ -2136,7 +2193,9 @@ function renderPicker(root,scene,onChange){
       });
       r.__pid=a.id;
       r.querySelector('.pickPrev').addEventListener('click',()=>togglePreviewAt(a.id,pctToVal(pct.value)));
-      const apply=v=>{
+      /* #15§4/指摘13: typing in 「音量%」 must not rebuild the whole app on every keystroke.
+         heavy=false skips onChange/renderPerform(); the 'change' event (blur/Enter) always commits heavy. */
+      const apply=(v,heavy=true)=>{
         if(v>0){
           bag(kind)[a.id]=v;
           if(!scene.loops)scene.loops={};
@@ -2152,13 +2211,15 @@ function renderPicker(root,scene,onChange){
           for(const b of bgmAudios())if(effectiveValue(b.id)<=0)stopChannel(b.id);
           applyMix();
         }
-        markDirty();onChange&&onChange();renderPerform();
+        markDirty();
+        if(heavy){onChange&&onChange();renderPerform();}
       };
       r.querySelector('.pickAdd').addEventListener('click',()=>{
         apply(on?0:pctToVal(pct.value||100));
         fill(kind);
       });
-      pct.addEventListener('input',()=>{if((bag(kind)[a.id]||0)>0)apply(pctToVal(pct.value));});
+      pct.addEventListener('input',()=>{if((bag(kind)[a.id]||0)>0)apply(pctToVal(pct.value),false);});
+      pct.addEventListener('change',()=>{if((bag(kind)[a.id]||0)>0)apply(pctToVal(pct.value));});
       rows.appendChild(r);
     }
   }
@@ -2302,10 +2363,13 @@ function sceneCardEl(s,isInput,opts){
       ${isInput?'':'<button class="sc-dup">複製</button><button class="sc-del danger">削除</button>'}
     </div>
     <div class="scSelAll" style="display:none"></div>
+    <!-- #15§2: IN方法・IN秒とOUT方法・OUT秒を2行に分ける（機能は不変） -->
     <div class="scHead" style="margin-top:7px">
       <span class="scPill">IN方法</span><select class="sc-way sc-inway"></select>
       <span class="fadeIn"><span class="scPill">IN秒</span> <input class="sc-in" type="number" min="0.1" step="0.1"></span>
       <span class="scPill xfLink" style="display:none">前シーンのOUT（クロスフェード）に連動</span>
+    </div>
+    <div class="scHead" style="margin-top:5px">
       <span class="scPill">OUT方法</span><select class="sc-way sc-outway"></select>
       <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" type="number" min="0.1" step="0.1"></span>
     </div>
@@ -2360,7 +2424,10 @@ function sceneCardEl(s,isInput,opts){
     if(editWrap.style.display==='none')return;
     renderSceneEditRows(editWrap,s,()=>{renderSel();renderEdit();});
   };
-  const commit=()=>{
+  /* #15§4: heavy=false while a slider is mid-drag — updates the value and live audio
+     but skips the full renderPerform() rebuild (指摘13). The 'change' event that
+     fires once the drag ends always commits with heavy=true, so nothing is lost. */
+  const commit=(heavy=true)=>{
     const inWayVal=inWay.value,inSecVal=inIn.value;
     const fade=transFadeFields(outWay.value,inWayVal,outIn.value,inSecVal);
     const base={outMode:outWay.value,inMode:inWayVal,
@@ -2383,7 +2450,8 @@ function sceneCardEl(s,isInput,opts){
       }
       /* §1: 登録済みシーンでも編集が入ったら「一時保存」が使えるようにする */
       tempBtn.style.display='';
-      markDirty();renderPerform();
+      markDirty();
+      if(heavy)renderPerform();else renderSceneActions();
     }
   };
   idIn.addEventListener('change',()=>{commit();if(!isInput&&!opts.onAdd)renderSceneCards();});
@@ -2396,7 +2464,8 @@ function sceneCardEl(s,isInput,opts){
     commit();
     if(!isInput&&!opts.onAdd)renderSceneCards();
   });
-  mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit();});
+  mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit(false);});
+  mIn.addEventListener('change',()=>{commit();if(!isInput&&!opts.onAdd)renderSceneCards();});
   /* 音源選択: BGM一覧（左）／SE一覧（右）。🔼 でそのシーンに入れる・外す */
   const openKey=isInput?(opts.onAdd?null:'input'):('scene:'+s.id);
   const setPickOpen=open=>{
@@ -2512,12 +2581,16 @@ function renderSceneEditRows(container,scene,onChange){
       <input class="sePct pctIn" type="number" min="0" max="100" step="0.1"><span class="seUnit">%</span>
       <label class="lp"><span class="lpTxt">ループ</span><input type="checkbox" class="seLoop"></label>
       <span class="seGap" style="display:none">ループ間隔の指定：<input class="seGapIn pctIn" type="number" min="0" step="0.1">秒</span>
-      <button class="seDel iconbtn danger" title="このシーンから外す">🗑</button>`;
+      <button class="seDel danger" title="このシーンから外す">削除</button>`;
     row.querySelector('.seMark').textContent=r.kind==='BGM'?'🎶':'🎺';
     row.querySelector('.seName').textContent=a.name;row.querySelector('.seName').title=a.name;
     const sl=row.querySelector('.seVol'),num=row.querySelector('.sePct');
     sl.value=bag[r.id]||0;num.value=fmtPct(bag[r.id]||0);
-    const apply=v=>{
+    /* #15§4: onChange rebuilds this whole row list — calling it on every drag tick would
+       tear down the very slider the user is dragging (the reported 明滅/flicker bug).
+       heavy=false (input) just updates the value and live audio; heavy=true (change,
+       once the drag ends) does the full onChange rebuild, same as before. */
+    const apply=(v,heavy=true)=>{
       if(v>0)bag[r.id]=v;else delete bag[r.id];
       if(scene.id===live.currentSceneId&&!live.trans){
         live.currentValues=sceneValuesOf(scene);
@@ -2525,10 +2598,13 @@ function renderSceneEditRows(container,scene,onChange){
         for(const b of bgmAudios())if(effectiveValue(b.id)<=0)stopChannel(b.id);
         applyMix();
       }
-      markDirty();onChange&&onChange();
+      markDirty();
+      if(heavy)onChange&&onChange();
     };
-    sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v);});
-    num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v);});
+    sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v,false);});
+    num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v,false);});
+    sl.addEventListener('change',()=>apply(Number(sl.value)));
+    num.addEventListener('change',()=>apply(pctToVal(num.value)));
     const lp=row.querySelector('.seLoop'),gap=row.querySelector('.seGap'),gapIn=row.querySelector('.seGapIn');
     lp.checked=sceneLoopOf(scene,r.id);
     const syncGap=()=>{gap.style.display=(r.kind==='SE'&&lp.checked)?'':'none';};
@@ -2574,7 +2650,9 @@ async function importFiles(files){
     let dur=0;
     try{const ab=await f.arrayBuffer();const buf=await engine.ctx.decodeAudioData(ab.slice(0));dur=buf.duration;engine.buffers.set(id,buf);}catch(e){alert('読み込めませんでした: '+f.name);continue;}
     await blobPut(id,f);
-    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId:nextCustomId(),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
+    /* §15-6: 「任意：IDを自動連番付与する」がONのときだけ新規取込音源に採番する */
+    const customId=state.settings.autoCustomId?nextAutoCustomId():'';
+    state.audios.push({id,name:f.name.replace(/\.[^.]+$/,''),kind,customId,faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,tags:[],baseVolume:1000,loop:kind==='bgm',duration:dur,size:f.size,type:f.type||'audio/mpeg'});
     drive.scheduleAudioUpload(id);
   }
   markDirty();renderAll();prewarmBuffers();
@@ -2620,17 +2698,35 @@ function renderLibSearch(){
     onToggle:v=>{const s=libSearch.sel;s.has(v)?s.delete(v):s.add(v);libPage.bgm=0;libPage.se=0;renderLibrary();},
   }));
 }
+/* §15-4: 任意ID検索は 全角「1〜10」／半角「1-10」の範囲・単一番号・カンマ区切り（1,3,5）と、これらの併用に対応する */
+function idQueryMatches(query,customId){
+  const q=(query||'').trim();
+  if(!q)return true;
+  const cid=String(customId||'').trim(),cidNum=Number(cid);
+  const tokens=q.split(/[,、]/).map(t=>t.trim()).filter(Boolean);
+  if(!tokens.length)return true;
+  return tokens.some(tok=>{
+    const range=tok.match(/^(\d+)\s*[-〜～]\s*(\d+)$/);
+    if(range){
+      if(!Number.isInteger(cidNum))return false;
+      let lo=Number(range[1]),hi=Number(range[2]);
+      if(lo>hi)[lo,hi]=[hi,lo];
+      return cidNum>=lo&&cidNum<=hi;
+    }
+    if(/^\d+$/.test(tok))return Number.isInteger(cidNum)&&cidNum===Number(tok);
+    return cid.toLowerCase().includes(tok.toLowerCase());
+  });
+}
 function libFiltered(kind){
-  const q=(libSearch.query||'').toLowerCase(),mode=libSearch.mode,sel=libSearch.sel;
+  const q=libSearch.query||'',mode=libSearch.mode,sel=libSearch.sel;
   return state.audios.filter(a=>{
     if(a.kind!==kind)return false;
-    if(mode==='name'){if(q&&!a.name.toLowerCase().includes(q))return false;}
+    if(mode==='name'){if(q&&!a.name.toLowerCase().includes(q.toLowerCase()))return false;}
     else if(mode==='tag'){
-      if(q&&!a.tags.some(t=>t.toLowerCase().includes(q)))return false;
+      if(q&&!a.tags.some(t=>t.toLowerCase().includes(q.toLowerCase())))return false;
       if(sel.size&&!a.tags.some(t=>sel.has(t)))return false;
     }else{
-      const cid=String(a.customId||'').toLowerCase();
-      if(q&&!cid.includes(q))return false;
+      if(q&&!idQueryMatches(q,a.customId))return false;
       if(sel.size&&!sel.has(String(a.customId||'').trim()))return false;
     }
     return true;
@@ -2642,7 +2738,7 @@ function libSorted(kind){
   return libFiltered(kind).sort((a,b)=>{
     let r=0;
     if(k==='name')r=JA(a.name,b.name);
-    else if(k==='customId')r=JAe(a.customId,b.customId);
+    else if(k==='customId')r=JAe(isNoId(a.customId)?'':a.customId,isNoId(b.customId)?'':b.customId);
     else if(k==='duration')r=(a.duration||0)-(b.duration||0);
     else if(k==='faderNo')r=(a.faderNo==null?NOFADER:a.faderNo)-(b.faderNo==null?NOFADER:b.faderNo)||JA(a.name,b.name);
     else if(k==='padNo')r=(a.padNo==null?NOFADER:a.padNo)-(b.padNo==null?NOFADER:b.padNo)||JA(a.name,b.name);
@@ -2661,6 +2757,17 @@ function nextCustomId(){
   let n=1;while(used.has(String(n)))n++;
   return String(n);
 }
+/* IDなし: 空欄、または利用者が意図的に空にしたことを示す「-」 */
+const isNoId=v=>{const s=String(v||'').trim();return s===''||s==='-';};
+/* §15-6: 「任意：IDを自動連番付与する」ON時の採番。既存の最大数値ID+1から連番とし、
+   削除済みIDの欠番は再利用しない（state.settings.autoIdCounter が単調増加する高水位）。 */
+function nextAutoCustomId(){
+  let max=Number(state.settings.autoIdCounter)||0;
+  for(const a of state.audios){const n=Number(a.customId);if(Number.isInteger(n)&&n>max)max=n;}
+  max+=1;
+  state.settings.autoIdCounter=max;
+  return String(max);
+}
 /* §6/§7: 1行 = 試聴 / 任意ID / 名前 / タグ（複数・ピル） / 割当 / (色) / 基準音量 / (ループ) / 長さ / 操作 */
 function renderLibColumn(kind){
   const body=$(kind==='bgm'?'#libBodyBgm':'#libBodySe');
@@ -2674,19 +2781,18 @@ function renderLibColumn(kind){
   body.innerHTML='';
   for(const a of list){
     const tr=document.createElement('tr');
+    /* #15§5-2: フェーダー割当／ボタン割当／色は音源一覧から分離した（→#libAssignBgm/#libAssignSe） */
     tr.innerHTML=`
       <td><button class="iconbtn" data-act="prev">${previewingId===a.id?'■':'▶'}</button></td>
       <td><input data-act="cid" class="cidIn" placeholder="—"></td>
       <td><input data-act="name" style="width:100%"></td>
       <td><div class="tagCell"><span class="tagPills"></span><input data-act="tagAdd" class="tagAdd" list="tagList" placeholder="＋タグ"></div></td>
-      ${kind==='bgm'?'<td><input data-act="fader" class="assignIn" placeholder="—"></td>'
-                    :'<td><input data-act="pad" class="assignIn" placeholder="—"></td><td><button class="swatch" data-act="color" title="パッドの色を選ぶ"></button></td>'}
       <td><div class="volCell"><input type="range" data-act="vol" class="hslider" min="0" max="1000" step="10"><span class="volPct"><input data-act="volnum" class="volNum pctIn" type="number" min="0" max="100" step="0.1"><span class="pctUnit">%</span></span></div></td>
       ${kind==='bgm'?'<td style="text-align:center"><input type="checkbox" data-act="loop"></td>':''}
       <td class="small">${fmtDur(a.duration)}</td>
       <td><button class="iconbtn" data-act="move">${kind==='bgm'?'→SE':'→BGM'}</button> <button class="iconbtn danger" data-act="del">削除</button></td>`;
     tr.querySelector('[data-act=name]').value=a.name;
-    tr.querySelector('[data-act=cid]').value=a.customId||'';
+    tr.querySelector('[data-act=cid]').value=isNoId(a.customId)?'':a.customId;
     /* §6/§7: タグは複数。ピルの ✕ で外し、右の入力で足す */
     const pills=tr.querySelector('.tagPills');
     pills.replaceWith(tagPills(a.tags,t=>{
@@ -2707,31 +2813,20 @@ function renderLibColumn(kind){
     vol.addEventListener('input',()=>{volNum.value=fmtPct(Number(vol.value));applyVol(Number(vol.value));});
     volNum.addEventListener('input',()=>{const v=pctToVal(volNum.value);vol.value=v;applyVol(v);});
     if(kind==='bgm'){
-      tr.querySelector('[data-act=fader]').value=a.faderNo==null?'':a.faderNo;
       tr.querySelector('[data-act=loop]').checked=!!a.loop;
-      tr.querySelector('[data-act=fader]').addEventListener('change',e=>{
-        const raw=e.target.value.trim();
-        const n=raw===''?null:Number(raw);
-        a.faderNo=(n==null||!isFinite(n))?null:n;   // assigning/clearing never touches scene values
-        if(a.faderNo==null){delete live.interrupt[a.id];intStopped.delete(a.id);}
-        markDirty();renderPerform();renderLibrary();
-      });
       tr.querySelector('[data-act=loop]').addEventListener('change',e=>{a.loop=e.target.checked;stopChannel(a.id);markDirty();});
-    }else{
-      const sw=tr.querySelector('[data-act=color]');
-      sw.style.background=a.padColor||PAD_DEFAULT_COLOR;
-      sw.addEventListener('click',e=>{e.stopPropagation();openPalette(sw,a);});
-      tr.querySelector('[data-act=pad]').value=a.padNo==null?'':a.padNo;
-      tr.querySelector('[data-act=pad]').addEventListener('change',e=>{
-        const raw=e.target.value.trim();
-        const n=raw===''?null:Number(raw);
-        a.padNo=(n==null||!isFinite(n))?null:n;    // ボタン割当: decides the pad order
-        markDirty();renderPerform();renderLibrary();
-      });
     }
     tr.querySelector('[data-act=prev]').addEventListener('click',()=>togglePreview(a.id));
     tr.querySelector('[data-act=name]').addEventListener('change',e=>{a.name=e.target.value||a.name;markDirty();renderPerform();renderLibrary();});
-    tr.querySelector('[data-act=cid]').addEventListener('change',e=>{a.customId=e.target.value.trim();markDirty();renderLibrary();});
+    tr.querySelector('[data-act=cid]').addEventListener('change',e=>{
+      /* §15-7: 任意IDの手動編集は数字のみ。空欄は「-」（IDなし）として保存する例外 */
+      const raw=e.target.value.trim();
+      if(raw===''){a.customId='-';}
+      else if(/^\d+$/.test(raw)){a.customId=String(Number(raw));}
+      else{e.target.value=isNoId(a.customId)?'':a.customId;return;}
+      e.target.value=isNoId(a.customId)?'':a.customId;
+      markDirty();renderLibrary();
+    });
     tr.querySelector('[data-act=move]').addEventListener('click',()=>{
       a.kind=kind==='bgm'?'se':'bgm';
       stopChannel(a.id);stopSE(a.id);
@@ -2762,6 +2857,57 @@ function renderLibColumn(kind){
   }
   return sorted.length;
 }
+/* #15§5-3: 割込フェーダー割当（BGM）／ボタン割当・色（SE）の設定ミニ一覧。
+   検索・ソート・ページングは音源一覧テーブルと共通（同じ libFiltered/libSorted/libPage を使う）。
+   割当は候補選択ではなく数字の直接入力で、空欄にすると個別解除される。 */
+function renderLibAssign(kind){
+  const body=$(kind==='bgm'?'#libAssignBgm':'#libAssignSe');
+  /* renderLibColumn(kind) already clamped libPage[kind] to the valid range this render pass */
+  const sorted=libSorted(kind);
+  const list=sorted.slice(libPage[kind]*LIB_PAGE,(libPage[kind]+1)*LIB_PAGE);
+  body.innerHTML='';
+  if(!list.length){body.innerHTML='<div class="tiny" style="padding:6px 2px">該当する音源がありません。</div>';return;}
+  for(const a of list){
+    const row=document.createElement('div');row.className='assignRow';
+    row.innerHTML=`<span class="aCid"></span><span class="aName"></span><span class="spacer"></span>
+      ${kind==='bgm'?'<span class="tiny">フェーダー番号</span><input class="assignIn2" type="number" placeholder="—">'
+                    :'<span class="tiny">ボタン番号</span><input class="assignIn2" type="number" placeholder="—"><button class="swatch" title="パッドの色を選ぶ"></button>'}`;
+    row.querySelector('.aCid').textContent=isNoId(a.customId)?'—':a.customId;
+    row.querySelector('.aName').textContent=a.name;row.querySelector('.aName').title=a.name;
+    const inp=row.querySelector('.assignIn2');
+    if(kind==='bgm'){
+      inp.value=a.faderNo==null?'':a.faderNo;
+      inp.addEventListener('change',e=>{
+        const raw=e.target.value.trim();
+        const n=raw===''?null:Number(raw);
+        a.faderNo=(n==null||!isFinite(n))?null:n;   // assigning/clearing never touches scene values
+        if(a.faderNo==null){delete live.interrupt[a.id];intStopped.delete(a.id);}
+        markDirty();renderPerform();renderLibrary();
+      });
+    }else{
+      inp.value=a.padNo==null?'':a.padNo;
+      inp.addEventListener('change',e=>{
+        const raw=e.target.value.trim();
+        const n=raw===''?null:Number(raw);
+        a.padNo=(n==null||!isFinite(n))?null:n;    // ボタン割当: decides the pad order
+        markDirty();renderPerform();renderLibrary();
+      });
+      const sw=row.querySelector('.swatch');
+      sw.style.background=a.padColor||PAD_DEFAULT_COLOR;
+      sw.addEventListener('click',e=>{e.stopPropagation();openPalette(sw,a);});
+    }
+    body.appendChild(row);
+  }
+}
+$('#clearAllFaderBtn').addEventListener('click',()=>{
+  if(!confirm('割込フェーダーの割当をすべて解除しますか？\n全BGM音源のフェーダー番号を空欄にします。'))return;
+  for(const a of state.audios){
+    if(a.kind!=='bgm')continue;
+    a.faderNo=null;delete live.interrupt[a.id];intStopped.delete(a.id);
+  }
+  markDirty();renderPerform();renderLibrary();
+});
+$('#autoIdChk').addEventListener('change',e=>{state.settings.autoCustomId=e.target.checked;markDirty();});
 function renderLibrary(){
   renderLibSearch();
   $('#tagList').textContent='';
@@ -2774,6 +2920,8 @@ function renderLibrary(){
     }
   });
   const nb=renderLibColumn('bgm'),ns=renderLibColumn('se');
+  renderLibAssign('bgm');renderLibAssign('se');
+  $('#autoIdChk').checked=!!state.settings.autoCustomId;
   const shown=nb+ns;
   $('#libCount').textContent=shown===state.audios.length
     ?`BGM ${nb} 件 / SE ${ns} 件`
@@ -3199,7 +3347,17 @@ function renderAll(){
   drive.setBadge();
 }
 (async function init(){
-  db=await openDB();
+  /* #15§7 指摘7: DBが開けないと画面が無反応のまま固まっていたので、原因と対処が分かるメッセージを出す */
+  try{db=await openDB();}
+  catch(e){
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div style="padding:16px;background:#5a2020;color:#fff;font-size:13px;line-height:1.6">'+
+      'データ保存領域（IndexedDB）を開けませんでした。<br>'+
+      '・ファイルを直接開いていませんか？（http または https で開いてください）<br>'+
+      '・プライベートブラウズや、サイトデータのブロック設定が有効ではありませんか？<br>'+
+      '詳細: '+(e&&e.message||e)+'</div>');
+    return;
+  }
   const saved=await kvGet('state');
   state=migrate(saved);
   live.nextSceneId=curScenes()[0]?.id||null;
