@@ -197,13 +197,16 @@ main{flex:1;min-height:0;position:relative}
 .panel h2{font-size:18px;margin-bottom:4px}
 .panel .sub{color:var(--text2);margin-bottom:20px;font-size:13px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
-.card h3{font-size:14px;margin-bottom:10px}
+/* #16§4: 検索カードの見出しは「音源一覧管理」側（.libCol>h3、無指定＝ブラウザ既定）に揃えるため、この規則の対象から外す */
+.card h3:not(#libSearchHead){font-size:14px;margin-bottom:10px}
 .rowflex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{font-size:11px;color:var(--text3);text-align:left;font-weight:600;padding:6px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
 th[data-sort]{cursor:pointer}
 th[data-sort]:hover{color:var(--text2)}
 th .arw{color:var(--blue);font-size:9px}
+/* #16§1-3: 非アクティブなソート列にも淡色の▲▼を常時表示する（ID列・名前列） */
+th .arwPale{color:var(--text3);font-size:9px}
 td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 .iconbtn{padding:3px 8px;font-size:12px;border-radius:6px;white-space:nowrap}
@@ -243,21 +246,24 @@ tr:last-child td{border-bottom:none}
 .pickRow .gapIn{width:46px;text-align:right;margin:0 2px;-moz-appearance:textfield;appearance:textfield}
 .pickRow .gapIn::-webkit-inner-spin-button,.pickRow .gapIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 /* §6/§7: 任意ID（3桁ぴったり）・割当（2桁・矢印なし）・基準音量（バー中央に%）・色は正方形 */
-.cidIn{width:38px;text-align:center;padding:4px 3px}
+/* #16§1-2: ID入力ボックスを半分の幅に（3桁以上でも入力・保存は従来どおり可能。表示は見切れて良い） */
+.cidIn{width:19px;text-align:center;padding:4px 3px}
 .assignIn{width:34px;text-align:center;padding:4px 3px;-moz-appearance:textfield;appearance:textfield}
 .assignIn::-webkit-inner-spin-button,.assignIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-/* #15§5-5: バーを少し長くし、%数値はバーに中央揃えで重ねて表示する */
-.volCell{position:relative;display:flex;align-items:center}
-.volCell .hslider{width:100%;min-width:96px}
-.volPct{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:1px;background:var(--raised);border:1px solid var(--border2);border-radius:999px;padding:0 5px;pointer-events:none}
-.volPct .volNum{pointer-events:auto}
+/* #16§1-4/1-5: バーを4/5の幅にし、%表示は重ねずバーの下に中央揃えで置く（枠線・背景なし。#15§5-5は取り消し） */
+.volCell{display:flex;flex-direction:column;align-items:center}
+.volCell .hslider{width:80%;min-width:77px}
+.volPct{display:inline-flex;align-items:center;gap:1px}
 .volNum{-moz-appearance:textfield;appearance:textfield}
 .volNum::-webkit-inner-spin-button,.volNum::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .tagCell{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .tagCell .tagAdd{width:58px;font-size:11px;padding:2px 5px}
 /* library: BGM / SE side by side */
 #libCols{display:flex;gap:16px;align-items:flex-start}
+/* #16§6: 音源一覧管理（BGM）:SE一覧管理 = 6:4 */
 .libCol{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px}
+.libCol.bgm{flex:6 1 0}
+.libCol.se{flex:4 1 0}
 .libCol>h3{display:flex;align-items:center;gap:8px}
 .libCol .kindTag{font-size:10px;font-weight:800;letter-spacing:.08em;padding:1px 8px;border-radius:999px}
 /* auto table layout, but force the text fields to stay usable; the column scrolls if it must */
@@ -477,7 +483,8 @@ dialog h3{font-size:15px}
             <div><kbd>1</kbd>–<kbd>9</kbd> 現在バンクのパッドを鳴らす</div>
             <div>再生中のパッドをもう一度押すと停止します</div>
           </div>
-          <div class="colTitle"><span>割込BGMフェーダー（詳細編集で「フェーダー割当」を入れたBGM）</span></div>
+          <!-- #16§7-1: 入力場所を現行（割当ミニ一覧）に合わせた表現に -->
+          <div class="colTitle"><span>割込BGMフェーダー（詳細編集の割当ミニ一覧で「フェーダー番号」を入れたBGM）</span></div>
           <div id="interruptStrip"></div>
         </div>
       </div>
@@ -537,21 +544,23 @@ dialog h3{font-size:15px}
       </div>
 
       <div class="card">
-        <h3>音源検索＋割込フェーダー/ポン出し設定管理</h3>
+        <h3 id="libSearchHead">音源検索＋割込フェーダー/ポン出し設定管理</h3>
         <div class="small" style="margin-bottom:10px">音源データとメタデータは端末内（IndexedDB）に永続保存されます。左のトグルでソート種別を切り替えると、検索欄も名前／タグ／任意IDに合わせて変わります（タグ・任意IDはトグルで複数選択、任意IDは範囲・単一・カンマ区切りの併用も可）。検索は下の2つの列どちらにも効きます。</div>
         <div id="libSearchBox"></div>
         <div class="tiny" id="libCount" style="margin-top:8px"></div>
-        <label class="rowflex tiny" style="margin-top:8px"><input type="checkbox" id="autoIdChk"> 任意：IDを自動連番付与する（ONのとき、新規取込音源の未設定IDにだけ連番を振ります）</label>
         <datalist id="tagList"></datalist>
         <!-- #15§5-3: 割込フェーダー／ポン出しの割当・色は、検索結果のこのミニ一覧で設定する（数字は直接入力） -->
         <div id="libAssignCols" style="margin-top:12px">
           <div class="libAssignCol bgm">
             <div class="rowflex" style="margin-bottom:6px"><span class="tiny" style="font-weight:700">割込フェーダー割当（BGM）</span><span class="spacer"></span><button class="iconbtn danger" id="clearAllFaderBtn">全割当解除</button></div>
             <div id="libAssignBgm"></div>
+            <div class="libPager" id="libAssignPagerBgm"></div>
           </div>
           <div class="libAssignCol se">
-            <div class="rowflex" style="margin-bottom:6px"><span class="tiny" style="font-weight:700">ポン出しボタン割当・色（SE）</span></div>
+            <!-- #16§3: BGM側と同じ見た目・位置関係で全割当解除ボタンをSE側にも追加 -->
+            <div class="rowflex" style="margin-bottom:6px"><span class="tiny" style="font-weight:700">ポン出しボタン割当・色（SE）</span><span class="spacer"></span><button class="iconbtn danger" id="clearAllPadBtn">全割当解除</button></div>
             <div id="libAssignSe"></div>
+            <div class="libPager" id="libAssignPagerSe"></div>
           </div>
         </div>
       </div>
@@ -559,10 +568,13 @@ dialog h3{font-size:15px}
       <div id="libCols">
         <div class="libCol bgm" id="libColBgm">
           <h3><span class="kindTag">BGM</span><span>音源一覧管理</span><span class="spacer"></span><button class="iconbtn accent" id="importBgmBtn">＋ BGMを取り込む</button></h3>
+          <!-- #16§2-2: 自動連番チェックボックスをこのボックス側に配置（値は state.settings.autoCustomId を共有） -->
+          <label class="rowflex tiny" style="margin:6px 0"><input type="checkbox" id="autoIdChkBgm" class="autoIdChk"> 任意：IDを自動連番付与する（ONのとき、新規取込音源の未設定IDにだけ連番を振ります）</label>
           <table>
             <thead><tr>
               <th style="width:26px"></th>
-              <th data-sort="customId" data-col="bgm" style="width:40px">任意ID</th>
+              <!-- #16§1-1/1-2: 見出しは「ID」に改名、幅を半分に詰める -->
+              <th data-sort="customId" data-col="bgm" style="width:22px">ID</th>
               <th data-sort="name" data-col="bgm">名前</th>
               <th style="width:170px">タグ</th>
               <th style="width:130px">基準音量</th>
@@ -577,10 +589,11 @@ dialog h3{font-size:15px}
         </div>
         <div class="libCol se" id="libColSe">
           <h3><span class="kindTag">SE</span><span>SE一覧管理</span><span class="spacer"></span><button class="iconbtn accent" id="importSeBtn">＋ SEを取り込む</button></h3>
+          <label class="rowflex tiny" style="margin:6px 0"><input type="checkbox" id="autoIdChkSe" class="autoIdChk"> 任意：IDを自動連番付与する（ONのとき、新規取込音源の未設定IDにだけ連番を振ります）</label>
           <table>
             <thead><tr>
               <th style="width:26px"></th>
-              <th data-sort="customId" data-col="se" style="width:40px">任意ID</th>
+              <th data-sort="customId" data-col="se" style="width:22px">ID</th>
               <th data-sort="name" data-col="se">名前</th>
               <th style="width:170px">タグ</th>
               <th style="width:130px">基準音量</th>
@@ -780,12 +793,13 @@ const blobPut=(k,v)=>idb('blobs','readwrite',st=>st.put(v,k));
 const blobDel=k=>idb('blobs','readwrite',st=>st.delete(k));
 const blobKeys=()=>new Promise((res,rej)=>{const rq=db.transaction('blobs').objectStore('blobs').getAllKeys();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});
 
-/* ===================== State (version 7) ===================== */
-const STATE_VERSION=7;
+/* ===================== State (version 8) ===================== */
+const STATE_VERSION=8;
 function blankState(){
+  /* #16§2-1: 新規ユーザーは自動連番を既定ONにする */
   return {version:STATE_VERSION,updatedAt:0,sessions:[],audios:[],scenes:[],currentSessionId:null,
           settings:{masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55,
-            autoCustomId:false,autoIdCounter:0}};   // v7: §6 任意IDの自動連番付与（チェックボックス）
+            autoCustomId:true,autoIdCounter:0}};   // v7: §6 任意IDの自動連番付与（チェックボックス）
 }
 let state=blankState();
 let saveTimer=null;
@@ -801,8 +815,9 @@ const TRANS_TO_WAYS={
 /* migration: v1/v2 -> v3. Idempotent. */
 function migrate(raw){
   const st=Object.assign(blankState(),raw||{});
+  /* #16§2-1: autoCustomIdが未定義のときだけ既定ON。既存ユーザーが明示的にOFF(false)にした値は上書きしない */
   st.settings=Object.assign({masterAll:1000,master:800,seVol:1000,driveClientId:'',secOpen:{a:true,b:true},splitPct:55,
-    autoCustomId:false,autoIdCounter:0},st.settings||{});
+    autoCustomId:true,autoIdCounter:0},st.settings||{});
   if(!st.settings.secOpen||typeof st.settings.secOpen!=='object')st.settings.secOpen={a:true,b:true};
   st.settings.masterAll=typeof st.settings.masterAll==='number'&&isFinite(st.settings.masterAll)?clamp(st.settings.masterAll,0,1000):1000;
   st.settings.splitPct=typeof st.settings.splitPct==='number'&&isFinite(st.settings.splitPct)?clamp(st.settings.splitPct,20,80):55;
@@ -1714,7 +1729,8 @@ function renderSEPads(){
   const wrap=$('#sePads');wrap.innerHTML='';
   const list=bankSEAudios();
   if(!list.length){
-    wrap.innerHTML='<div class="emptyNote">ポン出しパッドは空です。「詳細編集 → 音源を検索」のSE列で音源を取り込み、<b>ボタン割当</b>（1〜9でバンクA、10〜18でバンクB…）を入れると、ここに番号順で並びます。<br>パッドはシーン再生とは独立して、いつでも単発で鳴らせます。</div>';
+    /* #16§7-1: 見出し名・入力場所（割当ミニ一覧）を現行に合わせて修正 */
+    wrap.innerHTML='<div class="emptyNote">ポン出しパッドは空です。「詳細編集 → SE一覧管理」で音源を取り込み、「音源検索＋割込フェーダー/ポン出し設定管理」の割当ミニ一覧で<b>ボタン番号</b>（1〜9でバンクA、10〜18でバンクB…）を入れると、ここに番号順で並びます。<br>パッドはシーン再生とは独立して、いつでも単発で鳴らせます。</div>';
     return;
   }
   list.forEach((a,i)=>{
@@ -1753,7 +1769,8 @@ function renderInterruptFaders(){
   const strip=$('#interruptStrip');strip.innerHTML='';intFaders.clear();
   const list=faderAudios();
   if(!list.length){
-    strip.innerHTML='<div class="emptyNote">割込フェーダーは空です。「詳細編集 → 音源一覧管理・割込フェーダー登録」で<b>フェーダー割当</b>（1〜12目安）を入れると、ここに番号順で並びます。<br>この系統はシーン再生から完全に独立していて、シーンの保存値にも表示にも影響しません。</div>';
+    /* #16§7-1: 見出し名・入力場所（割当ミニ一覧）を現行に合わせて修正 */
+    strip.innerHTML='<div class="emptyNote">割込フェーダーは空です。「詳細編集 → 音源一覧管理」で音源を取り込み、「音源検索＋割込フェーダー/ポン出し設定管理」の割当ミニ一覧で<b>フェーダー番号</b>（1〜12目安）を入れると、ここに番号順で並びます。<br>この系統はシーン再生から完全に独立していて、シーンの保存値にも表示にも影響しません。</div>';
     return;
   }
   for(const a of list){
@@ -2672,9 +2689,11 @@ async function togglePreview(id){
 }
 function fmtDur(s){if(!s)return'–';const m=Math.floor(s/60),ss=Math.round(s%60);return m+':'+String(ss).padStart(2,'0');}
 
-/* per-column sort / paging; search + tag chips are shared and apply to both columns */
+/* #16§5: 検索カード（割当ミニ一覧用）と一覧表（音源一覧管理／SE一覧管理）を完全に分離する。
+   libSort/libPage は一覧表専用。libSearch/assignPage は割当ミニ一覧専用で、一覧表には一切影響しない。 */
 const libSort={bgm:{key:'name',dir:1},se:{key:'name',dir:1}};
 const libPage={bgm:0,se:0};
+const assignPage={bgm:0,se:0};
 const LIB_PAGE=50;
 /* §5: 「音源を検索」もソートトグル＋種別ごとの検索UI（タグ・任意IDはトグル複数選択） */
 const libSearch={mode:'name',query:'',sel:new Set()};
@@ -2690,12 +2709,10 @@ function renderLibSearch(){
     tags:allTagsOf(null),ids:allIdsOf(null),
     onMode:v=>{
       libSearch.mode=v;libSearch.sel.clear();libSearch.query='';
-      const key=v==='tag'?'name':v;
-      libSort.bgm={key,dir:1};libSort.se={key,dir:1};
-      libPage.bgm=0;libPage.se=0;renderLibrary();
+      assignPage.bgm=0;assignPage.se=0;renderLibrary();
     },
-    onQuery:v=>{libSearch.query=v;libPage.bgm=0;libPage.se=0;renderLibrary();},
-    onToggle:v=>{const s=libSearch.sel;s.has(v)?s.delete(v):s.add(v);libPage.bgm=0;libPage.se=0;renderLibrary();},
+    onQuery:v=>{libSearch.query=v;assignPage.bgm=0;assignPage.se=0;renderLibrary();},
+    onToggle:v=>{const s=libSearch.sel;s.has(v)?s.delete(v):s.add(v);assignPage.bgm=0;assignPage.se=0;renderLibrary();},
   }));
 }
 /* §15-4: 任意ID検索は 全角「1〜10」／半角「1-10」の範囲・単一番号・カンマ区切り（1,3,5）と、これらの併用に対応する */
@@ -2717,7 +2734,8 @@ function idQueryMatches(query,customId){
     return cid.toLowerCase().includes(tok.toLowerCase());
   });
 }
-function libFiltered(kind){
+/* #16§5: 割当ミニ一覧専用のフィルタ・並び替え（検索カードのlibSearchだけを見る。一覧表には使わない） */
+function assignFiltered(kind){
   const q=libSearch.query||'',mode=libSearch.mode,sel=libSearch.sel;
   return state.audios.filter(a=>{
     if(a.kind!==kind)return false;
@@ -2731,6 +2749,18 @@ function libFiltered(kind){
     }
     return true;
   });
+}
+function assignSorted(kind){
+  const mode=libSearch.mode;
+  return assignFiltered(kind).sort((a,b)=>{
+    if(mode==='customId')return JAe(isNoId(a.customId)?'':a.customId,isNoId(b.customId)?'':b.customId)||JA(a.name,b.name);
+    if(mode==='tag')return JAe((a.tags[0]||''),(b.tags[0]||''))||JA(a.name,b.name);
+    return JA(a.name,b.name);
+  });
+}
+/* #16§5: 一覧表（音源一覧管理／SE一覧管理）専用。libSearchの影響を受けず、常に全件をlibSortだけで並べる */
+function libFiltered(kind){
+  return state.audios.filter(a=>a.kind===kind);
 }
 function libSorted(kind){
   const {key:k,dir:d}=libSort[kind];
@@ -2751,12 +2781,7 @@ $$('#libCols th[data-sort]').forEach(th=>th.addEventListener('click',()=>{
   libPage[kind]=0;renderLibrary();
 }));
 function allTags(){return [...new Set(state.audios.flatMap(a=>a.tags))].sort(JA);}
-/* 任意IDは取り込み順の整数。空いている最小の番号を返す */
-function nextCustomId(){
-  const used=new Set(state.audios.map(a=>String(a.customId||'').trim()).filter(Boolean));
-  let n=1;while(used.has(String(n)))n++;
-  return String(n);
-}
+/* #16§7-2: 欠番を再利用する旧採番方式（nextCustomId）は廃止。デモ／ダミー生成も nextAutoCustomId に統一 */
 /* IDなし: 空欄、または利用者が意図的に空にしたことを示す「-」 */
 const isNoId=v=>{const s=String(v||'').trim();return s===''||s==='-';};
 /* §15-6: 「任意：IDを自動連番付与する」ON時の採番。既存の最大数値ID+1から連番とし、
@@ -2768,7 +2793,8 @@ function nextAutoCustomId(){
   state.settings.autoIdCounter=max;
   return String(max);
 }
-/* §6/§7: 1行 = 試聴 / 任意ID / 名前 / タグ（複数・ピル） / 割当 / (色) / 基準音量 / (ループ) / 長さ / 操作 */
+/* §6/§7: 1行 = 試聴 / 任意ID / 名前 / タグ（複数・ピル） / 割当 / (色) / 基準音量 / (ループ) / 長さ / 操作
+   #16§5: この表は検索カード（libSearch）の影響を受けない。常に全件を自分のlibSort/libPageだけで表示する */
 function renderLibColumn(kind){
   const body=$(kind==='bgm'?'#libBodyBgm':'#libBodySe');
   const pager=$(kind==='bgm'?'#libPagerBgm':'#libPagerSe');
@@ -2857,16 +2883,18 @@ function renderLibColumn(kind){
   }
   return sorted.length;
 }
-/* #15§5-3: 割込フェーダー割当（BGM）／ボタン割当・色（SE）の設定ミニ一覧。
-   検索・ソート・ページングは音源一覧テーブルと共通（同じ libFiltered/libSorted/libPage を使う）。
+/* #16§5: 割込フェーダー割当（BGM）／ボタン割当・色（SE）の設定ミニ一覧。
+   検索・ソート・ページングは検索カード（libSearch/assignPage）専用で、音源一覧テーブルとは完全に独立している。
    割当は候補選択ではなく数字の直接入力で、空欄にすると個別解除される。 */
 function renderLibAssign(kind){
   const body=$(kind==='bgm'?'#libAssignBgm':'#libAssignSe');
-  /* renderLibColumn(kind) already clamped libPage[kind] to the valid range this render pass */
-  const sorted=libSorted(kind);
-  const list=sorted.slice(libPage[kind]*LIB_PAGE,(libPage[kind]+1)*LIB_PAGE);
+  const pager=$(kind==='bgm'?'#libAssignPagerBgm':'#libAssignPagerSe');
+  const sorted=assignSorted(kind);
+  const pages=Math.max(1,Math.ceil(sorted.length/LIB_PAGE));
+  if(assignPage[kind]>=pages)assignPage[kind]=pages-1;
+  const list=sorted.slice(assignPage[kind]*LIB_PAGE,(assignPage[kind]+1)*LIB_PAGE);
   body.innerHTML='';
-  if(!list.length){body.innerHTML='<div class="tiny" style="padding:6px 2px">該当する音源がありません。</div>';return;}
+  if(!list.length){body.innerHTML='<div class="tiny" style="padding:6px 2px">該当する音源がありません。</div>';}
   for(const a of list){
     const row=document.createElement('div');row.className='assignRow';
     row.innerHTML=`<span class="aCid"></span><span class="aName"></span><span class="spacer"></span>
@@ -2898,6 +2926,16 @@ function renderLibAssign(kind){
     }
     body.appendChild(row);
   }
+  pager.innerHTML='';
+  if(pages>1){
+    const prev=document.createElement('button');prev.textContent='← 前';prev.disabled=assignPage[kind]===0;
+    prev.addEventListener('click',()=>{assignPage[kind]--;renderLibrary();});
+    const info=document.createElement('span');info.className='tiny';info.textContent=`${assignPage[kind]+1} / ${pages} ページ`;
+    const next=document.createElement('button');next.textContent='次 →';next.disabled=assignPage[kind]>=pages-1;
+    next.addEventListener('click',()=>{assignPage[kind]++;renderLibrary();});
+    pager.append(prev,info,next);
+  }
+  return sorted.length;
 }
 $('#clearAllFaderBtn').addEventListener('click',()=>{
   if(!confirm('割込フェーダーの割当をすべて解除しますか？\n全BGM音源のフェーダー番号を空欄にします。'))return;
@@ -2907,21 +2945,40 @@ $('#clearAllFaderBtn').addEventListener('click',()=>{
   }
   markDirty();renderPerform();renderLibrary();
 });
-$('#autoIdChk').addEventListener('change',e=>{state.settings.autoCustomId=e.target.checked;markDirty();});
+/* #16§3: SE側の全割当解除。padNoのみ空欄にし、色（padColor）は変更しない */
+$('#clearAllPadBtn').addEventListener('click',()=>{
+  if(!confirm('ポン出しボタンの割当をすべて解除しますか？\n全SE音源のボタン番号を空欄にします。（色は変わりません）'))return;
+  for(const a of state.audios){
+    if(a.kind!=='se')continue;
+    a.padNo=null;
+  }
+  markDirty();renderPerform();renderLibrary();
+});
+/* #16§2-2: 2つのチェックボックスは同じ値を共有し、片方を切り替えたらもう片方も即座に追従する */
+$$('.autoIdChk').forEach(el=>el.addEventListener('change',e=>{
+  state.settings.autoCustomId=e.target.checked;markDirty();
+  $$('.autoIdChk').forEach(x=>x.checked=e.target.checked);
+}));
 function renderLibrary(){
   renderLibSearch();
   $('#tagList').textContent='';
   for(const t of allTags()){const o=document.createElement('option');o.value=t;$('#tagList').appendChild(o);}
+  /* #16§1-3: ID列・名前列は、名前列と同じ操作性・見た目に揃える（非アクティブでも淡色▲▼を常時表示） */
   $$('#libCols th[data-sort]').forEach(th=>{
     const base=th.dataset.label||(th.dataset.label=th.textContent);
     th.innerHTML='';th.append(base);
-    if(libSort[th.dataset.col].key===th.dataset.sort){
+    const active=libSort[th.dataset.col].key===th.dataset.sort;
+    const alwaysShow=th.dataset.sort==='customId'||th.dataset.sort==='name';
+    if(active){
       const s=document.createElement('span');s.className='arw';s.textContent=libSort[th.dataset.col].dir>0?' ▲':' ▼';th.appendChild(s);
+    }else if(alwaysShow){
+      const s=document.createElement('span');s.className='arwPale';s.textContent=' ▲▼';th.appendChild(s);
     }
   });
-  const nb=renderLibColumn('bgm'),ns=renderLibColumn('se');
-  renderLibAssign('bgm');renderLibAssign('se');
-  $('#autoIdChk').checked=!!state.settings.autoCustomId;
+  renderLibColumn('bgm');renderLibColumn('se');
+  /* #16§5: #libCount は検索カード（割当ミニ一覧）の件数を表す */
+  const nb=renderLibAssign('bgm'),ns=renderLibAssign('se');
+  $$('.autoIdChk').forEach(el=>el.checked=!!state.settings.autoCustomId);
   const shown=nb+ns;
   $('#libCount').textContent=shown===state.audios.length
     ?`BGM ${nb} 件 / SE ${ns} 件`
@@ -3005,7 +3062,7 @@ $('#packInput').addEventListener('change',async e=>{
     live.nextSceneId=curScenes()[0]?.id||null;
     if(live.muted){live.muted=false;if(engine.ctx)setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
     draft=newDraft();
-    libPage.bgm=0;libPage.se=0;libSearch.sel.clear();libSearch.query='';libSearch.mode='name';
+    libPage.bgm=0;libPage.se=0;assignPage.bgm=0;assignPage.se=0;libSearch.sel.clear();libSearch.query='';libSearch.mode='name';
     markDirty();applySecOpen();renderAll();
     alert('インポートしました（音源 '+state.audios.length+' 件・シーン '+state.scenes.length+' 件・セッション '+state.sessions.length+' 件）');
   }catch(err){alert('インポートに失敗しました（この端末のデータは変更していません）: '+err.message);}
@@ -3020,7 +3077,7 @@ $('#wipeBtn').addEventListener('click',async()=>{
   live.stops=[];closePanicAsk();
   if(live.muted){live.muted=false;if(engine.ctx)setGainSmooth(engine.master.gain,state.settings.masterAll/1000);}
   draft=newDraft();
-  libPage.bgm=0;libPage.se=0;libSearch.sel.clear();libSearch.query='';libSearch.mode='name';
+  libPage.bgm=0;libPage.se=0;assignPage.bgm=0;assignPage.se=0;libSearch.sel.clear();libSearch.query='';libSearch.mode='name';
   await kvPut('state',JSON.parse(JSON.stringify(state)));
   applySecOpen();renderAll();
 });
@@ -3298,7 +3355,7 @@ $('#demoBtn').addEventListener('click',async()=>{
       const blob=await render(dur,demoBuilders[key]);
       const id=uid();ids[key]=id;
       await blobPut(id,blob);
-      state.audios.push({id,name,kind,customId:nextCustomId(),faderNo,padNo:null,
+      state.audios.push({id,name,kind,customId:nextAutoCustomId(),faderNo,padNo:null,
         padColor:PAD_PALETTE[(n*5)%PAD_PALETTE.length],tags,baseVolume:1000,loop,duration:dur,size:blob.size,type:'audio/wav'});
       drive.scheduleAudioUpload(id);
     }
@@ -3330,7 +3387,7 @@ $('#dummyBtn').addEventListener('click',async()=>{
       const n=start+i;
       const isSe=(i%3===2);
       state.audios.push({id,name:'ダミー'+String(n).padStart(3,'0'),kind:isSe?'se':'bgm',
-        customId:nextCustomId(),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,
+        customId:nextAutoCustomId(),faderNo:null,padNo:null,padColor:PAD_DEFAULT_COLOR,
         tags:['ダミー',isSe?'SE':'BGM','群'+(1+Math.floor(i/50))],
         baseVolume:1000,loop:!isSe,duration:0.05,size:blob.size,type:'audio/wav'});
     }
