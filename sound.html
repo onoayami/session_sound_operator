@@ -67,14 +67,17 @@ main{flex:1;min-height:0;position:relative}
 
 /* ===== master bar (independent of both sections) ===== */
 /* §8-2/§8-3: 停止系3ボタンは各バーの左端。バーは低く、横棒とつまみは小さく */
-#masterBar{flex:none;display:flex;align-items:stretch;gap:18px;flex-wrap:wrap;padding:7px 18px;border-top:1px solid var(--border);background:var(--surface)}
-.mb{display:flex;align-items:center;gap:10px;flex:1 1 320px;min-width:300px;min-height:32px}
+/* #17§5: 全停止・ミュートは3分割の計算に入らない独立領域（#mbStopButtons）に切り出し、
+   #mbFaders の3つの.mbは常にflex-basis 0の等分（flex:1 1 0）で正確な3等分になる */
+#masterBar{flex:none;display:flex;align-items:center;gap:18px;padding:7px 18px;border-top:1px solid var(--border);background:var(--surface)}
+#mbStopButtons{flex:none;display:flex;align-items:center;gap:10px;padding-right:18px;border-right:1px solid var(--border)}
+#mbFaders{flex:1;min-width:0;display:flex;gap:18px}
+.mb{display:flex;align-items:center;gap:10px;flex:1 1 0;min-width:0;min-height:32px}
 /* #15§1: unscoped so 「■ シーン停止」 keeps the exact same look after moving out of #masterBar */
 .mbBtn{flex:none;font-size:12px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;min-width:96px;text-align:center}
 .mb .mbLab{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--text2);white-space:nowrap;width:118px;flex:none}
-.mb.all{padding-right:18px;border-right:1px solid var(--border)}
 .mb.all .mbLab{color:var(--blue)}
-.mb .hslider{flex:1;min-width:96px;max-width:340px;height:6px;border-radius:4px}
+.mb .hslider{flex:1;min-width:60px;max-width:340px;height:6px;border-radius:4px}
 .mb .hslider::-webkit-slider-thumb{width:17px;height:17px;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .mb.all .hslider::-webkit-slider-thumb{background:var(--blue);width:19px;height:19px}
 .mb .mbVal{font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;width:58px;text-align:right;flex:none}
@@ -112,7 +115,9 @@ main{flex:1;min-height:0;position:relative}
 .scGear{position:absolute;right:5px;bottom:3px;padding:1px 6px;font-size:12px;line-height:1.3;border-radius:6px;background:none;border:1px solid transparent}
 .scGear:hover{background:var(--raised);border-color:var(--border)}
 /* transition group: crossfader + GO belong together */
-#transGroup{flex:none;margin:0 14px 8px;border:1px solid var(--border2);border-radius:12px;background:var(--raised);padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center}
+#transGroup{flex:none;margin:6px 14px 8px;border:1px solid var(--border2);border-radius:12px;background:var(--raised);padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center}
+/* #17§4: 見出しはボックス内の左上（左端寄せ）。中身の中央揃えは崩さない */
+#transGroupTitle{align-self:flex-start;padding:0 0 8px;margin:0}
 #goInfo,#manualNote,#transGroup .grpDiv{width:100%}
 #transGroup .grpDiv{border-top:1px solid var(--border);margin:10px 0 0}
 /* the fader, its caption and GO all sit on the panel's horizontal centre axis.
@@ -143,8 +148,8 @@ main{flex:1;min-height:0;position:relative}
 #helpLines .hKey{font-weight:700;color:var(--text)}
 #helpLines .hDesc{color:var(--text3);padding-left:2px}
 #helpLines kbd{margin-right:3px}
-/* #15§1: 「■ シーン停止」はこの行の右端（GO説明のすぐ下、manualNote帯の直後） */
-#helpLines .goRow{display:flex;align-items:center;justify-content:space-between;gap:14px}
+/* #17§3: 「■ シーン停止」はキー操作の説明ブロックの下、単独・中央揃え（元はgoRowの右端にあった） */
+#scenePauseRow{flex:none;display:flex;justify-content:center;padding:0 14px 8px}
 #padHelp{flex:none;padding:2px 14px 10px;font-size:12px;color:var(--text3)}
 #padHelp kbd{margin-right:3px}
 
@@ -299,13 +304,14 @@ tr:last-child td{border-bottom:none}
 /* §3-7 / §3-8: ▼ and ▲ are the same size (two steps smaller than before) and white */
 .pickCaret{font-size:12px;line-height:1;vertical-align:0;margin-left:4px;color:var(--text)}
 /* §3-2: these three buttons match the height of the 再生順 / シーン名 inputs */
-.sc-pick,.sc-temp,.sc-add,.sc-edit,.sc-dup,.sc-del{padding:4px 10px}
+.sc-pick,.sc-temp,.sc-add,.sc-dup,.sc-del{padding:4px 10px}
 /* §3-6: the selected sources are always listed, in white at the size of 「クロスフェード」 */
 .scSelAll{margin-top:6px;padding:6px 9px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.7;font-size:14px;color:var(--text)}
 .scSelAll .selRow{display:flex;align-items:center;gap:8px}
 .scSelAll .selTxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* #13§1: 「音源を編集」— 登録済み音源の音量バー・ループ・間隔・削除 */
-.scEdit{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+/* #17§1: サマリー行の「音源を編集」「削除」ボタン。展開した編集行はインデントして1段下げる */
+.selRow .selEditBtn,.selRow .selDelBtn{flex:none;padding:3px 9px;font-size:12px}
+.selEdit{margin:4px 0 6px 24px;padding-top:6px;border-top:1px solid var(--border)}
 /* #15§3: 行を大きく・音量スライダーを長く・要素を垂直中央揃え */
 .seRow{display:flex;align-items:center;gap:10px;padding:7px 7px;border-radius:6px;font-size:14px}
 .seRow:hover{background:var(--hover)}
@@ -316,8 +322,9 @@ tr:last-child td{border-bottom:none}
 .seRow .seUnit{color:var(--text3);font-size:11px}
 .seRow .lp{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;font-size:14px;color:var(--text2)}
 .seRow .seGap{font-size:11px;color:var(--text3);white-space:nowrap}
+/* #17§1-5: ループOFFのあいだ「ループ間隔」を無効化してグレーアウトする（値は保持） */
+.seRow .seGap.gapOff{opacity:.45}
 .seRow .seGapIn{width:48px;text-align:right;margin:0 2px}
-.seRow .seDel{flex:none;padding:4px 10px}
 .sePct,.seGapIn{-moz-appearance:textfield;appearance:textfield}
 .sePct::-webkit-inner-spin-button,.seGapIn::-webkit-inner-spin-button,
 .sePct::-webkit-outer-spin-button,.seGapIn::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
@@ -368,11 +375,12 @@ dialog h3{font-size:15px}
 @media (max-width:1200px){#libCols{flex-direction:column}.libCol{width:100%}}
 /* narrow: the three masters stack full width and keep the same height */
 @media (max-width:900px){
-  #masterBar{gap:6px;padding:7px 12px}
-  .mb{flex:1 1 100%;min-width:0;min-height:30px}
-  .mb.all{padding-right:0;border-right:none;border-bottom:1px solid var(--border);padding-bottom:6px}
+  #masterBar{flex-direction:column;align-items:stretch;gap:6px;padding:7px 12px}
+  #mbStopButtons{justify-content:center;padding:0 0 6px;border-right:none;border-bottom:1px solid var(--border)}
+  #mbFaders{flex-direction:column;gap:6px}
+  .mb{min-height:30px}
   .mb .mbLab{width:104px;font-size:11px}
-  .mb .mbBtn{min-width:88px;font-size:11px}
+  #mbStopButtons .mbBtn{min-width:88px;font-size:11px}
   .mb .hslider{max-width:none}
 }
 @media (max-width:1000px){#playSplit{flex-direction:column}#listPane{border-right:none;border-bottom:1px solid var(--border)}}
@@ -426,8 +434,9 @@ dialog h3{font-size:15px}
               <div id="sceneList"></div>
             </div>
             <div id="transPane">
-              <div class="colTitle"><span>シーン遷移</span></div>
+              <!-- #17§4: 見出しは区切り線とボックスのあいだの隙間ではなく、ボックスの内側の左上に置く -->
               <div id="transGroup">
+                <div class="colTitle" id="transGroupTitle"><span>シーン遷移</span></div>
                 <div id="xfBlock">
                   <div id="xfRow">
                     <div class="xfSide" id="xfNow"><span class="lab">再生中</span><span class="nm" id="xfNowName">（無音）</span></div>
@@ -442,15 +451,18 @@ dialog h3{font-size:15px}
                 <div id="goInfo"></div>
                 <div id="manualNote">手動フェーダーはフェード時間設定より優先されます</div>
               </div>
-              <!-- #15§1: 「シーン停止」はここ（GO行の右端）へ移動。文言・大きさ・色は不変 -->
+              <!-- #17§3: 「シーン停止」はEnter GO行から外し、説明ブロックの下に単独・中央揃えで配置。
+                   静的マークアップのまま（innerHTMLの作り直しでリスナーが飛ばないように）維持する -->
               <div id="helpLines">
                 <div class="hItem goRow">
                   <div class="hText"><div class="hKey"><kbd>Enter</kbd> GO</div><div class="hDesc">NEXTシーンへ規定の時間で遷移します</div></div>
-                  <button class="mbBtn" id="scenePauseBtn">■ シーン停止</button>
                 </div>
                 <div class="hItem"><div class="hKey"><kbd>←</kbd><kbd>→</kbd> NEXT選択</div><div class="hDesc">セッション内でループします</div></div>
                 <div class="hItem"><div class="hKey" id="spaceKey"><kbd>Space</kbd> シーン停止</div><div class="hDesc" id="spaceDesc">シーンで鳴っている音を全部止めます（ポン出し・割込も止めるなら「■ 全停止」）</div></div>
                 <div class="hItem"><div class="hKey">手動フェーダー</div><div class="hDesc">動かした位置と速度に追従して遷移します</div></div>
+              </div>
+              <div id="scenePauseRow">
+                <button class="mbBtn" id="scenePauseBtn">■ シーン停止</button>
               </div>
             </div>
           </div>
@@ -492,23 +504,28 @@ dialog h3{font-size:15px}
 
     <!-- ---- master bar: belongs to neither section ---- -->
     <!-- #15§1: 全停止・ミュートはMASTER（全体）の左端に横並び。シーン停止はシーン遷移カード側へ移動 -->
+    <!-- #17§5: 全停止・ミュートは3分割の計算に入らない独立領域に切り出し、3フェーダーは常に正確に3等分にする -->
     <div id="masterBar">
-      <div class="mb all">
+      <div id="mbStopButtons">
         <button class="mbBtn danger" id="panicBtn">■ 全停止</button>
         <button class="mbBtn warn" id="muteAllBtn">ミュート</button>
-        <span class="mbLab">MASTER（全体）</span>
-        <input type="range" class="hslider" id="allMaster" min="0" max="1000" step="5">
-        <span class="mbVal" id="allMasterVal"></span>
       </div>
-      <div class="mb">
-        <span class="mbLab">BGM MASTER</span>
-        <input type="range" class="hslider" id="bgmMaster" min="0" max="1000" step="5">
-        <span class="mbVal" id="bgmMasterVal"></span>
-      </div>
-      <div class="mb">
-        <span class="mbLab">SE MASTER</span>
-        <input type="range" class="hslider" id="seMaster" min="0" max="1000" step="5">
-        <span class="mbVal" id="seMasterVal"></span>
+      <div id="mbFaders">
+        <div class="mb all">
+          <span class="mbLab">MASTER（全体）</span>
+          <input type="range" class="hslider" id="allMaster" min="0" max="1000" step="5">
+          <span class="mbVal" id="allMasterVal"></span>
+        </div>
+        <div class="mb">
+          <span class="mbLab">BGM MASTER</span>
+          <input type="range" class="hslider" id="bgmMaster" min="0" max="1000" step="5">
+          <span class="mbVal" id="bgmMasterVal"></span>
+        </div>
+        <div class="mb">
+          <span class="mbLab">SE MASTER</span>
+          <input type="range" class="hslider" id="seMaster" min="0" max="1000" step="5">
+          <span class="mbVal" id="seMasterVal"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -1756,7 +1773,8 @@ function applyPadColor(el,hex){
   const c=/^#[0-9a-fA-F]{6}$/.test(hex||'')?hex:PAD_DEFAULT_COLOR;
   const n=parseInt(c.slice(1),16);
   const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
-  el.style.background=`rgba(${r},${g},${b},.42)`;
+  /* #17§2: 透過度0%＝不透明で塗る（以前は半透明の.42だった） */
+  el.style.background=`rgb(${r},${g},${b})`;
   el.style.borderColor=`rgb(${r},${g},${b})`;
   /* pick readable text for the tint */
   el.style.color=(0.299*r+0.587*g+0.114*b)>150?'#14140f':'var(--text)';
@@ -1988,13 +2006,15 @@ document.addEventListener('keydown',e=>{
 });
 </script>
 <script>
+/* #17§1: サマリー行の文言。ドラッグ中の軽量更新（renderSelEditRow）とも共有する */
+function selRowText(kind,id,v,scene){
+  return `${kind==='BGM'?'🎶':'🎺'} ${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(scene,id)?'ON':'OFF'}`
+    +((kind==='SE'&&sceneLoopOf(scene,id)&&sceneLoopGap(scene,id))?`（間隔 ${sceneLoopGap(scene,id)}秒）`:'');
+}
 function selectedRows(s){
-  const row=(kind,id,v)=>({kind,id,
-    text:`${kind==='BGM'?'🎶':'🎺'} ${kind}【${(audioById(id)||{}).name||'?'}】 音量：${pctText(v)}、ループ：${sceneLoopOf(s,id)?'ON':'OFF'}`
-      +((kind==='SE'&&sceneLoopOf(s,id)&&sceneLoopGap(s,id))?`（間隔 ${sceneLoopGap(s,id)}秒）`:'')});
   const out=[];
-  for(const[id,v]of Object.entries(s.values||{}))if(v>0)out.push(row('BGM',id,v));
-  for(const[id,v]of Object.entries(s.seValues||{}))if(v>0)out.push(row('SE',id,v));
+  for(const[id,v]of Object.entries(s.values||{}))if(v>0)out.push({kind:'BGM',id,text:selRowText('BGM',id,v,s)});
+  for(const[id,v]of Object.entries(s.seValues||{}))if(v>0)out.push({kind:'SE',id,text:selRowText('SE',id,v,s)});
   return out;
 }
 /* §7: 選択済みリストの1行を、そのシーンの登録から外す */
@@ -2356,8 +2376,9 @@ const hasTemp=()=>draftTemp.has(tempKey());
 const tempArmed=new Set();
 const tempIsArmed=()=>tempArmed.has(tempKey());
 let draft=newDraft();
-/* §3-4/#13§1: 「音源選択」「音源を編集」の開閉は再描画（一時保存データに戻す・追加登録など）をまたいで保つ */
-const cardOpen={pick:new Set(),edit:new Set()};
+/* §3-4/#13§1: 「音源選択」の開閉は再描画（一時保存データに戻す・追加登録など）をまたいで保つ。
+   #17§1-4: 展開した編集行の開閉（音源id単位）も同じ仕組みで保つ */
+const cardOpen={pick:new Set(),rows:new Set()};
 /* シーンカード。詳細編集の一覧・✏️ダイアログ・新シーン追加ダイアログで共通に使う。
    opts: {sessionId(), onAdd(draft), addLabel, afterDelete(), noTemp} */
 function sceneCardEl(s,isInput,opts){
@@ -2370,7 +2391,6 @@ function sceneCardEl(s,isInput,opts){
       <span class="scPill">再生番号</span><input class="sc-id" type="number" step="0.1">
       <span class="scPill">シーン名（任意）</span><input class="sc-name">
       <button class="sc-pick">音源選択 <span class="pickCaret">▼</span></button>
-      <button class="sc-edit">音源を編集 <span class="pickCaret">▼</span></button>
       <span class="scPill">マスター音量</span>
       <input class="sc-master hslider" type="range" min="0" max="1000" step="5" style="width:96px">
       <span class="tiny sc-mval"></span>
@@ -2390,14 +2410,12 @@ function sceneCardEl(s,isInput,opts){
       <span class="scPill">OUT方法</span><select class="sc-way sc-outway"></select>
       <span class="fadeOut"><span class="scPill">OUT秒</span> <input class="sc-out" type="number" min="0.1" step="0.1"></span>
     </div>
-    <div class="scEdit" style="display:none"></div>
     <div class="scPick" style="display:none"></div>`;
   const idIn=card.querySelector('.sc-id'),nameIn=card.querySelector('.sc-name'),
         outWay=card.querySelector('.sc-outway'),inWay=card.querySelector('.sc-inway'),
         outIn=card.querySelector('.sc-out'),inIn=card.querySelector('.sc-in'),
         mIn=card.querySelector('.sc-master'),mVal=card.querySelector('.sc-mval'),
-        pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick'),
-        editWrap=card.querySelector('.scEdit'),editBtn=card.querySelector('.sc-edit');
+        pick=card.querySelector('.scPick'),pickBtn=card.querySelector('.sc-pick');
   if(isInput)card.querySelector('.sc-add').textContent=opts.addLabel||'＋ 追加登録';
   fillWayOptions(outWay,s.outMode);
   fillWayOptions(inWay,s.inMode);
@@ -2428,19 +2446,53 @@ function sceneCardEl(s,isInput,opts){
     }
   };
   syncFade();
-  /* §1: 選択済みリストは常時表示。BGMは🎶・SEは🎺のマークを先頭に付ける */
+  /* 音源選択: BGM一覧（左）／SE一覧（右）。🔼 でそのシーンに入れる・外す（openKeyはrenderSelでも使う） */
+  const openKey=isInput?(opts.onAdd?null:'input'):('scene:'+s.id);
+  /* #17§1-4: 展開した編集行の開閉はopenKeyがあれば再描画をまたいで保持、モーダル（openKeyなし）はカード内だけで保持 */
+  const localRowsOpen=new Set();
+  const isRowOpen=k=>openKey?cardOpen.rows.has(openKey+':'+k):localRowsOpen.has(k);
+  const setRowOpen=(k,open)=>{
+    if(openKey){const kk=openKey+':'+k;open?cardOpen.rows.add(kk):cardOpen.rows.delete(kk);}
+    else{open?localRowsOpen.add(k):localRowsOpen.delete(k);}
+  };
+  /* §1: 選択済みリストは常時表示。BGMは🎶・SEは🎺のマークを先頭に付ける。
+     #17§1: 各行に「音源を編集」「削除」を付け、押すとその行の直下にアコーディオンで展開する */
   const renderSel=()=>{
     const rows=selectedRows(s);
-    selAll.style.display=rows.length?'':'none';
-    selAll.innerHTML=rows.map(()=>'<div class="selRow"><span class="selTxt"></span></div>').join('');
-    [...selAll.children].forEach((d,i)=>{d.querySelector('.selTxt').textContent=rows[i].text;});
+    selAll.style.display='';
+    if(!rows.length){
+      selAll.innerHTML='<div class="tiny" style="padding:6px 2px">まだ音源が入っていません。「音源選択」から追加してください。</div>';
+      return;
+    }
+    selAll.innerHTML=rows.map(r=>{
+      const open=isRowOpen(r.kind+':'+r.id);
+      return `<div class="selGroup">
+        <div class="selRow">
+          <span class="selTxt"></span>
+          <button class="iconbtn selEditBtn">音源を編集 <span class="pickCaret">${open?'▲':'▼'}</span></button>
+          <button class="iconbtn danger selDelBtn">削除</button>
+        </div>
+        <div class="selEdit" style="display:${open?'':'none'}"></div>
+      </div>`;
+    }).join('');
+    [...selAll.children].forEach((g,i)=>{
+      const r=rows[i],key=r.kind+':'+r.id;
+      g.querySelector('.selTxt').textContent=r.text;
+      g.querySelector('.selEditBtn').addEventListener('click',()=>{
+        setRowOpen(key,!isRowOpen(key));renderSel();
+      });
+      g.querySelector('.selDelBtn').addEventListener('click',()=>{
+        /* removeFromScene() は renderEditView() までフルで再描画するので、ここでの再描画は不要 */
+        setRowOpen(key,false);removeFromScene(s,r.kind,r.id);
+      });
+      if(isRowOpen(key)){
+        renderSelEditRow(g.querySelector('.selEdit'),s,r,
+          ()=>{g.querySelector('.selTxt').textContent=selRowText(r.kind,r.id,(r.kind==='BGM'?s.values:s.seValues)[r.id]||0,s);},
+          ()=>renderSel());
+      }
+    });
   };
   renderSel();
-  /* §1: 「音源を編集」— 登録済み音源の音量バー・ループ・削除をリスト内で編集する */
-  const renderEdit=()=>{
-    if(editWrap.style.display==='none')return;
-    renderSceneEditRows(editWrap,s,()=>{renderSel();renderEdit();});
-  };
   /* #15§4: heavy=false while a slider is mid-drag — updates the value and live audio
      but skips the full renderPerform() rebuild (指摘13). The 'change' event that
      fires once the drag ends always commits with heavy=true, so nothing is lost. */
@@ -2484,7 +2536,6 @@ function sceneCardEl(s,isInput,opts){
   mIn.addEventListener('input',()=>{mVal.textContent=pctText(mIn.value);commit(false);});
   mIn.addEventListener('change',()=>{commit();if(!isInput&&!opts.onAdd)renderSceneCards();});
   /* 音源選択: BGM一覧（左）／SE一覧（右）。🔼 でそのシーンに入れる・外す */
-  const openKey=isInput?(opts.onAdd?null:'input'):('scene:'+s.id);
   const setPickOpen=open=>{
     pick.style.display=open?'':'none';
     pickBtn.innerHTML='音源選択 <span class="pickCaret">'+(open?'▲':'▼')+'</span>';
@@ -2493,23 +2544,14 @@ function sceneCardEl(s,isInput,opts){
   pickBtn.addEventListener('click',()=>{
     const open=pick.style.display==='none';
     setPickOpen(open);
-    if(open)renderPicker(pick,s,()=>{renderSel();renderEdit();});
+    if(open)renderPicker(pick,s,()=>{renderSel();});
     if(!open)stopPreviewSrc();
   });
-  /* §1: 「音源を編集」のトグルは「音源選択」と同じ見た目・挙動 */
-  const setEditOpen=open=>{
-    editWrap.style.display=open?'':'none';
-    editBtn.innerHTML='音源を編集 <span class="pickCaret">'+(open?'▲':'▼')+'</span>';
-    if(openKey){open?cardOpen.edit.add(openKey):cardOpen.edit.delete(openKey);}
-    if(open)renderEdit();
-  };
-  editBtn.addEventListener('click',()=>setEditOpen(editWrap.style.display==='none'));
-  /* §3-4: 一時保存データに戻したあとも「音源選択」「音源を編集」の開閉状態を保つ（登録済みカードも同じ） */
+  /* §3-4: 一時保存データに戻したあとも「音源選択」の開閉状態を保つ（登録済みカードも同じ） */
   if(openKey&&cardOpen.pick.has(openKey)){
     setPickOpen(true);
-    renderPicker(pick,s,()=>{renderSel();renderEdit();});
+    renderPicker(pick,s,()=>{renderSel();});
   }
-  if(openKey&&cardOpen.edit.has(openKey))setEditOpen(true);
   /* ---- 一時保存（入力カードはセッション単位、登録済みシーンはシーン単位） ---- */
   const tKey=isInput?tempKey():('scene:'+s.id);
   const armed=()=>tempArmed.has(tKey);
@@ -2581,65 +2623,62 @@ function sceneCardEl(s,isInput,opts){
   }
   return card;
 }
-/* §1: 「音源を編集」のリスト — 登録済み音源の音量バー・%・ループ・ループ間隔・削除 */
-function renderSceneEditRows(container,scene,onChange){
+/* #17§1: サマリー行の直下に展開する編集行 — 音源名・音量バー・%・ループ・（SEのみ）ループ間隔。
+   削除ボタンはサマリー行にだけ置くのでここには無い（§1-4）。
+   onLight: input（ドラッグ中）のたびに呼ぶ軽量更新（サマリー行の文字だけ書き換える）。
+   onHeavy: change（確定時）に呼ぶ、選択済みリスト全体の再描画。 */
+function renderSelEditRow(container,scene,r,onLight,onHeavy){
   container.innerHTML='';
-  const rows=selectedRows(scene);
-  if(!rows.length){
-    container.innerHTML='<div class="tiny" style="padding:6px 2px">まだ音源が入っていません。「音源選択」から追加してください。</div>';
-    return;
-  }
-  for(const r of rows){
-    const a=audioById(r.id)||{name:'?'};
-    const bag=r.kind==='BGM'?scene.values:scene.seValues;
-    const row=document.createElement('div');row.className='seRow';
-    row.innerHTML=`<span class="seMark"></span><span class="seName"></span>
-      <input type="range" class="hslider seVol" min="0" max="1000" step="5">
-      <input class="sePct pctIn" type="number" min="0" max="100" step="0.1"><span class="seUnit">%</span>
-      <label class="lp"><span class="lpTxt">ループ</span><input type="checkbox" class="seLoop"></label>
-      <span class="seGap" style="display:none">ループ間隔の指定：<input class="seGapIn pctIn" type="number" min="0" step="0.1">秒</span>
-      <button class="seDel danger" title="このシーンから外す">削除</button>`;
-    row.querySelector('.seMark').textContent=r.kind==='BGM'?'🎶':'🎺';
-    row.querySelector('.seName').textContent=a.name;row.querySelector('.seName').title=a.name;
-    const sl=row.querySelector('.seVol'),num=row.querySelector('.sePct');
-    sl.value=bag[r.id]||0;num.value=fmtPct(bag[r.id]||0);
-    /* #15§4: onChange rebuilds this whole row list — calling it on every drag tick would
-       tear down the very slider the user is dragging (the reported 明滅/flicker bug).
-       heavy=false (input) just updates the value and live audio; heavy=true (change,
-       once the drag ends) does the full onChange rebuild, same as before. */
-    const apply=(v,heavy=true)=>{
-      if(v>0)bag[r.id]=v;else delete bag[r.id];
-      if(scene.id===live.currentSceneId&&!live.trans){
-        live.currentValues=sceneValuesOf(scene);
-        startNeededChannels(live.currentValues).then(applyMix);
-        for(const b of bgmAudios())if(effectiveValue(b.id)<=0)stopChannel(b.id);
-        applyMix();
-      }
-      markDirty();
-      if(heavy)onChange&&onChange();
-    };
-    sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v,false);});
-    num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v,false);});
-    sl.addEventListener('change',()=>apply(Number(sl.value)));
-    num.addEventListener('change',()=>apply(pctToVal(num.value)));
-    const lp=row.querySelector('.seLoop'),gap=row.querySelector('.seGap'),gapIn=row.querySelector('.seGapIn');
-    lp.checked=sceneLoopOf(scene,r.id);
-    const syncGap=()=>{gap.style.display=(r.kind==='SE'&&lp.checked)?'':'none';};
-    gapIn.value=sceneLoopGap(scene,r.id);
-    syncGap();
-    lp.addEventListener('change',()=>{
-      if(!scene.loops)scene.loops={};
-      scene.loops[r.id]=lp.checked;
-      applySceneLoopChange(scene,r.id,lp.checked);
-      syncGap();markDirty();onChange&&onChange();
-    });
-    gapIn.addEventListener('change',()=>{
-      setSceneLoopGap(scene,r.id,gapIn.value);
-      markDirty();onChange&&onChange();
-    });
-    row.querySelector('.seDel').addEventListener('click',()=>removeFromScene(scene,r.kind,r.id));
-    container.appendChild(row);
-  }
+  const a=audioById(r.id)||{name:'?'};
+  const bag=r.kind==='BGM'?(scene.values||(scene.values={})):(scene.seValues||(scene.seValues={}));
+  const row=document.createElement('div');row.className='seRow';
+  row.innerHTML=`<span class="seMark"></span><span class="seName"></span>
+    <input type="range" class="hslider seVol" min="0" max="1000" step="5">
+    <input class="sePct pctIn" type="number" min="0" max="100" step="0.1"><span class="seUnit">%</span>
+    <label class="lp"><span class="lpTxt">ループ</span><input type="checkbox" class="seLoop"></label>
+    <span class="seGap" style="display:none">ループ間隔の指定：<input class="seGapIn pctIn" type="number" min="0" step="0.1">秒</span>`;
+  row.querySelector('.seMark').textContent=r.kind==='BGM'?'🎶':'🎺';
+  row.querySelector('.seName').textContent=a.name;row.querySelector('.seName').title=a.name;
+  const sl=row.querySelector('.seVol'),num=row.querySelector('.sePct');
+  sl.value=bag[r.id]||0;num.value=fmtPct(bag[r.id]||0);
+  /* #15§4/#17§1-6: heavy=false（ドラッグ中）はサマリー行の文字だけ軽量に書き換え、
+     全体の再描画（onHeavy）は change（確定時）だけで行う。 */
+  const apply=(v,heavy)=>{
+    if(v>0)bag[r.id]=v;else delete bag[r.id];
+    if(scene.id===live.currentSceneId&&!live.trans){
+      live.currentValues=sceneValuesOf(scene);
+      startNeededChannels(live.currentValues).then(applyMix);
+      for(const b of bgmAudios())if(effectiveValue(b.id)<=0)stopChannel(b.id);
+      applyMix();
+    }
+    markDirty();
+    if(heavy)onHeavy&&onHeavy();else onLight&&onLight();
+  };
+  sl.addEventListener('input',()=>{const v=Number(sl.value);num.value=fmtPct(v);apply(v,false);});
+  num.addEventListener('input',()=>{const v=pctToVal(num.value);sl.value=v;apply(v,false);});
+  sl.addEventListener('change',()=>apply(Number(sl.value),true));
+  num.addEventListener('change',()=>apply(pctToVal(num.value),true));
+  const lp=row.querySelector('.seLoop'),gap=row.querySelector('.seGap'),gapIn=row.querySelector('.seGapIn');
+  lp.checked=sceneLoopOf(scene,r.id);
+  /* #17§1-5: ループOFFのあいだ「ループ間隔」を無効化してグレーアウトする（値は破棄せず保持） */
+  const syncGap=()=>{
+    gap.style.display=(r.kind==='SE')?'':'none';
+    gapIn.disabled=!lp.checked;
+    gap.classList.toggle('gapOff',!lp.checked);
+  };
+  gapIn.value=sceneLoopGap(scene,r.id)||'';
+  syncGap();
+  lp.addEventListener('change',()=>{
+    if(!scene.loops)scene.loops={};
+    scene.loops[r.id]=lp.checked;
+    applySceneLoopChange(scene,r.id,lp.checked);
+    syncGap();markDirty();onHeavy&&onHeavy();
+  });
+  gapIn.addEventListener('change',()=>{
+    setSceneLoopGap(scene,r.id,gapIn.value);
+    markDirty();onHeavy&&onHeavy();
+  });
+  container.appendChild(row);
 }
 function renderSceneCards(){
   const wrap=$('#sceneCards');wrap.innerHTML='';
